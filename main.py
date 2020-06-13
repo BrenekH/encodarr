@@ -27,6 +27,9 @@ def randomNumberGenerator():
 		socketio.emit('newnumber', {'number': number}, namespace='/websocket')
 		socketio.sleep(5)
 
+def run_redcedar():
+	RedCedar(socketio, Path("/usr/app/tosearch")).run()
+
 @app.route('/')
 def index():
 	#only by sending this page first will the client be connected to the socketio instance
@@ -48,5 +51,5 @@ def test_disconnect():
 	print('Client disconnected')
 
 if __name__ == '__main__':
-	socketio.start_background_task(RedCedar(socketio, Path("/usr/app/tosearch")).run)
+	socketio.start_background_task(run_redcedar)
 	socketio.run(app)
