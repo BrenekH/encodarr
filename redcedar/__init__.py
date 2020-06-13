@@ -34,7 +34,7 @@ class RedCedar:
 
 	def run(self, path_to_search: Path=None):
 		if path_to_search == None:
-			path_to_search == self.cwd
+			path_to_search = self.cwd
 
 		# Make sure output.m4v doesn't exist
 		if sys.version_info[1] >= 8:
