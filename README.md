@@ -1,3 +1,3 @@
-# Project Redcedar Web Edition
+# Project RedCedar Web
 
-Docker-based webapp for the handbrake-based [Project Redcedar](http://github.com/zPaw/project-redcedar)
+Docker-based webapp for the handbrake-based [Project RedCedar](http://github.com/zPaw/project-redcedar)

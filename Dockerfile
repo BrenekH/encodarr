@@ -8,4 +8,4 @@ RUN apt-get update -qq && apt-get install -qq -y software-properties-common && a
 
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
-CMD python3 rc_worker.py
+CMD ["python3", "main.py"]

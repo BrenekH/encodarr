@@ -1,5 +1,6 @@
 import sys, time
 from datetime import timedelta
+from flask_socketio import SocketIO, emit
 from json import dump, load, loads
 from json.decoder import JSONDecodeError
 from pathlib import Path
@@ -7,24 +8,31 @@ from subprocess import DEVNULL, PIPE, Popen
 from typing import List, Tuple
 
 class RedCedar:
-	def __init__(self):
-		self.printer = Printer()
+	def __init__(self, socketio: SocketIO, current_working_directory: Path=Path.cwd()):
+		"""Object to manage and run RedCedar operations.
+
+		Args:
+			current_working_directory (Path, optional): The directory that RedCedar uses for the output file and the memory file. Defaults to Path.cwd().
+		"""
+		self.cwd = current_working_directory
+		self.socket_io = socketio
+		
 		self.video_file_paths = []
 
 		self.total_start_time = 0.0
 		self.current_start_time = 0.0
 
 		self._completed_videos = {"completed": []}
-		self._completed_videos_path = Path.cwd() / "completed_videos.json"
+		self._completed_videos_path = self.cwd / "completed_videos.json"
 
 		if self._completed_videos_path.exists():
 			self._completed_videos = load(open(self._completed_videos_path))
 		else:
 			self.save_completed_videos_json()
 
-		self.output_file = Path.cwd() / "output.m4v"
+		self.output_file = self.cwd / "output.m4v"
 
-	def run(self, path_to_search: Path = Path.cwd()):
+	def run(self, path_to_search: Path=self.cwd):
 
 		# Make sure output.m4v doesn't exist
 		if sys.version_info[1] >= 8:
@@ -114,6 +122,7 @@ class RedCedar:
 		working = json_obj["Working"]
 		current_time = time.time()
 		# self.printer.output(f"Total Time: {timedelta(seconds=(current_time - self.total_start_time))}; File: {job_number}/{len(self.video_file_paths)}; Current ETA: {timedelta(seconds=working['ETASeconds'])}; Current Time: {timedelta(seconds=(current_time - self.current_start_time))}; {round(working['Progress'] * 100, 2)}%; FPS: {round(working['Rate'], 3)}; Avg FPS: {round(working['RateAvg'], 3)}")
+		self.broadcast_status_update(timedelta(seconds=(current_time - self.total_start_time)), f"{job_number}/{len(self.video_file_paths)}", timedelta(seconds=working['ETASeconds']), timedelta(seconds=(current_time - self.current_start_time)), f"{round(working['Progress'] * 100, 2)}%", round(working['Rate'], 3), round(working['RateAvg'], 3))
 
 	def get_video_file_paths(self, top_path: Path) -> List[Path]:
 		video_file_types = [".m4v", ".mp4", ".mkv", ".avi"]
@@ -129,18 +138,13 @@ class RedCedar:
 	def check_video_complete(self, path: Path) -> bool:
 		return (str(path).replace(path.suffix, "") in self._completed_videos["completed"])
 
-class Printer:
-	def __init__(self):
-		self.last_message = ""
-
-	def output(self, message):
-		if len(self.last_message) > len(message):
-			message = message + (" " * (len(self.last_message) - len(message)))
-		
-		# print(message, end="\r", flush=True)
-
-		self.last_message = message.rstrip()
-
-	def finish(self):
-		# print()
-		pass
+	def broadcast_status_update(self, total_time, file_progress, current_eta, current_time, percentage, current_fps, avg_fps):
+		self.socket_io.emit("status_update", {
+												"total_time": total_time,
+												"file_progress": file_progress,
+												"current_eta": current_eta,
+												"current_time": current_time,
+												"percentage": percentage,
+												"current_fps": current_fps,
+												"avg_fps": avg_fps
+											}, namespace="/websocket")

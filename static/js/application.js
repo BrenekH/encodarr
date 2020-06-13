@@ -19,4 +19,8 @@ $(document).ready(function(){
         $('#log').html(numbers_string);
     });
 
+    socket.on('status_updated', function(msg) {
+        console.log("Received: " + msg);
+    });
+
 });

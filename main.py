@@ -1,8 +1,10 @@
 from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, url_for, copy_current_request_context
+from pathlib import Path
 from random import random
 from threading import Thread, Event
 from time import sleep
+from redcedar import RedCedar
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'my_secret'
@@ -18,10 +20,7 @@ thread_stop_event = Event()
 def randomNumberGenerator():
 	"""
 	Generate a random number every 1 second and emit to a socketio instance (broadcast)
-	Ideally to be run in a separate thread?
 	"""
-	#infinite loop of magical random numbers
-	print("Making random numbers")
 	while not thread_stop_event.isSet():
 		number = round(random()*10, 3)
 		print(number)
@@ -49,4 +48,5 @@ def test_disconnect():
 	print('Client disconnected')
 
 if __name__ == '__main__':
+	socketio.start_background_task(RedCedar(socketio, Path("/usr/app/tosearch")).run)
 	socketio.run(app)
