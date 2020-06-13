@@ -7,8 +7,8 @@ $(document).ready(function(){
     //receive details from server
     socket.on('newnumber', function(msg) {
         console.log("Received number" + msg.number);
-        //maintain a list of ten numbers
-        if (numbers_received.length >= 10){
+        //maintain a list of two numbers
+        if (numbers_received.length >= 2){
             numbers_received.shift()
         }            
         numbers_received.push(msg.number);
@@ -19,8 +19,8 @@ $(document).ready(function(){
         $('#log').html(numbers_string);
     });
 
-    socket.on('status_updated', function(msg) {
-        console.log("Received: " + msg);
+    socket.on('status_update', function(json_obj) {
+        
     });
 
 });

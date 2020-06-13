@@ -37,11 +37,8 @@ class RedCedar:
 			path_to_search = self.cwd
 
 		# Make sure output.m4v doesn't exist
-		if sys.version_info[1] >= 8:
-			self.output_file.unlink(missing_ok=True)
-		else:
-			if self.output_file.exists():
-				self.output_file.unlink()
+		if self.output_file.exists():
+			self.output_file.unlink()
 
 		self.video_file_paths = self.get_video_file_paths(path_to_search)
 
@@ -80,15 +77,10 @@ class RedCedar:
 						if not json_string.strip() == "":
 							self.output_from_json(json_string, indx)
 						record_json, json_string = (False, "")
-			
-			self.printer.finish()	# Ensures the next print statement doesn't overwrite the progress line
 
 			# Remove original file
-			if sys.version_info[1] >= 8:
-				path.unlink(missing_ok=True)
-			else:
-				if path.exists():
-					path.unlink()
+			if path.exists():
+				path.unlink()
 
 			# Move output.m4v to take the original file's place
 			if self.output_file.exists():
@@ -125,6 +117,7 @@ class RedCedar:
 		current_time = time.time()
 		# self.printer.output(f"Total Time: {timedelta(seconds=(current_time - self.total_start_time))}; File: {job_number}/{len(self.video_file_paths)}; Current ETA: {timedelta(seconds=working['ETASeconds'])}; Current Time: {timedelta(seconds=(current_time - self.current_start_time))}; {round(working['Progress'] * 100, 2)}%; FPS: {round(working['Rate'], 3)}; Avg FPS: {round(working['RateAvg'], 3)}")
 		self.broadcast_status_update(timedelta(seconds=(current_time - self.total_start_time)), f"{job_number}/{len(self.video_file_paths)}", timedelta(seconds=working['ETASeconds']), timedelta(seconds=(current_time - self.current_start_time)), f"{round(working['Progress'] * 100, 2)}%", round(working['Rate'], 3), round(working['RateAvg'], 3))
+		self.socket_io.sleep(1)
 
 	def get_video_file_paths(self, top_path: Path) -> List[Path]:
 		video_file_types = [".m4v", ".mp4", ".mkv", ".avi"]
@@ -142,11 +135,11 @@ class RedCedar:
 
 	def broadcast_status_update(self, total_time, file_progress, current_eta, current_time, percentage, current_fps, avg_fps):
 		self.socket_io.emit("status_update", {
-												"total_time": total_time,
-												"file_progress": file_progress,
-												"current_eta": current_eta,
-												"current_time": current_time,
-												"percentage": percentage,
-												"current_fps": current_fps,
-												"avg_fps": avg_fps
+												"total_time": str(total_time),
+												"file_progress": str(file_progress),
+												"current_eta": str(current_eta),
+												"current_time": str(current_time),
+												"percentage": str(percentage),
+												"current_fps": str(current_fps),
+												"avg_fps": str(avg_fps)
 											}, namespace="/websocket")

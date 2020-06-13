@@ -52,4 +52,4 @@ def test_disconnect():
 
 if __name__ == '__main__':
 	socketio.start_background_task(run_redcedar)
-	socketio.run(app)
+	socketio.run(app, host="0.0.0.0")
