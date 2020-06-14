@@ -1,27 +1,128 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
-		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
-		<script src="static/js/application.js"></script>
-
-		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<!-- CSS -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+		<link rel="stylesheet" href="static/css/main.css">
 	</head>
 	<body>
 		<div class="container">
-			<div class="jumbotron">
-				<h1>Project Redcedar</h1>
-				<p>Recursively encode videos to be smaller.</p>
-			</div>
-		</div>
-
-		<div class="container" id="content">
 			<div class="row">
-				<p>Asynchronous page updates will appear here:</p>
-				<h3>Number list:</h3>
-				<div id="log">
+				<div class="col">
+					<div class="header-content text-center">
+						<h1>Project RedCedar</h1>
+						<p>Recursively encode videos in a directory to be smaller.</p>
+					</div>
+				</div>
+			</div>
+			<hr>
+
+			<!-- Current Stats -->
+			<div class="row">
+				<div class="col">
+					<h6 class="total-time-label text-right">Total Time:</h6>
+				</div>
+				<div class="col total-time">
+					<p id="total-time">00:00:00.0000000</p>
+				</div>
+				<div class="col">
+					<h6 class="file-counter-label text-right">File Counter:</h6>
+				</div>
+				<div class="col file-counter">
+					<p id="file-counter">10/512</p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col current-file-header text-center">
+					<h5>Current File</h5>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-auto current-file">
+					<p class="text-break" id="current-file">/very/long/file/path/because/i/can/and/willneed/to/deal/with/it/eventually/and/what/if/there/is/more/than/the/original.txt</p>
+				</div>
+				<div class="col-sm-auto percent-complete text-center">50% Complete</div>
+			</div>
+			<div class="row">
+				<div class="col">
+					<h6 class="current-time-running-label text-right">Current File Time:</h6>
+				</div>
+				<div class="col current-time-running">
+					<p id="current-time-running">00:00:00.0000000</p>
+				</div>
+				<div class="col">
+					<h6 class="fps-label text-right">Current FPS:</h6>
+				</div>
+				<div class="col fps">
+					<p id="fps">10.000</p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col">
+					<h6 class="completion-estimate-label text-right">Estimated Time Remaining:</h6>
+				</div>
+				<div class="col completion-estimate">
+					<p id="completion-estimate">00:00:00.0000000</p>
+				</div>
+				<div class="col">
+					<h6 class="avg-fps-label text-right">Average FPS:</h6>
+				</div>
+				<div class="col avg-fps">
+					<p id="avg-fps">5.000</p>
+				</div>
+			</div>
+
+			<!-- Completed Files Log -->
+			<div class="row">
+				<div class="col completed-header text-center">
+					<h5>Completed Files</h5>
+				</div>
+			</div>
+			<div id="completed-log">
+				<div class="row text-center">	<!-- Completed example -->
+					<div class="col completed-file-path">
+						<p class="text-break">/very/long/file/path/because/i/can/and/willneed/to/deal/with/it/eventually/and/what/if/there/is/more/than/the/original.otherext</p>
+					</div>
+					<div class="col completed-avg-fps">10.000</div>
+					<div class="col completed-time">00:00:00.0000000</div>
+					<div class="col completed-timestamp">1/1/2000 00:00:00.000000</div>
+				</div>
+			</div>
+
+			<!-- Skipped Files Log -->
+			<div class="row">
+				<div class="col skipped-header text-center">
+					<h5>Skipped Files</h5>
+				</div>
+			</div>
+			<div class="skipped-log text-center">
+				<div class="row">	<!-- Skipped example -->
+					<div class="col skipped-file-path">
+						<p class="text-break">/short/because/i/feel/like/Plex Versions/it.txt</p>
+					</div>
+					<div class="col skipped-status text-center"> <p>Skipped</p> </div>
+					<div class="col skipped-reason">
+						<p class="text-break">Found &quot;Plex Versions&quot; in its path</p>
+					</div>
+					<div class="col completed-timestamp">
+						<p>1/1/2000 00:00:00.000000</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Just so the numbers thing still works -->
+			<div class="row">
+				<div class="col">
+					<div id="log"></div>
 				</div>
 			</div>
 		</div>
+
+		<!-- Javascript -->
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+		<script src="static/js/application.js"></script>
 	</body>
 </html>

@@ -1,0 +1,12 @@
+Client Side:
+	Auto Updating Information:
+		☐ Properly handle status_update
+		☐ Properly handle connect_info
+
+Server Side:
+	Send state of all files when client connects:
+		☐ Implement queue between RedCedar and Web Server
+		☐ RedCedar emits "connect_info" event when queue has new connection string
+			☐ Only does once per loop to prevent oversending info to clients
+	Misc:
+		☐ Strip floating points from timestamps

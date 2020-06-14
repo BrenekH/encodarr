@@ -23,4 +23,8 @@ $(document).ready(function(){
         
     });
 
+    socket.on('connect_info', function(json_obj) {
+
+    });
+
 });
