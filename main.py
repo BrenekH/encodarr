@@ -2,6 +2,7 @@ from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, url_for, copy_current_request_context
 from pathlib import Path
 from random import random
+from sys import argv
 from threading import Thread, Event
 from time import sleep
 from redcedar import RedCedar
@@ -51,5 +52,9 @@ def test_disconnect():
 	print('Client disconnected')
 
 if __name__ == '__main__':
-	socketio.start_background_task(run_redcedar)
+	if len(argv) > 1 and argv[1] == "noredcedar":
+		print("Running without RedCedar background process")
+	else:
+		print("Starting redcedar")
+		socketio.start_background_task(run_redcedar)
 	socketio.run(app, host="0.0.0.0")
