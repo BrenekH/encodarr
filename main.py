@@ -17,6 +17,7 @@ socketio = SocketIO(app, async_mode=None, logger=True, engineio_logger=True)
 #random number Generator Thread
 thread = Thread()
 thread_stop_event = Event()
+no_numbers = False
 
 def randomNumberGenerator():
 	"""
@@ -43,7 +44,7 @@ def test_connect():
 	print('Client connected')
 
 	#Start the random number generator thread only if the thread has not been started before.
-	if not thread.isAlive():
+	if not no_numbers and not thread.isAlive():
 		print("Starting Thread")
 		thread = socketio.start_background_task(randomNumberGenerator)
 
@@ -52,9 +53,11 @@ def test_disconnect():
 	print('Client disconnected')
 
 if __name__ == '__main__':
-	if len(argv) > 1 and argv[1] == "noredcedar":
+	if "noredcedar" in argv:
 		print("Running without RedCedar background process")
 	else:
 		print("Starting redcedar")
 		socketio.start_background_task(run_redcedar)
+	if "nonumbers" in argv:
+		no_numbers = True
 	socketio.run(app, host="0.0.0.0")
