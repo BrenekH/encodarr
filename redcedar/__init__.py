@@ -4,18 +4,20 @@ from flask_socketio import SocketIO, emit
 from json import dump, load, loads
 from json.decoder import JSONDecodeError
 from pathlib import Path
+from queue import Queue
 from subprocess import DEVNULL, PIPE, Popen
 from typing import List, Tuple
 
 class RedCedar:
-	def __init__(self, socketio: SocketIO, current_working_directory: Path=Path.cwd()):
-		"""Object to manage and run RedCedar operations.
+	def __init__(self, socketio: SocketIO, communication_queue: Queue, current_working_directory: Path=Path.cwd()):
+		"""Class to manage and run RedCedar operations.
 
 		Args:
 			current_working_directory (Path, optional): The directory that RedCedar uses for the output file and the memory file. Defaults to Path.cwd().
 		"""
 		self.cwd = current_working_directory
 		self.socket_io = socketio
+		self.comm_queue = communication_queue
 		
 		self.video_file_paths = []
 
@@ -45,17 +47,19 @@ class RedCedar:
 		self.total_start_time = time.time()
 
 		for indx, path in enumerate(self.video_file_paths, start=1):	# enumerate returns (the index, the value) on every loop
-			# print(f"{Fore.GREEN}Starting {self.path_color}{path}{Fore.RESET}")
+			# TODO: Emit current_file_update
 			self.current_start_time = time.time()
 
 			# Make sure file isn't an 'optimized version' by Plex
 			if "Plex Versions" in str(path):
-				# print(f"{Fore.YELLOW}Skipping {self.path_color}{path}{Fore.YELLOW} because it contains '{Fore.BLUE}Plex Versions{Fore.YELLOW}'{Fore.RESET}")
+				# TODO: Emit Plex Versions skip event
+				# TODO: Add to skipped files storage
 				continue
 
 			# Make sure we haven't already encoded this file previously
-			if self.check_video_complete(path):
-				# print(f"{Fore.YELLOW}Skipping {self.path_color}{path}{Fore.YELLOW} because it is marked in {Fore.BLUE}completed_videos.json{Fore.YELLOW} as already transcoded.{Fore.RESET}")
+			elif self.check_video_complete(path):
+				# TODO: Emit previously encoded skip event
+				# TODO: Add to skipped files storage
 				continue
 
 			if self.output_file.exists():
@@ -63,6 +67,7 @@ class RedCedar:
 
 			# Run handbrake cli and save to output.m4v
 			handbrake_command = f"HandBrakeCLI -i \"{path}\" -o output.m4v -e x265 --optimize --json"
+			latest_avg_fps = 0.000
 			with Popen([handbrake_command], stdout=PIPE, stderr=DEVNULL, bufsize=1, shell=True, universal_newlines=True) as p:
 				record_json, json_string = (False, "")
 				for line in p.stdout:
@@ -75,8 +80,12 @@ class RedCedar:
 
 					elif line.startswith("}"):
 						if not json_string.strip() == "":
-							self.output_from_json(json_string, indx)
+							successful, value = self.output_from_json(json_string, indx)
+							if successful:
+								latest_avg_fps = value
 						record_json, json_string = (False, "")
+					
+					# TODO: Check for new connections and emit new_connection event when there are
 
 			# Remove original file
 			if path.exists():
@@ -87,18 +96,18 @@ class RedCedar:
 				self.output_file.rename(path.with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
 
 			self.mark_video_complete(path)
-			# print(f"{Fore.MAGENTA}Conversion complete{Fore.RESET} for {self.path_color}{path}{Fore.RESET}.")
+			# TODO: Emit file_complete event
 		
 		print("RedCedar Complete")
 
-	def output_from_json(self, json_string, job_number=1) -> Tuple[bool, str]:
+	def output_from_json(self, json_string, job_number=1) -> Tuple[bool, object]:
 		"""Outputs data from the given json_string
 
 		Args:
 			json_string (str): The string to get data from
 
 		Returns:
-			Tuple[bool, str]: If the function outputted and why the function did not output if the first option is False.
+			Tuple[bool, object]: If the function outputted and why the function did not output if the first option is False.
 		"""
 		sanitized_json_string = json_string.replace('Progress: ', '')
 		json_obj = {}
@@ -116,8 +125,10 @@ class RedCedar:
 		working = json_obj["Working"]
 		current_time = time.time()
 		# self.printer.output(f"Total Time: {timedelta(seconds=(current_time - self.total_start_time))}; File: {job_number}/{len(self.video_file_paths)}; Current ETA: {timedelta(seconds=working['ETASeconds'])}; Current Time: {timedelta(seconds=(current_time - self.current_start_time))}; {round(working['Progress'] * 100, 2)}%; FPS: {round(working['Rate'], 3)}; Avg FPS: {round(working['RateAvg'], 3)}")
-		self.broadcast_status_update(timedelta(seconds=(current_time - self.total_start_time)), f"{job_number}/{len(self.video_file_paths)}", timedelta(seconds=working['ETASeconds']), timedelta(seconds=(current_time - self.current_start_time)), f"{round(working['Progress'] * 100, 2)}%", round(working['Rate'], 3), round(working['RateAvg'], 3))
+		self.broadcast_current_file_status_update(timedelta(seconds=(current_time - self.total_start_time)), timedelta(seconds=working['ETASeconds']), timedelta(seconds=(current_time - self.current_start_time)), f"{round(working['Progress'] * 100, 2)}%", round(working['Rate'], 3), round(working['RateAvg'], 3))
 		self.socket_io.sleep(1)
+
+		return (True, round(working['RateAvg'], 3))
 
 	def get_video_file_paths(self, top_path: Path) -> List[Path]:
 		video_file_types = [".m4v", ".mp4", ".mkv", ".avi"]
@@ -133,11 +144,10 @@ class RedCedar:
 	def check_video_complete(self, path: Path) -> bool:
 		return (str(path).replace(path.suffix, "") in self._completed_videos["completed"])
 
-	def broadcast_status_update(self, total_time, file_progress, current_eta, current_time, percentage, current_fps, avg_fps):
-		self.socket_io.emit("status_update", {
+	def broadcast_current_file_status_update(self, total_time, current_etr, current_time, percentage, current_fps, avg_fps):
+		self.socket_io.emit("current_file_status_update", {
 												"total_time": str(total_time),
-												"file_progress": str(file_progress),
-												"current_eta": str(current_eta),
+												"current_etr": str(current_etr),
 												"current_time": str(current_time),
 												"percentage": str(percentage),
 												"current_fps": str(current_fps),

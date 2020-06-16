@@ -1,7 +1,9 @@
 Client Side:
 	Auto Updating Information:
-		☐ Properly handle status_update
+		✔ Properly handle status_update @done(20-06-16 13:32)
 		☐ Properly handle connect_info
+		☐ Properly handle file_complete
+		☐ Properly handle file_skip
 
 Server Side:
 	Send state of all files when client connects:
