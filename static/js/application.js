@@ -1,26 +1,11 @@
 $(document).ready(function(){
 	//connect to the socket server.
 	var socket = io.connect("http://" + document.domain + ":" + location.port + "/websocket");
-	var numbers_received = [];
 
 	var completed_files = [];
 	var skipped_files = [];
 
 	var already_connected = false;
-
-	//receive details from server
-	socket.on("newnumber", function(msg) {
-		//maintain a list of two numbers
-		if (numbers_received.length >= 2){
-			numbers_received.shift()
-		}            
-		numbers_received.push(msg.number);
-		numbers_string = "";
-		for (var i = 0; i < numbers_received.length; i++){
-			numbers_string = numbers_string + "<p>" + numbers_received[i].toString() + "</p>";
-		}
-		$("#log").html(numbers_string);
-	});
 
 	socket.on("current_file_status_update", function(json_obj) {
 		$("#total-time").html(json_obj.total_time);
@@ -52,12 +37,12 @@ $(document).ready(function(){
 	});
 
 	socket.on("file_complete", function(json_obj) {
-		completed_files.push(json_obj);
+		completed_files.unshift(json_obj);
 		renderCompletedFiles();
 	});
 
 	socket.on("file_skip", function(json_obj) {
-		skipped_files.push(json_obj);
+		skipped_files.unshift(json_obj);
 		renderSkippedFiles();
 	});
 	
