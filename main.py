@@ -1,7 +1,6 @@
 from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, url_for, copy_current_request_context
 from pathlib import Path
-from queue import Queue
 from random import random
 from sys import argv
 from threading import Thread, Event
@@ -15,18 +14,16 @@ app.config['DEBUG'] = False
 
 #turn the flask app into a socketio app
 socketio = SocketIO(app, async_mode=None, logger=True, engineio_logger=True)
-
-redcedar_comm_queue = Queue()
 redcedar_obj = None
 
 def run_redcedar():
 	global redcedar_obj
-	redcedar_obj = RedCedar(socketio, redcedar_comm_queue, Path("/usr/app/tosearch"))
+	redcedar_obj = RedCedar(socketio) #, Path("/usr/app/tosearch"))
 	redcedar_obj.run()
 
 def run_mockcedar():
 	global redcedar_obj
-	redcedar_obj = MockCedar(socketio, redcedar_comm_queue, Path("/usr/app/tosearch"))
+	redcedar_obj = MockCedar(socketio, Path("/usr/app/tosearch"))
 	redcedar_obj.run()
 
 @app.route('/')
@@ -36,7 +33,8 @@ def index():
 
 @socketio.on('connect', namespace='/websocket')
 def test_connect():
-	redcedar_comm_queue.put("new connection")
+	if redcedar_obj != None:
+		redcedar_obj.new_connection()
 	print('Client connected')
 
 @socketio.on('disconnect', namespace='/websocket')

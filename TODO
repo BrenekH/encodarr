@@ -1,14 +1,14 @@
 Client Side:
 	Auto Updating Information:
 		✔ Properly handle status_update @done(20-06-16 13:32)
-		☐ Properly handle connect_info
-		☐ Properly handle file_complete
-		☐ Properly handle file_skip
+		✔ Properly handle connect_info @done(20-06-20 17:15)
+		✔ Properly handle file_complete @done(20-06-20 17:15)
+		✔ Properly handle file_skip @done(20-06-20 17:15)
 
 Server Side:
 	Send state of all files when client connects:
-		☐ Implement queue between RedCedar and Web Server
-		☐ RedCedar emits "connect_info" event when queue has new connection string
-			☐ Only does once per loop to prevent oversending info to clients
+		✔ Implement queue between RedCedar and Web Server @done(20-06-20 17:15)
+		✔ RedCedar emits "connect_info" event when queue has new connection string @done(20-06-20 17:15)
+			✔ Only does once per loop to prevent oversending info to clients @done(20-06-20 17:15)
 	Misc:
-		☐ Strip floating points from timestamps
+		✔ Strip floating points from timestamps @done(20-06-20 17:15)

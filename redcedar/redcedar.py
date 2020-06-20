@@ -1,15 +1,14 @@
 import sys, time
-from datetime import timedelta
+from datetime import datetime, timedelta
 from flask_socketio import SocketIO, emit
 from json import dump, load, loads
 from json.decoder import JSONDecodeError
 from pathlib import Path
-from queue import Queue
 from subprocess import DEVNULL, PIPE, Popen
 from typing import List, Tuple
 
 class RedCedar:
-	def __init__(self, socketio: SocketIO, communication_queue: Queue, current_working_directory: Path=Path.cwd()):
+	def __init__(self, socketio: SocketIO, current_working_directory: Path=Path.cwd()):
 		"""Class to manage and run RedCedar operations.
 
 		Args:
@@ -17,7 +16,8 @@ class RedCedar:
 		"""
 		self.cwd = current_working_directory
 		self.socket_io = socketio
-		self.comm_queue = communication_queue
+
+		self.__stop = False
 		
 		self.video_file_paths = []
 
@@ -31,6 +31,12 @@ class RedCedar:
 			self._completed_videos = load(open(self._completed_videos_path))
 		else:
 			self.save_completed_videos_json()
+
+		self._skipped_videos = []
+		self._completed_videos_events = []
+
+		self._plex_version_skip_text = "Found \"Plex Versions\" in the file path"
+		self._previously_transcoded_skip_text = "File was previously transcoded"
 
 		self.output_file = self.cwd / "output.m4v"
 
@@ -47,19 +53,27 @@ class RedCedar:
 		self.total_start_time = time.time()
 
 		for indx, path in enumerate(self.video_file_paths, start=1):	# enumerate returns (the index, the value) on every loop
-			# TODO: Emit current_file_update
 			self.current_start_time = time.time()
+			self.emit_current_file_update(f"{indx}/{len(self.video_file_paths)}", path)
 
 			# Make sure file isn't an 'optimized version' by Plex
 			if "Plex Versions" in str(path):
-				# TODO: Emit Plex Versions skip event
-				# TODO: Add to skipped files storage
+				self.emit_file_skip(path, self._plex_version_skip_text)
+				self._skipped_videos.append({
+					"file_path": str(path),
+					"reason": self._plex_version_skip_text,
+					"timestamp": self.get_friendly_timestamp()
+				})
 				continue
 
 			# Make sure we haven't already encoded this file previously
 			elif self.check_video_complete(path):
-				# TODO: Emit previously encoded skip event
-				# TODO: Add to skipped files storage
+				self.emit_file_skip(path, self._previously_transcoded_skip_text)
+				self._skipped_videos.append({
+					"file_path": str(path),
+					"reason": self._previously_transcoded_skip_text,
+					"timestamp": self.get_friendly_timestamp()
+				})
 				continue
 
 			if self.output_file.exists():
@@ -80,25 +94,42 @@ class RedCedar:
 
 					elif line.startswith("}"):
 						if not json_string.strip() == "":
-							successful, value = self.output_from_json(json_string, indx)
-							if successful:
-								latest_avg_fps = value
+							self.output_from_json(json_string, indx)
 						record_json, json_string = (False, "")
 					
-					# TODO: Check for new connections and emit new_connection event when there are
+					# Check for new connections and emit new_connection event when there are
+					if self.__new_connection:
+						self.emit_connect_info(f"{indx}/{len(self.video_file_paths)}", path)
+					
+					# Sleep to allow for other operations
+					self.socket_io.sleep(0.01)
 
 			# Remove original file
+			delete_successful = False
 			if path.exists():
-				path.unlink()
+				try:	
+					path.unlink()
+					delete_successful = True
+				except PermissionError:
+					print(f"Could not delete {path}")
 
 			# Move output.m4v to take the original file's place
 			if self.output_file.exists():
-				self.output_file.rename(path.with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
+				if delete_successful:
+					self.output_file.rename(path.with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
+				else:
+					self.output_file.rename(path.with_name(f"{path.stem}-New H.265 Encoded").with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
 
 			self.mark_video_complete(path)
-			# TODO: Emit file_complete event
-		
-		print("RedCedar Complete")
+
+			time_taken = chop_ms(timedelta(seconds=(time.time() - self.current_start_time)))
+			self.emit_file_complete(path, latest_avg_fps, time_taken)
+			self._completed_videos_events.append({
+				"file_path": str(path),
+				"avg_fps": latest_avg_fps,
+				"time_taken": str(time_taken),
+				"timestamp": self.get_friendly_timestamp()
+			})
 
 	def output_from_json(self, json_string, job_number=1) -> Tuple[bool, object]:
 		"""Outputs data from the given json_string
@@ -118,17 +149,20 @@ class RedCedar:
 			error_message = f"json decode error: {e} on {sanitized_json_string}"
 			return (False, error_message)
 
-		# print(f"BEGIN\n\n{json_obj}\nEND")
-		# Output format: Time: {}; File: 1 / 100; Current ETA: {}; Current Time: {}; {}%;
 		if json_obj["State"] != "WORKING":
 			return (False, "HandBrakeCLI is not in State: WORKING")
+		
 		working = json_obj["Working"]
 		current_time = time.time()
-		# self.printer.output(f"Total Time: {timedelta(seconds=(current_time - self.total_start_time))}; File: {job_number}/{len(self.video_file_paths)}; Current ETA: {timedelta(seconds=working['ETASeconds'])}; Current Time: {timedelta(seconds=(current_time - self.current_start_time))}; {round(working['Progress'] * 100, 2)}%; FPS: {round(working['Rate'], 3)}; Avg FPS: {round(working['RateAvg'], 3)}")
-		self.broadcast_current_file_status_update(timedelta(seconds=(current_time - self.total_start_time)), timedelta(seconds=working['ETASeconds']), timedelta(seconds=(current_time - self.current_start_time)), f"{round(working['Progress'] * 100, 2)}%", round(working['Rate'], 3), round(working['RateAvg'], 3))
-		self.socket_io.sleep(1)
+		
+		self.emit_current_file_status_update(chop_ms(timedelta(seconds=(current_time - self.total_start_time))),
+											chop_ms(timedelta(seconds=working['ETASeconds'])),
+											chop_ms(timedelta(seconds=(current_time - self.current_start_time))),
+											f"{round(working['Progress'] * 100, 2)}%",
+											round(working['Rate'], 3),
+											round(working['RateAvg'], 3))
 
-		return (True, round(working['RateAvg'], 3))
+		return (True, "")
 
 	def get_video_file_paths(self, top_path: Path) -> List[Path]:
 		video_file_types = [".m4v", ".mp4", ".mkv", ".avi"]
@@ -144,12 +178,45 @@ class RedCedar:
 	def check_video_complete(self, path: Path) -> bool:
 		return (str(path).replace(path.suffix, "") in self._completed_videos["completed"])
 
-	def broadcast_current_file_status_update(self, total_time, current_etr, current_time, percentage, current_fps, avg_fps):
-		self.socket_io.emit("current_file_status_update", {
-												"total_time": str(total_time),
-												"current_etr": str(current_etr),
-												"current_time": str(current_time),
-												"percentage": str(percentage),
-												"current_fps": str(current_fps),
-												"avg_fps": str(avg_fps)
-											}, namespace="/websocket")
+	def new_connection(self):
+		self.__new_connection = True
+
+	def stop(self):
+		self.__stop = True
+
+	def emit_file_skip(self, path: Path, reason: str):
+		self.emit_event("file_skip", {"file_path": str(path),
+									"reason": reason,
+									"timestamp": self.get_friendly_timestamp()})
+
+	def emit_file_complete(self, path: Path, avg_fps, time_taken):
+		self.emit_event("file_complete", {"file_path": str(path),
+										"avg_fps": str(avg_fps),
+										"time_taken": str(time_taken),
+										"timestamp": self.get_friendly_timestamp()})
+
+	def emit_connect_info(self, file_count: str, current_file_path: Path):
+		self.emit_event("connect_info", {"file_count": file_count,
+										"current_file_path": str(current_file_path),
+										"completed_files": self._completed_videos_events[::-1],
+										"skipped_files": self._skipped_videos[::-1]})
+
+	def emit_current_file_status_update(self, total_time, current_etr, current_time, percentage, current_fps, avg_fps):
+		self.emit_event("current_file_status_update", {"total_time": str(total_time),
+													"current_etr": str(current_etr),
+													"current_time": str(current_time),
+													"percentage": str(percentage),
+													"current_fps": str(current_fps),
+													"avg_fps": str(avg_fps)})
+
+	def emit_current_file_update(self, file_count: str, path: Path):
+		self.emit_event("current_file_update", {"file_count": file_count, "file_path": str(path)})
+
+	def emit_event(self, event_name: str, data):
+		self.socket_io.emit(event_name, data, namespace="/websocket")
+
+	def get_friendly_timestamp(self) -> str:
+		return datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+
+def chop_ms(delta):
+	return delta - timedelta(microseconds=delta.microseconds)

@@ -3,16 +3,16 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from flask_socketio import SocketIO, emit
 from pathlib import Path
-from queue import Empty, Queue
 from .db import db_video_files
 
 class MockCedar:
-	def __init__(self, socketio: SocketIO, communication_queue: Queue, current_working_directory: Path=Path.cwd()):
+	def __init__(self, socketio: SocketIO, current_working_directory: Path=Path.cwd()):
 		self.cwd = current_working_directory
 		self.socket_io = socketio
-		self.comm_queue = communication_queue
 
+		# External Triggers
 		self.__stop = False
+		self.__new_connection = False
 		
 		self.video_file_paths = []
 
@@ -70,16 +70,9 @@ class MockCedar:
 													round(random.uniform(0.1, 15.0), 3),
 													latest_avg_fps)
 
-				queue_messages = []
-				while not self.comm_queue.empty():
-					try:
-						queue_messages.append(self.comm_queue.get_nowait())
-					except Empty:
-						print("Caught Empty exception")
-						break
-
-				if "new connection" in queue_messages:
+				if self.__new_connection:
 					self.emit_connect_info(f"{indx}/{len(self.video_file_paths)}", path)
+					self.__new_connection = False
 
 				if self.__stop:
 					break
