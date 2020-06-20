@@ -18,6 +18,7 @@ class RedCedar:
 		self.socket_io = socketio
 
 		self.__stop = False
+		self.__new_connection = False
 		
 		self.video_file_paths = []
 
