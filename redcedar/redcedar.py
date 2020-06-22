@@ -41,6 +41,8 @@ class RedCedar:
 
 		self.output_file = self.cwd / "output.m4v"
 
+		self.__latest_avg_fps = 0.0
+
 	def run(self, path_to_search: Path=None):
 		if path_to_search == None:
 			path_to_search = self.cwd
@@ -82,7 +84,6 @@ class RedCedar:
 
 			# Run handbrake cli and save to output.m4v
 			handbrake_command = f"HandBrakeCLI -i \"{path}\" -o output.m4v -e x265 --optimize --json"
-			latest_avg_fps = 0.000
 			with Popen([handbrake_command], stdout=PIPE, stderr=DEVNULL, bufsize=1, shell=True, universal_newlines=True) as p:
 				record_json, json_string = (False, "")
 				for line in p.stdout:
@@ -124,10 +125,10 @@ class RedCedar:
 			self.mark_video_complete(path)
 
 			time_taken = chop_ms(timedelta(seconds=(time.time() - self.current_start_time)))
-			self.emit_file_complete(path, latest_avg_fps, time_taken)
+			self.emit_file_complete(path, self.__latest_avg_fps, time_taken)
 			self._completed_videos_events.append({
 				"file_path": str(path),
-				"avg_fps": latest_avg_fps,
+				"avg_fps": self.__latest_avg_fps,
 				"time_taken": str(time_taken),
 				"timestamp": self.get_friendly_timestamp()
 			})
@@ -162,6 +163,8 @@ class RedCedar:
 											f"{round(working['Progress'] * 100, 2)}%",
 											round(working['Rate'], 3),
 											round(working['RateAvg'], 3))
+
+		self.__latest_avg_fps = working["RateAvg"]
 
 		return (True, "")
 
