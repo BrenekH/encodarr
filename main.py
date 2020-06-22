@@ -53,15 +53,14 @@ if __name__ == '__main__':
 	if "mockcedar" in argv:
 		print("Running with mock RedCedar background process")
 		socketio.start_background_task(run_mockcedar)
+	elif "cwd" in argv:
+		print("Running redcedar in current working directory")
+		socketio.start_background_task(run_redcedar_cwd)
 	elif "noredcedar" in argv:
 		print("Running without RedCedar background process")
 	else:
 		print("Starting redcedar")
 		socketio.start_background_task(run_redcedar)
-
-	if "cwd" in argv:
-		print("Running redcedar in current working directory")
-		socketio.start_background_task(run_redcedar_cwd)
 	
 	socketio.run(app, host="0.0.0.0")
 	
