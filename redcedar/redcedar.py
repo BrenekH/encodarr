@@ -164,7 +164,7 @@ class RedCedar:
 											round(working['Rate'], 3),
 											round(working['RateAvg'], 3))
 
-		self.__latest_avg_fps = working["RateAvg"]
+		self.__latest_avg_fps = round(working["RateAvg"], 3)
 
 		return (True, "")
 
