@@ -88,6 +88,14 @@ class MockCedar:
 				"time_taken": str(time_taken),
 				"timestamp": self.get_friendly_timestamp()
 			})
+		
+		end_time = time.time()
+
+		while not self.__stop:
+			# Check for new connections and emit new_connection event when there are
+			if self.__new_connection:
+				self.emit_connect_info(f"{len(self.video_file_paths)}/{len(self.video_file_paths)}", "Operation Complete")
+				self.emit_current_file_status_update(chop_ms(timedelta(seconds=(end_time - self.total_start_time))), "0:00:00", "0:00:00", "", "0.00", "0.00")
 
 	def stop(self):
 		self.__stop = True
