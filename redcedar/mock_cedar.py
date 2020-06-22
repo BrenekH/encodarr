@@ -92,6 +92,9 @@ class MockCedar:
 	def stop(self):
 		self.__stop = True
 
+	def new_connection(self):
+		self.__new_connection = True
+
 	def emit_file_skip(self, path: Path, reason: str):
 		self.emit_event("file_skip", {"file_path": str(path),
 									"reason": reason,
