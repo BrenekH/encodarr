@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Building and running RedCedar Web in headless mode"
+echo "Building RedCedar Web"
 sudo docker run -d \
 --name RedCedarWeb \
 --restart always \
@@ -8,4 +8,4 @@ sudo docker run -d \
 --mount type=bind,source=/media/plex/mnt/PlexMedia,target=/usr/app/tosearch \
 -p 8123:5000 \
 $(sudo docker build -q -t redcedar/web:latest_script .)
-echo "RedCedar Web is running in headless mode"
+echo "RedCedar Web is now running in headless mode"
