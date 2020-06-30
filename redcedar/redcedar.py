@@ -118,12 +118,12 @@ class RedCedar:
 			# Move output.m4v to take the original file's place
 			if self.output_file.exists():
 				print("output.m4v exists")
-                                #if delete_successful:
+				#if delete_successful:
 				self.output_file.replace(path.with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
 				#else:
 				self.output_file.replace(path.with_name(f"{path.stem}-New H.265 Encoded").with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
-                        else:
-                                print("output.m4v does not exist")
+			else:
+				print("output.m4v does not exist")
 
 			self.mark_video_complete(path)
 
