@@ -106,22 +106,11 @@ class RedCedar:
 					# Sleep to allow for other operations
 					self.socket_io.sleep(0.01)
 
-			# Remove original file
-			#delete_successful = False
-			#if path.exists():
-			#	try:	
-			#		path.unlink()
-			#		delete_successful = True
-			#	except PermissionError:
-			#		print(f"Could not delete {path}")
-
-			# Move output.m4v to take the original file's place
+			# Replace path with the output
 			if self.output_file.exists():
 				print("output.m4v exists")
-				#if delete_successful:
-				self.output_file.replace(path.with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
-				#else:
-				self.output_file.replace(path.with_name(f"{path.stem}-New H.265 Encoded").with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
+				path.replace(self.output_file)
+				path.rename(path.with_suffix("m4v"))
 			else:
 				print("output.m4v does not exist")
 
