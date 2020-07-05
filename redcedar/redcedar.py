@@ -39,7 +39,7 @@ class RedCedar:
 		self._plex_version_skip_text = "Found \"Plex Versions\" in the file path"
 		self._previously_transcoded_skip_text = "File was previously transcoded"
 
-		self.output_file = self.cwd / "output.m4v"
+		self.output_file = Path.cwd() / "output.m4v"
 
 		self.__latest_avg_fps = 0.0
 
