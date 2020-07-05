@@ -4,6 +4,7 @@ from flask_socketio import SocketIO, emit
 from json import dump, load, loads
 from json.decoder import JSONDecodeError
 from pathlib import Path
+from shutil import move as shutil_move
 from subprocess import DEVNULL, PIPE, Popen
 from typing import List, Tuple
 
@@ -118,9 +119,9 @@ class RedCedar:
 			# Move output.m4v to take the original file's place
 			if self.output_file.exists():
 				if delete_successful:
-					self.output_file.rename(path.with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
+					shutil_move(self.output_file, path.with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
 				else:
-					self.output_file.rename(path.with_name(f"{path.stem}-New H.265 Encoded").with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
+					shutil_move(self.output_file, path.with_name(f"{path.stem}-New H.265 Encoded").with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
 
 			self.mark_video_complete(path)
 
