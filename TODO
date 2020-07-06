@@ -12,3 +12,9 @@ Server Side:
 			✔ Only does once per loop to prevent oversending info to clients @done(20-06-20 17:15)
 	Misc:
 		✔ Strip floating points from timestamps @done(20-06-20 17:15)
+
+completed_videos.json verifier script:
+	☐ Load completed_videos.json from sys.argv
+	☐ Iterate through each entry
+		☐ Check each file suffix for existing video file
+	☐ Display results in comprehensive manner
