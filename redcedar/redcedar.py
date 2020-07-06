@@ -119,9 +119,9 @@ class RedCedar:
 			# Move output.m4v to take the original file's place
 			if self.output_file.exists():
 				if delete_successful:
-					shutil_move(self.output_file, path.with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
+					shutil_move(str(self.output_file), path.with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
 				else:
-					shutil_move(self.output_file, path.with_name(f"{path.stem}-New H.265 Encoded").with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
+					shutil_move(str(self.output_file), path.with_name(f"{path.stem}-New H.265 Encoded").with_suffix(self.output_file.suffix))	# Retains the .m4v suffix with the new name
 
 			self.mark_video_complete(path)
 
@@ -139,7 +139,7 @@ class RedCedar:
 		while not self.__stop:
 			# Check for new connections and emit new_connection event when there are
 			if self.__new_connection:
-				self.emit_connect_info(f"{len(self.video_file_paths)}/{len(self.video_file_paths)}", "Operation Complete")
+				self.emit_connect_info(f"{len(self.video_file_paths)}/{len(self.video_file_paths)}", Path("Operation Complete"))	# str(Path()) will resolve to "Operation Complete"
 				self.emit_current_file_status_update(chop_ms(timedelta(seconds=(end_time - self.total_start_time))), "0:00:00", "0:00:00", "", "0.00", "0.00")
 
 	def output_from_json(self, json_string, job_number=1) -> Tuple[bool, object]:
