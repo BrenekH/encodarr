@@ -178,7 +178,7 @@ class RedCedar:
 		return (True, "")
 
 	def get_video_file_paths(self, top_path: Path) -> List[Path]:
-		video_file_types = [".m4v", ".mp4", ".mkv", ".avi"]
+		video_file_types = [".m4v", ".mp4", ".mkv", ".avi", ".mov", ".webm", ".ogg", ".m4p", ".wmv", ".qt"]
 		return [x for x in top_path.glob("**/*") if x.is_file() and x.suffix in video_file_types]
 
 	def save_completed_videos_json(self):
