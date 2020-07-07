@@ -14,7 +14,7 @@ Server Side:
 		✔ Strip floating points from timestamps @done(20-06-20 17:15)
 
 completed_videos.json verifier script:
-	☐ Load completed_videos.json from sys.argv
-	☐ Iterate through each entry
-		☐ Check each file suffix for existing video file
-	☐ Display results in comprehensive manner
+	✔ Load completed_videos.json from sys.argv @done(20-07-06 23:36)
+	✔ Iterate through each entry @done(20-07-06 23:49)
+		✔ Check each file suffix for existing video file @done(20-07-06 23:49)
+	✔ Display results in comprehensive manner @done(20-07-07 00:13)
