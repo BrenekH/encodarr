@@ -2,7 +2,7 @@
 
 ./stop_project_redcedar_web.sh
 
-echo "Building and running RedCedar Web Edition"
+echo "Building and running RedCedar Web Edition (this can take a few minutes)"
 sudo docker run -d \
 --name RedCedarWeb-script-control \
 --restart always \
