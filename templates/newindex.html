@@ -13,14 +13,6 @@
 				<h1>Project RedCedar</h1>
 			</div>
 
-			<!-- Navigation
-			<div class="row">
-				<div class="col text-center">Running</div>
-				<div class="col text-center" id="jobs-button">Queue</div>
-				<div class="col text-center">History</div>
-			</div>
-			<hr> -->
-
 			<ul class="nav nav-pills nav-fill" id="myTab" role="tablist">
 				<li class="nav-item" role="presentation">
 					<a class="nav-link active" id="running-tab" data-toggle="tab" href="#running" role="tab" aria-controls="running"
@@ -77,43 +69,62 @@
 							</div>
 						</div>
 					</div>
-					<!-- <p>Test Running</p> -->
 				</div>
 				<div class="tab-pane" id="queue" role="tabpanel" aria-labelledby="queue-tab">
-					<!-- Current Stats -->
-					<div class="row">
-						<div class="col">
-							<h6 class="total-time-label text-right">Total Time:</h6>
-						</div>
-						<div class="col total-time">
-							<p id="total-time">0:00:00</p>
-						</div>
-						<div class="col">
-							<h6 class="file-counter-label text-right">File Counter:</h6>
-						</div>
-						<div class="col file-counter">
-							<p id="file-counter">?/?</p>
-						</div>
+					<div class="card">
+						<table class="table table-sm">
+							<thead>
+							<tr>
+								<th scope="col">#</th>
+								<th scope="col">File</th>
+							</tr>
+							</thead>
+							<tbody>
+							<tr>
+								<th scope="row">1</th>
+								<td>/path/to/search/Movies/Extremely Long Name For A Movie(2019)/Extremely Long Name For A Movie(2019).mkv</td>
+							</tr>
+							<tr>
+								<th scope="row">2</th>
+								<td>/path/to/search/Movies/Hottest Movie Ever(2019)/Hottest Movie Ever(2019).mkv</td>
+							</tr>
+							<tr>
+								<th scope="row">3</th>
+								<td>/path/to/search/Movies/Extremely Long Name For A TV Show(2019)/Season 1/Extremely Long Name For A TV Show(2019)-s01e99.mkv</td>
+							</tr>
+							</tbody>
+						</table>
 					</div>
-					<!-- <p>Test Queue</p> -->
 				</div>
 				<div class="tab-pane" id="history" role="tabpanel" aria-labelledby="history-tab">
-					<!-- Completed Files Log -->
-					<div class="row">
-						<div class="col completed-header text-center">
-							<h5>Completed Files</h5>
-						</div>
+					<div class="card" id="history-table">
+						<table class="table table-sm">
+							<thead>
+								<tr>
+									<th scope="col">Time Completed</th>
+									<th scope="col">File</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>11-29-2020 22:30:04</td>
+									<td>/path/to/search/Movies/A Movie(2019)/A Movie(2019).mkv</td>
+								</tr>
+								<tr>
+									<td>11-29-2020 22:30:04</td>
+									<td>/path/to/search/Movies/Hottest Movie Ever(2019)/Hottest Movie Ever(2019).mkv</td>
+								</tr>
+								<tr>
+									<td>11-29-2020 22:30:04</td>
+									<td>/path/to/search/Movies/A TV Show(2019)/Season 1/A TV Show(2019)-s01e99.mkv</td>
+								</tr>
+								<tr class="bg-danger">
+									<td>11-28-2020 00:50:35</td>
+									<td>/path/to/search/Movies/Extremely Long Name For A TV Show(2019)/Season 1/Extremely Long Name For A TV Show(2019)-s01e99.mkv</td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
-					<div id="completed-log"></div>
-
-					<!-- Skipped Files Log -->
-					<div class="row">
-						<div class="col skipped-header text-center">
-							<h5>Skipped Files</h5>
-						</div>
-					</div>
-					<div class="skipped-log text-center" id="skipped-log"></div>
-					<!-- <p>Test History</p> -->
 				</div>
 			</div>
 		</div>
