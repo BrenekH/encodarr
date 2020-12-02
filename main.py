@@ -39,6 +39,10 @@ def index():
 	#only by sending this page first will the client be connected to the socketio instance
 	return render_template('index.html')
 
+@app.route("/new")
+def new_index():
+	return render_template("newindex.html")
+
 @socketio.on('connect', namespace='/websocket')
 def test_connect():
 	if redcedar_obj != None:
@@ -62,7 +66,7 @@ if __name__ == '__main__':
 		print("Starting redcedar")
 		socketio.start_background_task(run_redcedar)
 	
-	socketio.run(app, host="0.0.0.0")
+	socketio.run(app, host="0.0.0.0", debug=True)
 	
 	if redcedar_obj != None:
 		redcedar_obj.stop()
