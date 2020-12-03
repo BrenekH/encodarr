@@ -162,10 +162,10 @@ class RedCedar:
 
 		if json_obj["State"] != "WORKING":
 			return (False, "HandBrakeCLI is not in State: WORKING")
-		
+
 		working = json_obj["Working"]
 		current_time = time.time()
-		
+
 		self.emit_current_file_status_update(chop_ms(timedelta(seconds=(current_time - self.total_start_time))),
 											chop_ms(timedelta(seconds=working['ETASeconds'])),
 											chop_ms(timedelta(seconds=(current_time - self.current_start_time))),

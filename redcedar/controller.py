@@ -1,4 +1,5 @@
 import time
+from flask_socketio import SocketIO
 from pathlib import Path
 from pymediainfo import MediaInfo
 from typing import List
@@ -7,7 +8,8 @@ from uuid import uuid4
 from .runner import JobRunner
 
 class JobController:
-	def __init__(self, path_to_search: Path=Path.cwd()) -> None:
+	def __init__(self, socket_io: SocketIO, path_to_search: Path=Path.cwd()) -> None:
+		self.socket_io = socket_io
 		self.__path_to_search = path_to_search
 
 		self.__file_system_check_offset = 15 * 60 # 15 minutes in seconds
@@ -19,7 +21,7 @@ class JobController:
 
 		self.__job_queue = []
 
-		self.current_job_status = {"uuid": None, "current_file": None, "percentage": None,
+		self.current_job_status = {"uuid": None, "file": None, "percentage": None,
 									"elapsed_time": None, "estimated_time": None,
 									"current_fps": None, "average_fps": None}
 
@@ -28,7 +30,7 @@ class JobController:
 		self.__running = False
 
 	def start(self) -> None:
-		self.__runner = JobRunner()
+		self.__runner = JobRunner(self.socket_io)
 
 		self.__running = True
 		self.__run()
@@ -72,6 +74,8 @@ class JobController:
 				self.__runner.new_job(job_to_send)
 
 			self.current_job_status = self.__runner.get_job_status()
+
+			self.socket_io.sleep(0.075)
 
 	def get_video_file_paths(self) -> List[Path]:
 		video_file_types = [".m4v", ".mp4", ".mkv", ".avi", ".mov", ".webm", ".ogg", ".m4p", ".wmv", ".qt"]
