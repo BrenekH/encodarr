@@ -6,7 +6,7 @@ from random import random
 from sys import argv
 from threading import Thread, Event
 from time import sleep
-from redcedar import RedCedar
+from redcedar import RedCedar, RedCedarSmart
 from redcedar.mock_cedar import MockCedar
 
 app = Flask(__name__)
@@ -27,7 +27,17 @@ def run_redcedar():
 def run_redcedar_cwd():
 	global redcedar_obj
 	redcedar_obj = RedCedar(socketio)
-	redcedar_obj.run()	
+	redcedar_obj.run()
+
+def run_redcedar_smart():
+	global redcedar_obj
+	redcedar_obj = RedCedarSmart(socketio, Path("D:\Videos\RedCedarSmartTestEnv"))
+	redcedar_obj.start()
+
+def run_redcedar_smart_cwd():
+	global redcedar_obj
+	redcedar_obj = RedCedarSmart(socketio)
+	redcedar_obj.start()
 
 def run_mockcedar():
 	global redcedar_obj
@@ -43,13 +53,14 @@ def index():
 def new_index():
 	return render_template("newindex.html")
 
-@socketio.on('connect', namespace='/websocket')
+@socketio.on('connect', namespace='/updates')
 def test_connect():
 	if redcedar_obj != None:
-		redcedar_obj.new_connection()
+		redcedar_obj.runner.emit_current_job()
+		redcedar_obj.runner.emit_current_job_status()
 	print('Client connected')
 
-@socketio.on('disconnect', namespace='/websocket')
+@socketio.on('disconnect', namespace='/updates')
 def test_disconnect():
 	print('Client disconnected')
 
@@ -60,13 +71,19 @@ if __name__ == '__main__':
 	elif "cwd" in argv:
 		print("Running redcedar in current working directory")
 		socketio.start_background_task(run_redcedar_cwd)
+	elif "smart" in argv:
+		print("Running RedCedar in Smart mode")
+		socketio.start_background_task(run_redcedar_smart)
+	elif "smartcwd" in argv:
+		print("Running RedCedar in Smart mode")
+		socketio.start_background_task(run_redcedar_smart_cwd)
 	elif "noredcedar" in argv:
 		print("Running without RedCedar background process")
 	else:
 		print("Starting redcedar")
-		socketio.start_background_task(run_redcedar)
+		socketio.start_background_task(run_redcedar_smart)
 	
-	socketio.run(app, host="0.0.0.0", debug=True)
+	socketio.run(app, host="0.0.0.0")
 	
 	if redcedar_obj != None:
 		redcedar_obj.stop()

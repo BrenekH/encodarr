@@ -21,41 +21,71 @@ class JobRunner:
 			"stage": None
 		}
 		self.__waiting_jobs = [] # In case new_job gets called even when runner is active
+		self.__current_job = {
+			"file": None,
+			"uuid": None
+		}
+		self.__running = False
+
+	def stop(self):
+		self.__running = False
 
 	def new_job(self, job_info: Dict):
 		self.active = True
-		if self.__current_job_status["uuid"] != None:
+		if self.__current_job["uuid"] != None:
 			self.__waiting_jobs.append(job_info)
 			return
 
 		self.__start_job(job_info)
 
 	def __start_job(self, job_info: Dict):
+		self.__running = True
+		self.__current_job = {
+			"file": job_info["file"],
+			"uuid": job_info["uuid"]
+		}
+
+		self.emit_current_job()
 		self.socket_io.start_background_task(self._run_job, job_info)
 
 	def _run_ffmpeg(self, ffmpeg_command: List[str], interval_callback=None, *args):
 		if type(ffmpeg_command) != list:
 			raise TypeError("ffmpeg_command argument must be a list of strings")
 
+		if not self.__running:
+			return
+
 		with Popen(ffmpeg_command, stdout=PIPE, stderr=STDOUT, universal_newlines=True) as p:
 			for line in p.stdout:
-				print(line)
+				# print(line)
 				fps: float = None
 				current_time: str = None
 				speed: float = None
 				split_line = line.split(" ")
 				for _line in split_line:
 					if "fps" in _line:
-						fps = float(_line.replace("fps=", ""))
+						try:
+							fps = float(_line.replace("fps=", ""))
+						except:
+							fps = None
 					elif "time" in _line:
-						current_time = _line.replace("time=", "")
+						try:
+							current_time = _line.replace("time=", "")
+						except:
+							current_time = None
 					elif "speed" in _line:
-						speed = float(_line.replace("speed=", "").replace("x", ""))
+						try:
+							speed = float(_line.replace("speed=", "").replace("x", ""))
+						except:
+							speed = None
 
-				if interval_callback != None and fps != None and current_time != None and speed != None:
+				if interval_callback != None:
 					interval_callback(fps, current_time, speed, *args)
 
-				self.socket_io.sleep(0.1)
+				if not self.__running:
+					return
+
+				self.socket_io.sleep(0.05)
 
 	def _run_job(self, job_info: Dict):
 		input_file = Path(job_info["file"])
@@ -80,6 +110,7 @@ class JobRunner:
 			extract_audio_command = ["ffmpeg", "-i", str(input_file), "-map", "-0:v?", "-map", "0:a:0", "-map", "-0:s?", "-c", "copy", str(extracted_audio)]
 			self.__current_job_status["stage"] = "Extract Audio"
 			self.emit_current_job_status()
+			# print("Starting extraction of audio")
 			stage_start_time = time.time()
 			self._run_ffmpeg(extract_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
@@ -88,6 +119,7 @@ class JobRunner:
 			downmix_audio_command = ["ffmpeg", "-i", str(extracted_audio), "-map", "0:a", "-c", "aac", "-af", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", str(downmixed_audio)]
 			self.__current_job_status["stage"] = "Downmix Audio"
 			self.emit_current_job_status()
+			# print("Starting downmixing of audio")
 			stage_start_time = time.time()
 			self._run_ffmpeg(downmix_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
@@ -110,8 +142,12 @@ class JobRunner:
 		final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + encoding_commands + [str(output_file)]
 		self.__current_job_status["stage"] = "Final encode"
 		self.emit_current_job_status()
+		# print("Starting final encode")
 		stage_start_time = time.time()
 		self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
+
+		if not self.__running:
+			return
 
 		# Remove original file
 		delete_successful = False
@@ -146,12 +182,19 @@ class JobRunner:
 			self.active = False
 
 	def update_job_status(self, fps: float, current_file_time_str: str, current_speed: float, stage_start_time: float, job_start_time: float, job_info: Dict):
-		total_length = [track for track in job_info["media_info"]["tracks"] if track["kind_of_stream"] == "General"][0]["duration"]
+		if fps == None:
+			fps = "N/A"
+
+		if current_file_time_str == None or current_speed == None:
+			self.emit_current_job_status()
+			return
+
+		total_length = str([track for track in job_info["media_info"]["tracks"] if track["kind_of_stream"] == "General"][0]["duration"])
 		total_length = float(f"{total_length[:-3]}.{total_length[-3:]}")
 
-		reversed_times = current_file_time_str.split(":")[::-1] # Now in format [seconds, minutes, hours, etc]
+		reversed_times = [float(x) for x in current_file_time_str.split(":")[::-1]] # Now in format [seconds, minutes, hours, etc]
 		time_conversion_mask = [1.0, 60.0, 3600] # Multipliers to convert specific value to seconds
-		current_file_time_seconds = sum([reversed_times[i] * time_conversion_mask[i] for i in range(reversed_times)])
+		current_file_time_seconds = sum([reversed_times[i] * time_conversion_mask[i] for i in range(len(reversed_times))])
 
 		current_time = time.time()
 		remaining_time = total_length - current_file_time_seconds
@@ -160,7 +203,7 @@ class JobRunner:
 			current_speed = 0.000000000000000000001
 
 		self.__current_job_status = {
-			"percentage": f"{round(current_file_time_seconds / total_length, 2)}%",
+			"percentage": f"{round((current_file_time_seconds / total_length) * 100, 2)}",
 			"job_elapsed_time": chop_ms(timedelta(seconds=(current_time - job_start_time))),
 			"stage_estimated_time_remaining": chop_ms(timedelta(seconds=remaining_time / current_speed)),
 			"fps": fps,
@@ -172,12 +215,15 @@ class JobRunner:
 		return (True, "")
 
 	def emit_current_job_status(self):
-		self.emit_event("current_job_status", {"percentage": str(self.__current_job_status["percentage"]),
+		self.emit_event("current_job_status_update", {"percentage": str(self.__current_job_status["percentage"]),
 												"job_elapsed_time": str(self.__current_job_status["job_elapsed_time"]),
 												"stage_estimated_time_remaining": str(self.__current_job_status["stage_estimated_time_remaining"]),
 												"fps": str(self.__current_job_status["fps"]),
 												"stage_elapsed_time": str(self.__current_job_status["stage_elapsed_time"]),
 												"stage": str(self.__current_job_status["stage"])})
+
+	def emit_current_job(self):
+		self.emit_event("current_job_update", {"file": str(self.__current_job["file"])})
 
 	def emit_event(self, event_name: str, data):
 		self.socket_io.emit(event_name, data, namespace="/updates")

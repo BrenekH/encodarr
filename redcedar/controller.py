@@ -25,18 +25,19 @@ class JobController:
 									"elapsed_time": None, "estimated_time": None,
 									"current_fps": None, "average_fps": None}
 
-		self.__runner = None
+		self.runner = None
 
 		self.__running = False
 
 	def start(self) -> None:
-		self.__runner = JobRunner(self.socket_io)
+		self.runner = JobRunner(self.socket_io)
 
 		self.__running = True
 		self.__run()
 
 	def stop(self) -> None:
 		self.__running = False
+		self.runner.stop()
 
 	def __run(self) -> None:
 		while self.__running:
@@ -46,6 +47,9 @@ class JobController:
 				video_file_paths = self.get_video_file_paths()
 				for video_file in video_file_paths:
 					media_info = MediaInfo.parse(str(video_file))
+					if not len(media_info.video_tracks) > 0:
+						continue
+
 					if media_info.video_tracks[0].color_primaries == "BT.2020" or "Plex Versions" in str(video_file): # Is the file HDR or 'optimized' by Plex
 						continue
 
@@ -68,12 +72,13 @@ class JobController:
 						"is_interlaced": is_interlaced,
 						"media_info": media_info.to_data()
 					})
+					# print(f"Added to job queue: {self.__job_queue[-1]['file']}")
+					self.socket_io.sleep(0.05)
 
-			if self.__runner.active == False and len(self.__job_queue) > 0:
+			if self.runner.active == False and len(self.__job_queue) > 0:
 				job_to_send = self.__job_queue.pop(0)
-				self.__runner.new_job(job_to_send)
-
-			self.current_job_status = self.__runner.get_job_status()
+				# print(f"Sending new job: {job_to_send['file']}")
+				self.runner.new_job(job_to_send)
 
 			self.socket_io.sleep(0.075)
 
