@@ -1,11 +1,9 @@
-from flask_socketio import SocketIO, emit
-from flask import Flask, render_template, url_for, copy_current_request_context
+from flask_socketio import SocketIO
+from flask import abort, Flask, render_template, request, make_response
+from json import dumps
 from logging import getLogger, ERROR
 from pathlib import Path
-from random import random
 from sys import argv
-from threading import Thread, Event
-from time import sleep
 from redcedar import RedCedar, RedCedarSmart
 from redcedar.mock_cedar import MockCedar
 
@@ -46,12 +44,22 @@ def run_mockcedar():
 
 @app.route('/')
 def index():
-	#only by sending this page first will the client be connected to the socketio instance
+	# Only by sending this page first will the client be connected to the socketio instance
 	return render_template('index.html')
 
-@app.route("/new")
-def new_index():
-	return render_template("newindex.html")
+@app.route("/api/v1/queue", methods=["GET"])
+def api_v1_queue():
+	if request.method != "GET":
+		abort(405)
+
+	if redcedar_obj == None:
+		abort(500)
+
+	response = make_response(dumps({"queue": [entry["file"] for entry in redcedar_obj.job_queue]}))
+	response.status_code = 200
+	response.headers["content-type"] = "application/json"
+
+	return response
 
 @socketio.on('connect', namespace='/updates')
 def test_connect():

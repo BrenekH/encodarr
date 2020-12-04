@@ -17,9 +17,37 @@ $(document).ready(function() {
 	});
 });
 
+$('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
+	var target = $(e.target).attr("href");
+	if (target == "#queue") {
+		updateQueue();
+	}
+});
+
 function setProgressBar(progress) {
 	let progressBar = document.getElementById("progress-bar");
 	progressBar.textContent = `${progress}%`;
 	progressBar.setAttribute("aria-valuenow", progress);
 	progressBar.style.width = `${progress}%`;
+}
+
+function updateQueue() {
+	axios.get("/api/v1/queue").then(function (response) {
+		let queue = response.data.queue; // List of files in queue order
+		if (queue === undefined) {
+			console.error("Response from /api/v1/queue returned undefined for data.queue")
+			return
+		}
+		let finalHTMLString = "";
+		for (let i = 1; i <= queue.length; i++) {
+			finalHTMLString += renderQueueEntry(i, queue[i-1]);
+		}
+		$("#queue-content").html(finalHTMLString);
+	}).catch(function (error) {
+		console.log(`Request to /api/v1/queue failed with error: ${error}`);
+	});
+}
+
+function renderQueueEntry(entryNumber, filePath) {
+	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td></tr>\n`;
 }

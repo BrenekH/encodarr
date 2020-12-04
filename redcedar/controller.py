@@ -19,7 +19,7 @@ class JobController:
 		self.__dispatcher = None
 		self.__verifier = None
 
-		self.__job_queue = []
+		self.job_queue = []
 
 		self.current_job_status = {"uuid": None, "file": None, "percentage": None,
 									"elapsed_time": None, "estimated_time": None,
@@ -61,10 +61,10 @@ class JobController:
 					if is_hevc and has_stereo and not is_interlaced:
 						continue
 
-					if len([job for job in self.__job_queue if job["file"] == str(video_file)]):
+					if len([job for job in self.job_queue if job["file"] == str(video_file)]):
 						continue
 
-					self.__job_queue.append({
+					self.job_queue.append({
 						"uuid": str(uuid4()),
 						"file": str(video_file),
 						"is_hevc": is_hevc,
@@ -72,11 +72,11 @@ class JobController:
 						"is_interlaced": is_interlaced,
 						"media_info": media_info.to_data()
 					})
-					# print(f"Added to job queue: {self.__job_queue[-1]['file']}")
+					# print(f"Added to job queue: {self.job_queue[-1]['file']}")
 					self.socket_io.sleep(0.05)
 
-			if self.runner.active == False and len(self.__job_queue) > 0:
-				job_to_send = self.__job_queue.pop(0)
+			if self.runner.active == False and len(self.job_queue) > 0:
+				job_to_send = self.job_queue.pop(0)
 				# print(f"Sending new job: {job_to_send['file']}")
 				self.runner.new_job(job_to_send)
 
