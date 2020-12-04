@@ -15,9 +15,9 @@ class JobRunner:
 		self.__current_job_status = {
 			"percentage": None,
 			"elapsed_time": None,
-			"estimated_time": None,
-			"current_fps": None,
-			"average_fps": None,
+			"estimated_time_remaining": None,
+			"fps": None,
+			"stage_elapsed_time": None,
 			"stage": None
 		}
 		self.__waiting_jobs = [] # In case new_job gets called even when runner is active
@@ -36,22 +36,32 @@ class JobRunner:
 	def __start_job(self, job_info: Dict):
 		self.socket_io.start_background_task(self._run_job, job_info)
 
-	def _run_ffmpeg(self, ffmpeg_command: List[str], interval_callback: callable=None, *args):
+	def _run_ffmpeg(self, ffmpeg_command: List[str], interval_callback=None, *args):
 		if type(ffmpeg_command) != list:
 			raise TypeError("ffmpeg_command argument must be a list of strings")
 
 		with Popen(ffmpeg_command, stdout=PIPE, stderr=STDOUT, universal_newlines=True) as p:
 			for line in p.stdout:
 				print(line)
-				# TODO: Parse the line (current_frame (may equal None), fps, time, speed)
-				if interval_callback != None:
-					interval_callback("current_frame(maybe)", "fps", "time", "speed", *args)
+				fps: float = None
+				current_time: str = None
+				speed: float = None
+				split_line = line.split(" ")
+				for _line in split_line:
+					if "fps" in _line:
+						fps = float(_line.replace("fps=", ""))
+					elif "time" in _line:
+						current_time = _line.replace("time=", "")
+					elif "speed" in _line:
+						speed = float(_line.replace("speed=", "").replace("x", ""))
+
+				if interval_callback != None and fps != None and current_time != None and speed != None:
+					interval_callback(fps, current_time, speed, *args)
 
 				self.socket_io.sleep(0.1)
 
 	def _run_job(self, job_info: Dict):
 		input_file = Path(job_info["file"])
-		framerate = job_info["media_info"]["frame_rate"]
 		is_hevc = job_info["is_hevc"]
 		has_stereo = job_info["has_stereo"]
 		is_interlaced = job_info["is_interlaced"]
@@ -63,7 +73,6 @@ class JobRunner:
 
 		job_start_time = time.time()
 
-		encode_only = ["ffmpeg", "-i", str(input_file), "-map", "0:a?", "-map", "0:s?", "-c", "copy", "-map", "0:v", "-vcodec", "hevc", str(output_file)]
 		downmixed_audio: Path = None
 
 		if not has_stereo:
@@ -72,14 +81,18 @@ class JobRunner:
 			if extracted_audio.exists():
 				extracted_audio.unlink()
 			extract_audio_command = ["ffmpeg", "-i", str(input_file), "-map", "-0:v?", "-map", "0:a:0", "-map", "-0:s?", "-c", "copy", str(extracted_audio)]
-			self.__current_job_status["stage"] = "Extracting Audio"
-			self._run_ffmpeg(extract_audio_command) # TODO: Add interval callback function
+			self.__current_job_status["stage"] = "Extract Audio"
+			# self.emit_current_job_status()
+			stage_start_time = time.time()
+			self._run_ffmpeg(extract_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
 			# Downmix audio
 			downmixed_audio = Path.cwd() / f"{job_info['uuid']}-downmixed-audio.mkv"
 			downmix_audio_command = ["ffmpeg", "-i", str(extracted_audio), "-map", "0:a", "-c", "aac", "-af", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", str(downmixed_audio)]
-			self.__current_job_status["stage"] = "Downmixing Audio"
-			self._run_ffmpeg(downmix_audio_command) # TODO: Add interval callback function
+			self.__current_job_status["stage"] = "Downmix Audio"
+			# self.emit_current_job_status()
+			stage_start_time = time.time()
+			self._run_ffmpeg(downmix_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
 		encode_inputs = ["-i", str(input_file)]
 		tracks_to_copy = ["-map", "0:s?", "-map", "0:a?"]
@@ -98,7 +111,10 @@ class JobRunner:
 			encoding_commands = ["-map", "0:v?", "-vcodec", "hevc"]
 
 		final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + encoding_commands + [str(output_file)]
-		self._run_ffmpeg(final_ffmpeg_command) # TODO: Add interval callback function
+		self.__current_job_status["stage"] = "Final encode"
+		# self.emit_current_job_status()
+		stage_start_time = time.time()
+		self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
 		# Remove original file
 		delete_successful = False
@@ -109,8 +125,6 @@ class JobRunner:
 			except PermissionError:
 				print(f"Could not delete {input_file}")
 
-		delete_successful = False #! TODO: Remove!
-
 		# Move output.mkv to take the original file's place
 		if output_file.exists():
 			if delete_successful:
@@ -118,44 +132,45 @@ class JobRunner:
 			else:
 				shutil_move(str(output_file), input_file.with_name(f"{input_file.stem}-RedCedarSmart").with_suffix(output_file.suffix))	# Retains the file suffix with the new name
 
+		self.__current_job_status = {
+			"percentage": None,
+			"elapsed_time": None,
+			"estimated_time_remaining": None,
+			"fps": None,
+			"stage_elapsed_time": None,
+			"stage": None
+		}
+		# self.emit_current_job_status()
+
 		if len(self.__waiting_jobs) > 0:
 			next_job = self.__waiting_jobs.pop(0)
 			self.__start_job(next_job)
 		else:
 			self.active = False
 
-	def update_job_status_from_json(self, json_string: str, job_start_time: float) -> Tuple[bool, object]:
-		"""Outputs data from the given json_string
+	def update_job_status(self, fps: float, current_file_time_str: str, current_speed: float, stage_start_time: float, job_start_time: float, job_info: Dict):
+		total_length = [track for track in job_info["media_info"]["tracks"] if track["kind_of_stream"] == "General"][0]["duration"]
+		total_length = float(f"{total_length[:-3]}.{total_length[-3:]}")
 
-		Args:
-			json_string (str): The string to get data from
+		reversed_times = current_file_time_str.split(":")[::-1] # Now in format [seconds, minutes, hours, etc]
+		time_conversion_mask = [1.0, 60.0, 3600] # Multipliers to convert specific value to seconds
+		current_file_time_seconds = sum([reversed_times[i] * time_conversion_mask[i] for i in range(reversed_times)])
 
-		Returns:
-			Tuple[bool, object]: If the function outputted and why the function did not output if the first option is False.
-		"""
-		sanitized_json_string = json_string.replace('Progress: ', '')
-		json_obj = {}
-		try:
-			json_obj = loads(sanitized_json_string)
-		except JSONDecodeError as e:
-			# TODO: Log error message to a file
-			error_message = f"json decode error: {e} on {sanitized_json_string}"
-			return (False, error_message)
-
-		if json_obj["State"] != "WORKING":
-			return (False, "HandBrakeCLI is not in State: WORKING")
-
-		working = json_obj["Working"]
 		current_time = time.time()
+		remaining_time = total_length - current_file_time_seconds
+
+		if current_speed == 0:
+			current_speed = 0.000000000000000000001
 
 		self.__current_job_status = {
-			"percentage": f"{round(working['Progress'] * 100, 2)}%",
+			"percentage": f"{round(current_file_time_seconds / total_length, 2)}%",
 			"elapsed_time": chop_ms(timedelta(seconds=(current_time - job_start_time))),
-			"estimated_time": chop_ms(timedelta(seconds=working['ETASeconds'])),
-			"current_fps": round(working['Rate'], 3),
-			"average_fps": round(working['RateAvg'], 3),
-			"stage": "None"
+			"estimated_time_remaining": chop_ms(timedelta(seconds=remaining_time / current_speed)),
+			"fps": fps,
+			"stage_elapsed_time": chop_ms(timedelta(seconds=(current_time - stage_start_time))),
+			"stage": self.__current_job_status["stage"]
 		}
+		# self.emit_current_job_status()
 
 		return (True, "")
 
