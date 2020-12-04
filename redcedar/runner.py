@@ -14,8 +14,8 @@ class JobRunner:
 		self.active = False
 		self.__current_job_status = {
 			"percentage": None,
-			"elapsed_time": None,
-			"estimated_time_remaining": None,
+			"job_elapsed_time": None,
+			"stage_estimated_time_remaining": None,
 			"fps": None,
 			"stage_elapsed_time": None,
 			"stage": None
@@ -29,9 +29,6 @@ class JobRunner:
 			return
 
 		self.__start_job(job_info)
-
-	def get_job_status(self) -> Dict:
-		return copy(self.__current_job_status)
 
 	def __start_job(self, job_info: Dict):
 		self.socket_io.start_background_task(self._run_job, job_info)
@@ -82,7 +79,7 @@ class JobRunner:
 				extracted_audio.unlink()
 			extract_audio_command = ["ffmpeg", "-i", str(input_file), "-map", "-0:v?", "-map", "0:a:0", "-map", "-0:s?", "-c", "copy", str(extracted_audio)]
 			self.__current_job_status["stage"] = "Extract Audio"
-			# self.emit_current_job_status()
+			self.emit_current_job_status()
 			stage_start_time = time.time()
 			self._run_ffmpeg(extract_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
@@ -90,7 +87,7 @@ class JobRunner:
 			downmixed_audio = Path.cwd() / f"{job_info['uuid']}-downmixed-audio.mkv"
 			downmix_audio_command = ["ffmpeg", "-i", str(extracted_audio), "-map", "0:a", "-c", "aac", "-af", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", str(downmixed_audio)]
 			self.__current_job_status["stage"] = "Downmix Audio"
-			# self.emit_current_job_status()
+			self.emit_current_job_status()
 			stage_start_time = time.time()
 			self._run_ffmpeg(downmix_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
@@ -112,7 +109,7 @@ class JobRunner:
 
 		final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + encoding_commands + [str(output_file)]
 		self.__current_job_status["stage"] = "Final encode"
-		# self.emit_current_job_status()
+		self.emit_current_job_status()
 		stage_start_time = time.time()
 		self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
@@ -134,13 +131,13 @@ class JobRunner:
 
 		self.__current_job_status = {
 			"percentage": None,
-			"elapsed_time": None,
-			"estimated_time_remaining": None,
+			"job_elapsed_time": None,
+			"stage_estimated_time_remaining": None,
 			"fps": None,
 			"stage_elapsed_time": None,
 			"stage": None
 		}
-		# self.emit_current_job_status()
+		self.emit_current_job_status()
 
 		if len(self.__waiting_jobs) > 0:
 			next_job = self.__waiting_jobs.pop(0)
@@ -164,15 +161,26 @@ class JobRunner:
 
 		self.__current_job_status = {
 			"percentage": f"{round(current_file_time_seconds / total_length, 2)}%",
-			"elapsed_time": chop_ms(timedelta(seconds=(current_time - job_start_time))),
-			"estimated_time_remaining": chop_ms(timedelta(seconds=remaining_time / current_speed)),
+			"job_elapsed_time": chop_ms(timedelta(seconds=(current_time - job_start_time))),
+			"stage_estimated_time_remaining": chop_ms(timedelta(seconds=remaining_time / current_speed)),
 			"fps": fps,
 			"stage_elapsed_time": chop_ms(timedelta(seconds=(current_time - stage_start_time))),
 			"stage": self.__current_job_status["stage"]
 		}
-		# self.emit_current_job_status()
+		self.emit_current_job_status()
 
 		return (True, "")
+
+	def emit_current_job_status(self):
+		self.emit_event("current_job_status", {"percentage": str(self.__current_job_status["percentage"]),
+												"job_elapsed_time": str(self.__current_job_status["job_elapsed_time"]),
+												"stage_estimated_time_remaining": str(self.__current_job_status["stage_estimated_time_remaining"]),
+												"fps": str(self.__current_job_status["fps"]),
+												"stage_elapsed_time": str(self.__current_job_status["stage_elapsed_time"]),
+												"stage": str(self.__current_job_status["stage"])})
+
+	def emit_event(self, event_name: str, data):
+		self.socket_io.emit(event_name, data, namespace="/updates")
 
 def chop_ms(delta):
 	return delta - timedelta(microseconds=delta.microseconds)
