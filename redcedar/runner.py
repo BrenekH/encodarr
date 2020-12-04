@@ -176,7 +176,7 @@ class JobRunner:
 		if self.__running:
 			self.__completed_jobs.append({
 				"file": job_info["file"],
-				"datetime_completed": datetime.utcnow(),
+				"datetime_completed": datetime.utcnow().timestamp(),
 				"warnings": current_job_warnings,
 				"errors": current_job_errors
 			})

@@ -21,6 +21,8 @@ $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
 	var target = $(e.target).attr("href");
 	if (target == "#queue") {
 		updateQueue();
+	} else if (target == "#history") {
+		updateHistory();
 	}
 });
 
@@ -50,4 +52,26 @@ function updateQueue() {
 
 function renderQueueEntry(entryNumber, filePath) {
 	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td></tr>\n`;
+}
+
+function updateHistory() {
+	axios.get("/api/v1/history").then(function (response) {
+		let history = response.data.history;
+		if (history === undefined) {
+			console.error("Response from /api/v1/history returned undefined for data.history")
+			return
+		}
+		let finalHTMLString = "";
+		for (let i = 0; i < history.length; i++) {
+			let obj = history[i];
+			finalHTMLString += renderHistoryEntry(obj.datetime_completed, obj.file);
+		}
+		$("#history-content").html(finalHTMLString);
+	}).catch(function (error) {
+		console.log(`Request to /api/v1/history failed with error: ${error}`);
+	});
+}
+
+function renderHistoryEntry(dateTimeString, filePath) {
+	return `<tr><td>${dateTimeString}</td><td>${filePath}</td></tr>`;
 }
