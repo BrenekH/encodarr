@@ -44,10 +44,9 @@ class JobController:
 			if time.time() - self.__file_system_check_offset > self.__last_file_system_check:
 				self.__last_file_system_check = time.time()
 				video_file_paths = self.get_video_file_paths()
-				# TODO: Verify that each video is not HDR, is not already in the Queue, and is not missing either HEVC or Stereo Audio
 				for video_file in video_file_paths:
 					media_info = MediaInfo.parse(str(video_file))
-					if media_info.video_tracks[0].color_primaries == "BT.2020": # Is file HDR
+					if media_info.video_tracks[0].color_primaries == "BT.2020" or "Plex Versions" in str(video_file): # Is the file HDR or 'optimized' by Plex
 						continue
 
 					is_hevc = media_info.video_tracks[0].format == "HEVC"
@@ -66,7 +65,8 @@ class JobController:
 						"file": str(video_file),
 						"is_hevc": is_hevc,
 						"has_stereo": has_stereo,
-						"is_interlaced": is_interlaced
+						"is_interlaced": is_interlaced,
+						"media_info": media_info.to_data()
 					})
 
 			if self.__runner.active == False and len(self.__job_queue) > 0:
