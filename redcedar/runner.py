@@ -1,17 +1,17 @@
 import time
 from copy import copy
-from datetime import timedelta
+from datetime import datetime, timedelta
 from flask_socketio import SocketIO
-from json import JSONDecodeError, loads
 from pathlib import Path
 from shutil import move as shutil_move
-from typing import Dict, List, Tuple
-from subprocess import DEVNULL, PIPE, Popen, STDOUT
+from typing import Dict, List
+from subprocess import PIPE, Popen, STDOUT
 
 class JobRunner:
 	def __init__(self, socket_io: SocketIO):
 		self.socket_io = socket_io
 		self.active = False
+		self.__completed_jobs = [] # Contains dictionaries with file, datetime_completed(in UTC), warnings, and errors keys
 		self.__current_job_status = {
 			"percentage": None,
 			"job_elapsed_time": None,
@@ -37,6 +37,11 @@ class JobRunner:
 			return
 
 		self.__start_job(job_info)
+
+	def completed_jobs(self):
+		to_return = copy(self.__completed_jobs)
+		self.__completed_jobs = []
+		return to_return
 
 	def __start_job(self, job_info: Dict):
 		self.__running = True
@@ -92,6 +97,8 @@ class JobRunner:
 		is_hevc = job_info["is_hevc"]
 		has_stereo = job_info["has_stereo"]
 		is_interlaced = job_info["is_interlaced"]
+
+		current_job_warnings, current_job_errors = ([], [])
 
 		output_file = Path.cwd() / "output.mkv"
 
@@ -156,6 +163,7 @@ class JobRunner:
 				input_file.unlink()
 				delete_successful = True
 			except PermissionError:
+				current_job_warnings.append(f"Could not delete {input_file}, adding '-RedCedarSmart' as a suffix")
 				print(f"Could not delete {input_file}")
 
 		# Move output.mkv to take the original file's place
@@ -164,6 +172,14 @@ class JobRunner:
 				shutil_move(str(output_file), input_file.with_suffix(output_file.suffix))	# Retains the file suffix with the new name
 			else:
 				shutil_move(str(output_file), input_file.with_name(f"{input_file.stem}-RedCedarSmart").with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+
+		if self.__running:
+			self.__completed_jobs.append({
+				"file": job_info["file"],
+				"datetime_completed": datetime.utcnow(),
+				"warnings": current_job_warnings,
+				"errors": current_job_errors
+			})
 
 		self.__current_job_status = {
 			"percentage": None,

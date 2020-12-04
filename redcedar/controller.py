@@ -1,4 +1,5 @@
 import time
+from collections import deque
 from flask_socketio import SocketIO
 from pathlib import Path
 from pymediainfo import MediaInfo
@@ -21,6 +22,8 @@ class JobController:
 
 		self.job_queue = []
 
+		self.__job_history = deque()
+
 		self.current_job_status = {"uuid": None, "file": None, "percentage": None,
 									"elapsed_time": None, "estimated_time": None,
 									"current_fps": None, "average_fps": None}
@@ -38,6 +41,9 @@ class JobController:
 	def stop(self) -> None:
 		self.__running = False
 		self.runner.stop()
+
+	def get_job_history(self):
+		return list(self.__job_history)
 
 	def __run(self) -> None:
 		while self.__running:
@@ -79,6 +85,9 @@ class JobController:
 				job_to_send = self.job_queue.pop(0)
 				# print(f"Sending new job: {job_to_send['file']}")
 				self.runner.new_job(job_to_send)
+
+			for job in self.runner.completed_jobs():
+				self.__job_history.appendleft(job)
 
 			self.socket_io.sleep(0.075)
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask_socketio import SocketIO
 from flask import abort, Flask, render_template, request, make_response
 from json import dumps
@@ -56,6 +57,25 @@ def api_v1_queue():
 		abort(500)
 
 	response = make_response(dumps({"queue": [entry["file"] for entry in redcedar_obj.job_queue]}))
+	response.status_code = 200
+	response.headers["content-type"] = "application/json"
+
+	return response
+
+@app.route("/api/v1/history", methods=["GET"])
+def api_v1_history():
+	if request.method != "GET":
+		abort(405)
+
+	if redcedar_obj == None:
+		abort(500)
+
+	history_to_send = []
+	for job in redcedar_obj.get_job_history():
+		job["datetime_completed"] = datetime.utcfromtimestamp(job["datetime_completed"]).strftime("%m-%d-%Y %H:%M:%S")
+		history_to_send.append(job)
+
+	response = make_response(dumps({"history": history_to_send}))
 	response.status_code = 200
 	response.headers["content-type"] = "application/json"
 
