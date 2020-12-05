@@ -2,10 +2,31 @@ import time
 from copy import copy
 from datetime import datetime, timedelta
 from flask_socketio import SocketIO
+from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
 from pathlib import Path
 from shutil import move as shutil_move
 from typing import Dict, List
 from subprocess import PIPE, Popen, STDOUT
+
+# Setup logging for runner.py
+# Create a custom logger
+logger = getLogger(__name__)
+
+# Create handlers
+console_handler = StreamHandler()
+file_handler = FileHandler("/config/log.log")
+console_handler.setLevel(WARNING)
+file_handler.setLevel(INFO)
+
+# Create formatters and add it to handlers
+console_format = Formatter("%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+console_handler.setFormatter(console_format)
+file_handler.setFormatter(file_format)
+
+# Add handlers to the logger
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 class JobRunner:
 	def __init__(self, socket_io: SocketIO):

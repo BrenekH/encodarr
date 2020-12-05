@@ -2,12 +2,33 @@ import time
 from collections import deque
 from flask_socketio import SocketIO
 from json import dump, load
+from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
 from pathlib import Path
 from pymediainfo import MediaInfo
 from typing import List
 from uuid import uuid4
 
 from .runner import JobRunner
+
+# Setup logging for controller.py
+# Create a custom logger
+logger = getLogger(__name__)
+
+# Create handlers
+console_handler = StreamHandler()
+file_handler = FileHandler("/config/log.log")
+console_handler.setLevel(WARNING)
+file_handler.setLevel(INFO)
+
+# Create formatters and add it to handlers
+console_format = Formatter("%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+console_handler.setFormatter(console_format)
+file_handler.setFormatter(file_format)
+
+# Add handlers to the logger
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 class JobController:
 	def __init__(self, socket_io: SocketIO, path_to_search: Path=Path.cwd(), config_dir: Path=Path("/config")) -> None:

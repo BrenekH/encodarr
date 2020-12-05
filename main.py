@@ -2,19 +2,40 @@ from datetime import datetime
 from flask_socketio import SocketIO
 from flask import abort, Flask, render_template, request, make_response
 from json import dumps
-from logging import getLogger, ERROR
+from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
 from pathlib import Path
 from sys import argv
 from redcedar import RedCedar, RedCedarSmart
 from redcedar.mock_cedar import MockCedar
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'my_secret'
-app.config['DEBUG'] = False
+app.config["SECRET_KEY"] = "my_secret"
+app.config["DEBUG"] = False
 
-getLogger('werkzeug').setLevel(ERROR)
+# Get rid of unnecessary werkzeug logs
+getLogger("werkzeug").setLevel(ERROR)
 
-#turn the flask app into a socketio app
+# Setup logging for main.py
+# Create a custom logger
+logger = getLogger(__name__)
+
+# Create handlers
+console_handler = StreamHandler()
+file_handler = FileHandler("/config/log.log")
+console_handler.setLevel(WARNING)
+file_handler.setLevel(INFO)
+
+# Create formatters and add it to handlers
+console_format = Formatter("%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+console_handler.setFormatter(console_format)
+file_handler.setFormatter(file_format)
+
+# Add handlers to the logger
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
+
+# Turn the flask app into a socketio app
 socketio = SocketIO(app, async_mode=None, logger=False, engineio_logger=False)
 redcedar_obj = None
 
@@ -43,10 +64,10 @@ def run_mockcedar():
 	redcedar_obj = MockCedar(socketio, Path("/usr/app/tosearch"))
 	redcedar_obj.run()
 
-@app.route('/')
+@app.route("/")
 def index():
 	# Only by sending this page first will the client be connected to the socketio instance
-	return render_template('index.html')
+	return render_template("index.html")
 
 @app.route("/api/v1/queue", methods=["GET"])
 def api_v1_queue():
@@ -81,18 +102,18 @@ def api_v1_history():
 
 	return response
 
-@socketio.on('connect', namespace='/updates')
+@socketio.on("connect", namespace="/updates")
 def test_connect():
 	if redcedar_obj != None:
 		redcedar_obj.runner.emit_current_job()
 		redcedar_obj.runner.emit_current_job_status()
-	print('Client connected')
+	print("Client connected")
 
-@socketio.on('disconnect', namespace='/updates')
+@socketio.on("disconnect", namespace="/updates")
 def test_disconnect():
-	print('Client disconnected')
+	print("Client disconnected")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 	if "mockcedar" in argv:
 		print("Running with mock RedCedar background process")
 		socketio.start_background_task(run_mockcedar)
@@ -110,8 +131,8 @@ if __name__ == '__main__':
 	else:
 		print("Starting redcedar")
 		socketio.start_background_task(run_redcedar_smart)
-	
+
 	socketio.run(app, host="0.0.0.0")
-	
+
 	if redcedar_obj != None:
 		redcedar_obj.stop()
