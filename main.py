@@ -5,7 +5,7 @@ from json import dumps
 from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
 from pathlib import Path
 from sys import argv
-from redcedar import RedCedar, RedCedarSmart
+from redcedar import RedCedar
 from redcedar.mock_cedar import MockCedar
 
 app = Flask(__name__)
@@ -42,21 +42,11 @@ redcedar_obj = None
 def run_redcedar():
 	global redcedar_obj
 	redcedar_obj = RedCedar(socketio, Path("/usr/app/tosearch"))
-	redcedar_obj.run()
+	redcedar_obj.start()
 
 def run_redcedar_cwd():
 	global redcedar_obj
 	redcedar_obj = RedCedar(socketio)
-	redcedar_obj.run()
-
-def run_redcedar_smart():
-	global redcedar_obj
-	redcedar_obj = RedCedarSmart(socketio, Path("/usr/app/tosearch"))
-	redcedar_obj.start()
-
-def run_redcedar_smart_cwd():
-	global redcedar_obj
-	redcedar_obj = RedCedarSmart(socketio)
 	redcedar_obj.start()
 
 def run_mockcedar():
@@ -118,19 +108,13 @@ if __name__ == "__main__":
 		logger.info("Running with mock RedCedar background process")
 		socketio.start_background_task(run_mockcedar)
 	elif "cwd" in argv:
-		logger.info("Running redcedar in current working directory")
+		logger.info("Running RedCedar in current working directory")
 		socketio.start_background_task(run_redcedar_cwd)
-	elif "smart" in argv:
-		logger.info("Running RedCedar in Smart mode")
-		socketio.start_background_task(run_redcedar_smart)
-	elif "smartcwd" in argv:
-		logger.info("Running RedCedar in Smart mode")
-		socketio.start_background_task(run_redcedar_smart_cwd)
 	elif "noredcedar" in argv:
 		logger.info("Running without RedCedar background process")
 	else:
-		logger.info("Starting redcedar")
-		socketio.start_background_task(run_redcedar_smart)
+		logger.info("Starting RedCedar")
+		socketio.start_background_task(run_redcedar)
 
 	socketio.run(app, host="0.0.0.0")
 
