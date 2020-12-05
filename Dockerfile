@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-RUN apt-get update -qq && apt-get install -qq -y software-properties-common && apt-get update -qq && apt-get install -qq -y mediainfo ffmpeg python3-pip
+RUN apt-get update -qq && apt-get install -qq -y mediainfo ffmpeg python3-pip
 
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
