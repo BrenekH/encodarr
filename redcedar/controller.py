@@ -22,9 +22,7 @@ class JobController:
 
 		self.__job_history = deque()
 
-		self.current_job_status = {"uuid": None, "file": None, "percentage": None,
-									"elapsed_time": None, "estimated_time": None,
-									"current_fps": None, "average_fps": None}
+		self.__current_job = {"uuid": None, "file": None}
 
 		self.runner = None
 
@@ -78,7 +76,7 @@ class JobController:
 					if is_hevc and has_stereo and not is_interlaced:
 						continue
 
-					if len([job for job in self.get_job_queue() if job["file"] == str(video_file)]):
+					if len([job for job in self.get_job_queue() if job["file"] == str(video_file) or job["file"] == self.__current_job["file"]]):
 						continue
 
 					to_append = {
@@ -98,7 +96,9 @@ class JobController:
 
 			if self.runner.active == False and len(self.__job_queue) > 0:
 				job_to_send = self.__job_queue.popleft()
-				# print(f"Sending new job: {to_append['file']}")
+				# print(f"Sending new job: {job_to_send['file']}")
+				self.__current_job["uuid"] = job_to_send["uuid"]
+				self.__current_job["file"] = job_to_send["file"]
 				self.runner.new_job(job_to_send)
 
 			for job in self.runner.completed_jobs():
