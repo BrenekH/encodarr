@@ -35,7 +35,7 @@ class JobController:
 	def start(self) -> None:
 		if not self.__history_file.exists():
 			with self.__history_file.open("w") as f:
-				f.write("{\"history\": []")
+				f.write("{\"history\": []}")
 
 		with self.__history_file.open() as f:
 			for history_obj in load(f)["history"]:
