@@ -49,7 +49,7 @@ class JobRunner:
 		self.__running = False
 
 	def stop(self):
-		logger.info("Stopping Runner")
+		logger.info("Stopping JobRunner")
 		self.__running = False
 
 	def new_job(self, job_info: Dict):
@@ -270,6 +270,7 @@ class JobRunner:
 		self.emit_event("current_job_update", {"file": str(self.__current_job["file"])})
 
 	def emit_event(self, event_name: str, data):
+		logger.debug(f"Emitting event {event_name} with data: {data}")
 		self.socket_io.emit(event_name, data, namespace="/updates")
 
 def chop_ms(delta):
