@@ -1,6 +1,7 @@
 import time
 from collections import deque
 from flask_socketio import SocketIO
+from json import dump, load
 from pathlib import Path
 from pymediainfo import MediaInfo
 from typing import List
@@ -29,7 +30,17 @@ class JobController:
 
 		self.__running = False
 
+		self.__history_file = config_dir / "history.json"
+
 	def start(self) -> None:
+		if not self.__history_file.exists():
+			with self.__history_file.open("w") as f:
+				f.write("{\"history\": []")
+
+		with self.__history_file.open() as f:
+			for history_obj in load(f)["history"]:
+				self.__job_history.appendleft(history_obj)
+
 		self.runner = JobRunner(self.socket_io)
 
 		self.__running = True
@@ -92,9 +103,15 @@ class JobController:
 
 			for job in self.runner.completed_jobs():
 				self.__job_history.appendleft(job)
+				self.__save_job_history()
 
 			self.socket_io.sleep(0.075)
 
 	def get_video_file_paths(self) -> List[Path]:
 		video_file_types = [".m4v", ".mp4", ".mkv", ".avi", ".mov", ".webm", ".ogg", ".m4p", ".wmv", ".qt"]
 		return [x for x in self.__path_to_search.glob("**/*") if x.is_file() and x.suffix in video_file_types]
+
+	def __save_job_history(self):
+		to_save = {"history": self.get_job_history()}
+		with self.__history_file.open("w") as f:
+			dump(to_save, f, indent=4)
