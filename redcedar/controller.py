@@ -66,6 +66,7 @@ class JobController:
 		self.__run()
 
 	def stop(self) -> None:
+		logger.info("Stopping JobController")
 		self.__running = False
 		self.runner.stop()
 
@@ -112,12 +113,12 @@ class JobController:
 						self.__job_queue.append(to_append)
 					else:
 						self.__job_queue.appendleft(to_append)
-					# print(f"Added to job queue: {to_append['file']}")
+					logger.info(f"Added to job queue: {to_append['file']}")
 					self.socket_io.sleep(0.05)
 
 			if self.runner.active == False and len(self.__job_queue) > 0:
 				job_to_send = self.__job_queue.popleft()
-				# print(f"Sending new job: {job_to_send['file']}")
+				logger.info(f"Sending new job: {job_to_send['file']}")
 				self.__current_job["uuid"] = job_to_send["uuid"]
 				self.__current_job["file"] = job_to_send["file"]
 				self.runner.new_job(job_to_send)

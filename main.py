@@ -107,32 +107,33 @@ def test_connect():
 	if redcedar_obj != None:
 		redcedar_obj.runner.emit_current_job()
 		redcedar_obj.runner.emit_current_job_status()
-	print("Client connected")
+	logger.info("Client connected")
 
 @socketio.on("disconnect", namespace="/updates")
 def test_disconnect():
-	print("Client disconnected")
+	logger.info("Client disconnected")
 
 if __name__ == "__main__":
 	if "mockcedar" in argv:
-		print("Running with mock RedCedar background process")
+		logger.info("Running with mock RedCedar background process")
 		socketio.start_background_task(run_mockcedar)
 	elif "cwd" in argv:
-		print("Running redcedar in current working directory")
+		logger.info("Running redcedar in current working directory")
 		socketio.start_background_task(run_redcedar_cwd)
 	elif "smart" in argv:
-		print("Running RedCedar in Smart mode")
+		logger.info("Running RedCedar in Smart mode")
 		socketio.start_background_task(run_redcedar_smart)
 	elif "smartcwd" in argv:
-		print("Running RedCedar in Smart mode")
+		logger.info("Running RedCedar in Smart mode")
 		socketio.start_background_task(run_redcedar_smart_cwd)
 	elif "noredcedar" in argv:
-		print("Running without RedCedar background process")
+		logger.info("Running without RedCedar background process")
 	else:
-		print("Starting redcedar")
+		logger.info("Starting redcedar")
 		socketio.start_background_task(run_redcedar_smart)
 
 	socketio.run(app, host="0.0.0.0")
 
+	logger.info("Stopping Project RedCedar")
 	if redcedar_obj != None:
 		redcedar_obj.stop()
