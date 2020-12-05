@@ -30,7 +30,7 @@ def run_redcedar_cwd():
 
 def run_redcedar_smart():
 	global redcedar_obj
-	redcedar_obj = RedCedarSmart(socketio, Path("D:\Videos\RedCedarSmartTestEnv"))
+	redcedar_obj = RedCedarSmart(socketio, Path("/usr/app/tosearch"))
 	redcedar_obj.start()
 
 def run_redcedar_smart_cwd():
