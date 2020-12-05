@@ -76,7 +76,7 @@ class JobController:
 					if is_hevc and has_stereo and not is_interlaced:
 						continue
 
-					if len([job for job in self.get_job_queue() if job["file"] == str(video_file) or job["file"] == self.__current_job["file"]]):
+					if len([job for job in self.get_job_queue() if job["file"] == str(video_file) or str(video_file) == self.__current_job["file"]]) > 0:
 						continue
 
 					to_append = {
