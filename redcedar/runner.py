@@ -130,6 +130,9 @@ class JobRunner:
 			stage_start_time = time.time()
 			self._run_ffmpeg(downmix_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
+			if extracted_audio.exists():
+				extracted_audio.unlink()
+
 		encode_inputs = ["-i", str(input_file)]
 		tracks_to_copy = ["-map", "0:s?", "-map", "0:a?"]
 		encoding_commands = []
@@ -152,6 +155,9 @@ class JobRunner:
 		# print("Starting final encode")
 		stage_start_time = time.time()
 		self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
+
+		if downmixed_audio != None and downmixed_audio.exists():
+			downmixed_audio.unlink()
 
 		if not self.__running:
 			return

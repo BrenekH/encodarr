@@ -9,16 +9,13 @@ from uuid import uuid4
 from .runner import JobRunner
 
 class JobController:
-	def __init__(self, socket_io: SocketIO, path_to_search: Path=Path.cwd()) -> None:
+	def __init__(self, socket_io: SocketIO, path_to_search: Path=Path.cwd(), config_dir: Path=Path("/config")) -> None:
 		self.socket_io = socket_io
 		self.__path_to_search = path_to_search
 
 		self.__file_system_check_offset = 15 * 60 # 15 minutes in seconds
 
 		self.__last_file_system_check = 0
-		self.__discoverer = None
-		self.__dispatcher = None
-		self.__verifier = None
 
 		self.__job_queue = deque()
 
