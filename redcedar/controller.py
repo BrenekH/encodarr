@@ -67,7 +67,7 @@ class JobController:
 					if is_hevc and has_stereo and not is_interlaced:
 						continue
 
-					if len([job for job in self.__job_queue if job["file"] == str(video_file)]):
+					if len([job for job in self.get_job_queue() if job["file"] == str(video_file)]):
 						continue
 
 					to_append = {
@@ -82,12 +82,12 @@ class JobController:
 						self.__job_queue.append(to_append)
 					else:
 						self.__job_queue.appendleft(to_append)
-					# print(f"Added to job queue: {self.job_queue[-1]['file']}")
+					# print(f"Added to job queue: {to_append['file']}")
 					self.socket_io.sleep(0.05)
 
 			if self.runner.active == False and len(self.__job_queue) > 0:
 				job_to_send = self.__job_queue.popleft()
-				# print(f"Sending new job: {job_to_send['file']}")
+				# print(f"Sending new job: {to_append['file']}")
 				self.runner.new_job(job_to_send)
 
 			for job in self.runner.completed_jobs():
