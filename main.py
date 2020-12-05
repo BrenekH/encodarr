@@ -56,7 +56,7 @@ def api_v1_queue():
 	if redcedar_obj == None:
 		abort(500)
 
-	response = make_response(dumps({"queue": [entry["file"] for entry in redcedar_obj.job_queue]}))
+	response = make_response(dumps({"queue": [entry["file"] for entry in redcedar_obj.get_job_queue()]}))
 	response.status_code = 200
 	response.headers["content-type"] = "application/json"
 

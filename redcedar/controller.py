@@ -20,7 +20,7 @@ class JobController:
 		self.__dispatcher = None
 		self.__verifier = None
 
-		self.job_queue = []
+		self.__job_queue = deque()
 
 		self.__job_history = deque()
 
@@ -45,6 +45,9 @@ class JobController:
 	def get_job_history(self):
 		return list(self.__job_history)
 
+	def get_job_queue(self):
+		return list(self.__job_queue)
+
 	def __run(self) -> None:
 		while self.__running:
 			# If last time file system was checked is greater than wait time: parse through all files
@@ -67,22 +70,26 @@ class JobController:
 					if is_hevc and has_stereo and not is_interlaced:
 						continue
 
-					if len([job for job in self.job_queue if job["file"] == str(video_file)]):
+					if len([job for job in self.__job_queue if job["file"] == str(video_file)]):
 						continue
 
-					self.job_queue.append({
+					to_append = {
 						"uuid": str(uuid4()),
 						"file": str(video_file),
 						"is_hevc": is_hevc,
 						"has_stereo": has_stereo,
 						"is_interlaced": is_interlaced,
 						"media_info": media_info.to_data()
-					})
+					}
+					if "Movies" in str(video_file):
+						self.__job_queue.append(to_append)
+					else:
+						self.__job_queue.appendleft(to_append)
 					# print(f"Added to job queue: {self.job_queue[-1]['file']}")
 					self.socket_io.sleep(0.05)
 
-			if self.runner.active == False and len(self.job_queue) > 0:
-				job_to_send = self.job_queue.pop(0)
+			if self.runner.active == False and len(self.__job_queue) > 0:
+				job_to_send = self.__job_queue.popleft()
 				# print(f"Sending new job: {job_to_send['file']}")
 				self.runner.new_job(job_to_send)
 
