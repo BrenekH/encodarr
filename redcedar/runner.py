@@ -10,23 +10,23 @@ from subprocess import PIPE, Popen, STDOUT
 
 # Setup logging for runner.py
 # Create a custom logger
-logger = getLogger(__name__)
+# logger = getLogger(__name__)
 
 # Create handlers
-console_handler = StreamHandler()
-file_handler = FileHandler("/config/log.log")
-console_handler.setLevel(WARNING)
-file_handler.setLevel(INFO)
+# console_handler = StreamHandler()
+# file_handler = FileHandler("/config/log.log")
+# console_handler.setLevel(WARNING)
+# file_handler.setLevel(INFO)
 
 # Create formatters and add it to handlers
-console_format = Formatter("%(name)s|%(levelname)s|%(lineno)d|%(message)s")
-file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
-console_handler.setFormatter(console_format)
-file_handler.setFormatter(file_format)
+# console_format = Formatter("%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+# file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+# console_handler.setFormatter(console_format)
+# file_handler.setFormatter(file_format)
 
 # Add handlers to the logger
-logger.addHandler(console_handler)
-logger.addHandler(file_handler)
+# logger.addHandler(console_handler)
+# logger.addHandler(file_handler)
 
 class JobRunner:
 	def __init__(self, socket_io: SocketIO):
@@ -49,7 +49,7 @@ class JobRunner:
 		self.__running = False
 
 	def stop(self):
-		logger.info("Stopping JobRunner")
+		# logger.info("Stopping JobRunner")
 		self.__running = False
 
 	def new_job(self, job_info: Dict):
@@ -84,7 +84,7 @@ class JobRunner:
 
 		with Popen(ffmpeg_command, stdout=PIPE, stderr=STDOUT, universal_newlines=True) as p:
 			for line in p.stdout:
-				logger.debug(f"Got FFMPEG line: {line}")
+				# logger.debug(f"Got FFMPEG line: {line}")
 				fps: float = None
 				current_time: str = None
 				speed: float = None
@@ -139,7 +139,7 @@ class JobRunner:
 			extract_audio_command = ["ffmpeg", "-i", str(input_file), "-map", "-0:v?", "-map", "0:a:0", "-map", "-0:s?", "-c", "copy", str(extracted_audio)]
 			self.__current_job_status["stage"] = "Extract Audio"
 			self.emit_current_job_status()
-			logger.info("Starting extraction of audio")
+			# logger.info("Starting extraction of audio")
 			stage_start_time = time.time()
 			self._run_ffmpeg(extract_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
@@ -148,7 +148,7 @@ class JobRunner:
 			downmix_audio_command = ["ffmpeg", "-i", str(extracted_audio), "-map", "0:a", "-c", "aac", "-af", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", str(downmixed_audio)]
 			self.__current_job_status["stage"] = "Downmix Audio"
 			self.emit_current_job_status()
-			logger.info("Starting downmixing of audio")
+			# logger.info("Starting downmixing of audio")
 			stage_start_time = time.time()
 			self._run_ffmpeg(downmix_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
@@ -174,7 +174,7 @@ class JobRunner:
 		final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + encoding_commands + [str(output_file)]
 		self.__current_job_status["stage"] = "Final encode"
 		self.emit_current_job_status()
-		logger.info("Starting final encode")
+		# logger.info("Starting final encode")
 		stage_start_time = time.time()
 		self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
@@ -192,7 +192,7 @@ class JobRunner:
 				delete_successful = True
 			except PermissionError:
 				current_job_warnings.append(f"Could not delete {input_file}, adding '-RedCedarSmart' as a suffix")
-				logger.warning(f"Could not delete {input_file}", exc_info=True)
+				# logger.warning(f"Could not delete {input_file}", exc_info=True)
 
 		# Move output.mkv to take the original file's place
 		if output_file.exists():
@@ -270,7 +270,7 @@ class JobRunner:
 		self.emit_event("current_job_update", {"file": str(self.__current_job["file"])})
 
 	def emit_event(self, event_name: str, data):
-		logger.debug(f"Emitting event {event_name} with data: {data}")
+		# logger.debug(f"Emitting event {event_name} with data: {data}")
 		self.socket_io.emit(event_name, data, namespace="/updates")
 
 def chop_ms(delta):

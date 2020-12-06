@@ -17,23 +17,23 @@ getLogger("werkzeug").setLevel(ERROR)
 
 # Setup logging for main.py
 # Create a custom logger
-logger = getLogger(__name__)
+# logger = getLogger(__name__)
 
 # Create handlers
-console_handler = StreamHandler()
-file_handler = FileHandler("/config/log.log")
-console_handler.setLevel(WARNING)
-file_handler.setLevel(INFO)
+# console_handler = StreamHandler()
+# file_handler = FileHandler("/config/log.log")
+# console_handler.setLevel(WARNING)
+# file_handler.setLevel(INFO)
 
 # Create formatters and add it to handlers
-console_format = Formatter("%(name)s|%(levelname)s|%(lineno)d|%(message)s")
-file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
-console_handler.setFormatter(console_format)
-file_handler.setFormatter(file_format)
+# console_format = Formatter("%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+# file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+# console_handler.setFormatter(console_format)
+# file_handler.setFormatter(file_format)
 
 # Add handlers to the logger
-logger.addHandler(console_handler)
-logger.addHandler(file_handler)
+# logger.addHandler(console_handler)
+# logger.addHandler(file_handler)
 
 # Turn the flask app into a socketio app
 socketio = SocketIO(app, async_mode=None, logger=False, engineio_logger=False)
@@ -97,27 +97,32 @@ def test_connect():
 	if redcedar_obj != None:
 		redcedar_obj.runner.emit_current_job()
 		redcedar_obj.runner.emit_current_job_status()
-	logger.info("Client connected")
+	# logger.info("Client connected")
 
 @socketio.on("disconnect", namespace="/updates")
 def test_disconnect():
-	logger.info("Client disconnected")
+	# logger.info("Client disconnected")
+	pass
 
 if __name__ == "__main__":
 	if "mockcedar" in argv:
-		logger.info("Running with mock RedCedar background process")
+		# logger.info("Running with mock RedCedar background process")
 		socketio.start_background_task(run_mockcedar)
 	elif "cwd" in argv:
-		logger.info("Running RedCedar in current working directory")
+		# logger.info("Running RedCedar in current working directory")
 		socketio.start_background_task(run_redcedar_cwd)
 	elif "noredcedar" in argv:
-		logger.info("Running without RedCedar background process")
+		# logger.info("Running without RedCedar background process")
+		pass
+	# elif "logtree" in argv:
+	# 	import logging_tree
+	# 	logging_tree.printout()
 	else:
-		logger.info("Starting RedCedar")
+		# logger.info("Starting RedCedar")
 		socketio.start_background_task(run_redcedar)
 
 	socketio.run(app, host="0.0.0.0")
 
-	logger.info("Stopping Project RedCedar")
+	# logger.info("Stopping Project RedCedar")
 	if redcedar_obj != None:
 		redcedar_obj.stop()
