@@ -21,19 +21,20 @@ logger = getLogger(__name__)
 
 # Create handlers
 console_handler = StreamHandler()
-file_handler = FileHandler("/config/log.log")
 console_handler.setLevel(WARNING)
-file_handler.setLevel(INFO)
 
 # Create formatters and add it to handlers
 console_format = Formatter("%(name)s|%(levelname)s|%(lineno)d|%(message)s")
-file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
 console_handler.setFormatter(console_format)
-file_handler.setFormatter(file_format)
 
 # Add handlers to the logger
 logger.addHandler(console_handler)
-logger.addHandler(file_handler)
+
+file_handler = FileHandler("/config/log.log")
+file_handler.setLevel(INFO)
+file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
+file_handler.setFormatter(file_format)
+getLogger().addHandler(file_handler)
 
 # Turn the flask app into a socketio app
 socketio = SocketIO(app, async_mode=None, logger=False, engineio_logger=False)
