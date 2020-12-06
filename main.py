@@ -34,7 +34,10 @@ file_handler = FileHandler("/config/log.log")
 file_handler.setLevel(INFO)
 file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
 file_handler.setFormatter(file_format)
-getLogger().addHandler(file_handler)
+
+root_logger = getLogger()
+root_logger.addHandler(file_handler)
+root_logger.setLevel(INFO)
 
 # Turn the flask app into a socketio app
 socketio = SocketIO(app, async_mode=None, logger=False, engineio_logger=False)
