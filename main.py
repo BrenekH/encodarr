@@ -12,8 +12,10 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "my_secret"
 app.config["DEBUG"] = False
 
-# Get rid of unnecessary werkzeug logs
+# Get rid of unnecessary logs
 getLogger("werkzeug").setLevel(ERROR)
+getLogger("socketio.server").setLevel(WARNING)
+getLogger("engineio.server").setLevel(WARNING)
 
 # Setup logging for main.py
 # Create a custom logger
