@@ -1,6 +1,8 @@
 # Video files
 **/*.mp4
 **/*.mkv
+**/*.mka
+**/*.mks
 **/*.avi
 **/*.m4v
 
