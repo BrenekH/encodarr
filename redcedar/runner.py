@@ -79,12 +79,19 @@ class JobRunner:
 		if type(ffmpeg_command) != list:
 			raise TypeError("ffmpeg_command argument must be a list of strings")
 
+		subtitle_failure = False
+		logger.info(f"Running ffmpeg using command list {ffmpeg_command}")
+
 		if not self.__running:
+			logger.debug(f"Stopping ffmpeg because __running is {self.__running}")
 			return
 
 		with Popen(ffmpeg_command, stdout=PIPE, stderr=STDOUT, universal_newlines=True) as p:
 			for line in p.stdout:
 				logger.debug(f"Got FFMPEG line: {line}")
+				if "Subtitle codec" in line and "is not supported" in line:
+					subtitle_failure = True
+					logger.debug(f"Triggered subtitle_failure on line: {line}")
 				fps: float = None
 				current_time: str = None
 				speed: float = None
@@ -113,6 +120,15 @@ class JobRunner:
 					return
 
 				self.socket_io.sleep(0.05)
+			exit_code = p.poll()
+			while exit_code == None:
+				self.socket_io.sleep(0.1)
+				logger.debug("Rechecking for non-None exit code")
+				exit_code = p.poll()
+			logger.debug(f"ffmpeg command returned exit code: {exit_code}")
+			if exit_code != 0 and subtitle_failure:
+				raise SubtitleError("Subtitle failure detected while running ffmpeg")
+			return exit_code
 
 	def _run_job(self, job_info: Dict):
 		input_file = Path(job_info["file"])
@@ -120,7 +136,10 @@ class JobRunner:
 		has_stereo = job_info["has_stereo"]
 		is_interlaced = job_info["is_interlaced"]
 
+		logger.info(f"Running job {input_file} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}, is_interlaced: {is_interlaced}]")
+
 		current_job_warnings, current_job_errors = ([], [])
+		critical_failure = False
 
 		output_file = Path.cwd() / "output.mkv"
 
@@ -133,7 +152,7 @@ class JobRunner:
 
 		if not has_stereo:
 			# Extract audio to cwd/job_uuid-extracted-audio.mkv
-			extracted_audio = Path.cwd() / f"{job_info['uuid']}-extracted-audio.mkv"
+			extracted_audio = Path.cwd() / f"{job_info['uuid']}-extracted-audio.mka"
 			if extracted_audio.exists():
 				extracted_audio.unlink()
 			extract_audio_command = ["ffmpeg", "-i", str(input_file), "-map", "-0:v?", "-map", "0:a:0", "-map", "-0:s?", "-c", "copy", str(extracted_audio)]
@@ -144,7 +163,7 @@ class JobRunner:
 			self._run_ffmpeg(extract_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
 			# Downmix audio
-			downmixed_audio = Path.cwd() / f"{job_info['uuid']}-downmixed-audio.mkv"
+			downmixed_audio = Path.cwd() / f"{job_info['uuid']}-downmixed-audio.mka"
 			downmix_audio_command = ["ffmpeg", "-i", str(extracted_audio), "-map", "0:a", "-c", "aac", "-af", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", str(downmixed_audio)]
 			self.__current_job_status["stage"] = "Downmix Audio"
 			self.emit_current_job_status()
@@ -156,7 +175,7 @@ class JobRunner:
 				extracted_audio.unlink()
 
 		encode_inputs = ["-i", str(input_file)]
-		tracks_to_copy = ["-map", "0:s?", "-map", "0:a?"]
+		tracks_to_copy = ["-map", "0:s?", "-map", "0:a"]
 		encoding_commands = []
 
 		if downmixed_audio != None:
@@ -167,16 +186,38 @@ class JobRunner:
 
 		if is_hevc:
 			tracks_to_copy.append("-map")
-			tracks_to_copy.append("0:v?")
+			tracks_to_copy.append("0:v")
 		else:
-			encoding_commands = ["-map", "0:v?", "-vcodec", "hevc"]
+			encoding_commands = ["-map", "0:v", "-vcodec", "hevc"]
 
-		final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + encoding_commands + [str(output_file)]
+		final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + ["-c", "copy"] + encoding_commands + [str(output_file)]
 		self.__current_job_status["stage"] = "Final encode"
 		self.emit_current_job_status()
 		logger.info("Starting final encode")
 		stage_start_time = time.time()
-		self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
+		try:
+			ffmpeg_exit_code = self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
+		except SubtitleError:
+			if output_file.exists():
+				try:
+					output_file.unlink()
+				except PermissionError:
+					current_job_errors.append("Could not delete interim output file while trying without subtitles")
+					logger.critical("Could not delete interim output file while trying without subtitles", exc_info=True)
+					critical_failure = True
+			if not critical_failure:
+				current_job_warnings.append("Final encode failed because of suspected unsupported subtitle codec, retrying without subtitles")
+				logger.warning("Final encode failed because of suspected unsupported subtitle codec, retrying without subtitles")
+				tracks_to_copy = tracks_to_copy[2:]
+				final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + ["-c", "copy"] + encoding_commands + [str(output_file)]
+				ffmpeg_exit_code = self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
+
+		if ffmpeg_exit_code != 0 and self.__running and not critical_failure:
+			critical_failure = True
+			logger.critical(f"Final encode ffmpeg command returned non-zero exit code: {ffmpeg_exit_code}")
+			current_job_errors.append(f"Final encode ffmpeg command returned non-zero exit code: {ffmpeg_exit_code}")
+		else:
+			logger.info(f"Completed final encode for {input_file}")
 
 		if downmixed_audio != None and downmixed_audio.exists():
 			downmixed_audio.unlink()
@@ -184,22 +225,29 @@ class JobRunner:
 		if not self.__running:
 			return
 
-		# Remove original file
-		delete_successful = False
-		if input_file.exists():
-			try:
-				input_file.unlink()
-				delete_successful = True
-			except PermissionError:
-				current_job_warnings.append(f"Could not delete {input_file}, adding '-RedCedarSmart' as a suffix")
-				logger.warning(f"Could not delete {input_file}", exc_info=True)
+		if not critical_failure:
+			# Remove original file
+			delete_successful = False
+			if input_file.exists():
+				try:
+					input_file.unlink()
+					delete_successful = True
+				except PermissionError:
+					current_job_warnings.append(f"Could not delete {input_file}, adding '-RedCedar' as a suffix")
+					logger.warning(f"Could not delete {input_file}", exc_info=True)
 
-		# Move output.mkv to take the original file's place
-		if output_file.exists():
-			if delete_successful:
-				shutil_move(str(output_file), input_file.with_suffix(output_file.suffix))	# Retains the file suffix with the new name
-			else:
-				shutil_move(str(output_file), input_file.with_name(f"{input_file.stem}-RedCedarSmart").with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+			# Move output.mkv to take the original file's place
+			if output_file.exists():
+				if delete_successful:
+					shutil_move(str(output_file), input_file.with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+				else:
+					shutil_move(str(output_file), input_file.with_name(f"{input_file.stem}-RedCedar").with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+			logger.info("Output file copied")
+		else:
+			try:
+				output_file.unlink()
+			except PermissionError:
+				logger.debug("Could not remove output_file during critical failure cleanup")
 
 		if self.__running:
 			self.__completed_jobs.append({
@@ -218,6 +266,8 @@ class JobRunner:
 			"stage": None
 		}
 		self.emit_current_job_status()
+
+		self.__current_job = {"file": None, "uuid": None}
 
 		if len(self.__waiting_jobs) > 0:
 			next_job = self.__waiting_jobs.pop(0)
@@ -275,3 +325,6 @@ class JobRunner:
 
 def chop_ms(delta):
 	return delta - timedelta(microseconds=delta.microseconds)
+
+class SubtitleError(RuntimeError):
+	pass

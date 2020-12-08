@@ -2,7 +2,7 @@ from datetime import datetime
 from flask_socketio import SocketIO
 from flask import abort, Flask, render_template, request, make_response
 from json import dumps
-from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
+from logging import DEBUG, INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
 from pathlib import Path
 from sys import argv
 from redcedar import RedCedar
