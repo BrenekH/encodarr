@@ -1,5 +1,6 @@
 import time
 from collections import deque
+from copy import deepcopy
 from flask_socketio import SocketIO
 from json import dump, load
 from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
@@ -71,7 +72,7 @@ class JobController:
 		self.runner.stop()
 
 	def get_job_history(self):
-		return list(self.__job_history)
+		return deepcopy(list(self.__job_history))
 
 	def get_job_queue(self):
 		return list(self.__job_queue)
