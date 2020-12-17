@@ -1,8 +1,9 @@
 from datetime import datetime
+from flask.helpers import send_file
 from flask_socketio import SocketIO
 from flask import abort, Flask, render_template, request, make_response
 from json import dumps
-from logging import DEBUG, INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
+from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
 from pathlib import Path
 from sys import argv
 from redcedar import RedCedar
@@ -64,6 +65,10 @@ def run_mockcedar():
 def index():
 	# Only by sending this page first will the client be connected to the socketio instance
 	return render_template("index.html")
+
+@app.route("/favicon.ico")
+def favicon_ico():
+	send_file("static/favicon/favicon.ico")
 
 @app.route("/api/v1/queue", methods=["GET"])
 def api_v1_queue():
