@@ -3,7 +3,7 @@ from collections import deque
 from copy import deepcopy
 from flask_socketio import SocketIO
 from json import dump, load
-from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
+from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
 from pymediainfo import MediaInfo
 from typing import List
@@ -17,19 +17,14 @@ logger = getLogger(__name__)
 
 # Create handlers
 console_handler = StreamHandler()
-# file_handler = FileHandler("/config/log.log")
 console_handler.setLevel(WARNING)
-# file_handler.setLevel(INFO)
 
 # Create formatters and add it to handlers
 console_format = Formatter("%(name)s|%(levelname)s|%(lineno)d|%(message)s")
-# file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
 console_handler.setFormatter(console_format)
-# file_handler.setFormatter(file_format)
 
 # Add handlers to the logger
 logger.addHandler(console_handler)
-# logger.addHandler(file_handler)
 
 class JobController:
 	def __init__(self, socket_io: SocketIO, path_to_search: Path=Path.cwd(), config_dir: Path=Path("/config")) -> None:
@@ -85,11 +80,18 @@ class JobController:
 				self.__last_file_system_check = time.time()
 				video_file_paths = self.get_video_file_paths()
 				for video_file in video_file_paths:
+					# Have we already added this file?
+					if len([job for job in self.get_job_queue() if job["file"] == str(video_file) or str(video_file) == self.__current_job["file"]]) > 0:
+						continue
+
+					if "Plex Versions" in str(video_file): # Is the file 'optimized' by Plex?
+						continue
+
 					media_info = MediaInfo.parse(str(video_file))
 					if not len(media_info.video_tracks) > 0:
 						continue
 
-					if media_info.video_tracks[0].color_primaries == "BT.2020" or "Plex Versions" in str(video_file): # Is the file HDR or 'optimized' by Plex
+					if media_info.video_tracks[0].color_primaries == "BT.2020": # Is the file HDR?
 						continue
 
 					is_hevc = media_info.video_tracks[0].format == "HEVC"
@@ -98,9 +100,6 @@ class JobController:
 					is_interlaced = not is_hevc and media_info.video_tracks[0].scan_type != "Progressive"
 
 					if is_hevc and has_stereo and not is_interlaced:
-						continue
-
-					if len([job for job in self.get_job_queue() if job["file"] == str(video_file) or str(video_file) == self.__current_job["file"]]) > 0:
 						continue
 
 					to_append = {
