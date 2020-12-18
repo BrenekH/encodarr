@@ -45,6 +45,7 @@ function updateQueue() {
 			finalHTMLString += renderQueueEntry(i, queue[i-1].filename, queue[i-1].video_op, queue[i-1].audio_op);
 		}
 		$("#queue-content").html(finalHTMLString);
+		enableTooltips();
 	}).catch(function (error) {
 		console.log(`Request to /api/v1/queue failed with error: ${error}`);
 	});
@@ -53,12 +54,12 @@ function updateQueue() {
 function renderQueueEntry(entryNumber, filePath, videoOp, audioOp) {
 	let videoHTML = "";
 	if (videoOp) {
-		videoHTML = `<img class="playButtonImage" src="/static/svg/play_button.svg" alt="Play Button" height="20px">`
+		videoHTML = `<img class="playButtonImage" src="/static/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`
 	}
 
 	let audioHTML = "";
 	if (audioOp) {
-		audioHTML = `<img src="/static/svg/headphones.svg" alt="Headphones" height="20px">`
+		audioHTML = `<img src="/static/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`
 	}
 	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td><td>${videoHTML}${audioHTML}</td></tr>\n`;
 }
@@ -83,4 +84,11 @@ function updateHistory() {
 
 function renderHistoryEntry(dateTimeString, filePath) {
 	return `<tr><td>${dateTimeString}</td><td>${filePath}</td></tr>`;
+}
+
+function enableTooltips() {
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+		return new bootstrap.Tooltip(tooltipTriggerEl)
+	})
 }
