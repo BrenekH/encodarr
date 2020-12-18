@@ -130,7 +130,11 @@ if __name__ == "__main__":
 		logger.info("Starting RedCedar")
 		socketio.start_background_task(run_redcedar)
 
-	socketio.run(app, host="0.0.0.0")
+	debug_mode = False
+	if "flaskdebug" in argv:
+		debug_mode = True
+
+	socketio.run(app, host="0.0.0.0", debug=debug_mode)
 
 	logger.info("Stopping Project RedCedar")
 	if redcedar_obj != None:
