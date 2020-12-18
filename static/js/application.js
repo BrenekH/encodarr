@@ -42,7 +42,7 @@ function updateQueue() {
 		}
 		let finalHTMLString = "";
 		for (let i = 1; i <= queue.length; i++) {
-			finalHTMLString += renderQueueEntry(i, queue[i-1]);
+			finalHTMLString += renderQueueEntry(i, queue[i-1].filename, queue[i-1].video_op, queue[i-1].audio_op);
 		}
 		$("#queue-content").html(finalHTMLString);
 	}).catch(function (error) {
@@ -50,8 +50,17 @@ function updateQueue() {
 	});
 }
 
-function renderQueueEntry(entryNumber, filePath) {
-	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td></tr>\n`;
+function renderQueueEntry(entryNumber, filePath, videoOp, audioOp) {
+	let videoHTML = "";
+	if (videoOp) {
+		videoHTML = `<img src="/static/svg/play_button.svg" alt="Play Button" height="20px">`
+	}
+
+	let audioHTML = "";
+	if (audioOp) {
+		audioHTML = `<img src="/static/svg/headphones.svg" alt="Headphones" height="20px">`
+	}
+	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td><td>${videoHTML}${audioHTML}</td></tr>\n`;
 }
 
 function updateHistory() {

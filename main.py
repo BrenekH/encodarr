@@ -48,7 +48,7 @@ redcedar_obj = None
 
 def run_redcedar():
 	global redcedar_obj
-	redcedar_obj = RedCedar(socketio, Path("/usr/app/tosearch"))
+	redcedar_obj = RedCedar(socketio, Path("D:\Videos\RedCedarSmartTestEnv2"))
 	redcedar_obj.start()
 
 def run_redcedar_cwd():
@@ -78,7 +78,13 @@ def api_v1_queue():
 	if redcedar_obj == None:
 		abort(500)
 
-	response = make_response(dumps({"queue": [entry["file"] for entry in redcedar_obj.get_job_queue()]}))
+	response_dict = {"queue": []}
+	for entry in redcedar_obj.get_job_queue():
+		response_dict["queue"].append({"filename": entry["file"],
+										"video_op": not entry["is_hevc"],
+										"audio_op": not entry["has_stereo"]
+										})
+	response = make_response(dumps(response_dict))
 	response.status_code = 200
 	response.headers["content-type"] = "application/json"
 
