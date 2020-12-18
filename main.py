@@ -48,7 +48,7 @@ redcedar_obj = None
 
 def run_redcedar():
 	global redcedar_obj
-	redcedar_obj = RedCedar(socketio, Path("D:\Videos\RedCedarSmartTestEnv2"))
+	redcedar_obj = RedCedar(socketio, Path("/usr/app/tosearch"))
 	redcedar_obj.start()
 
 def run_redcedar_cwd():
