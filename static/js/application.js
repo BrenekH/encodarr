@@ -53,7 +53,7 @@ function updateQueue() {
 function renderQueueEntry(entryNumber, filePath, videoOp, audioOp) {
 	let videoHTML = "";
 	if (videoOp) {
-		videoHTML = `<img src="/static/svg/play_button.svg" alt="Play Button" height="20px">`
+		videoHTML = `<img class="playButtonImage" src="/static/svg/play_button.svg" alt="Play Button" height="20px">`
 	}
 
 	let audioHTML = "";
