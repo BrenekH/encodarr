@@ -5,3 +5,11 @@
 .playButtonImage {
 	padding-right: 5px;
 }
+
+.queue-icon-container {
+	white-space: nowrap;
+}
+
+.queue-icon {
+	display: inline;
+}

@@ -54,14 +54,14 @@ function updateQueue() {
 function renderQueueEntry(entryNumber, filePath, videoOp, audioOp) {
 	let videoHTML = "";
 	if (videoOp) {
-		videoHTML = `<img class="playButtonImage" src="/static/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`
+		videoHTML = `<img class="playButtonImage queue-icon" src="/static/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`
 	}
 
 	let audioHTML = "";
 	if (audioOp) {
-		audioHTML = `<img src="/static/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`
+		audioHTML = `<img class="queue-icon" src="/static/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`
 	}
-	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td><td>${videoHTML}${audioHTML}</td></tr>\n`;
+	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td><td><div class="queue-icon-container">${videoHTML}${audioHTML}</div></td></tr>\n`;
 }
 
 function updateHistory() {
