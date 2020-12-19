@@ -1,9 +1,12 @@
-**/*.mp4
-**/*.m4v
-**/*.avi
-**/*.mkv
+*.mp4
+*.m4v
+*.avi
+*.mkv
 
 README.md
+
+TODO
+*.sh
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

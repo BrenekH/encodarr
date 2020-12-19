@@ -6,8 +6,8 @@ from json import dumps
 from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
 from pathlib import Path
 from sys import argv
-from redcedar import RedCedar
-from redcedar.mock_cedar import MockCedar
+
+from redcedar import JobController
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "my_secret"
@@ -44,22 +44,17 @@ root_logger.setLevel(INFO)
 
 # Turn the flask app into a socketio app
 socketio = SocketIO(app, async_mode=None, logger=False, engineio_logger=False)
-redcedar_obj = None
+controller_obj = None
 
 def run_redcedar():
-	global redcedar_obj
-	redcedar_obj = RedCedar(socketio, Path("/usr/app/tosearch"))
-	redcedar_obj.start()
+	global controller_obj
+	controller_obj = JobController(socketio, Path("/usr/app/tosearch"))
+	controller_obj.start()
 
 def run_redcedar_cwd():
-	global redcedar_obj
-	redcedar_obj = RedCedar(socketio)
-	redcedar_obj.start()
-
-def run_mockcedar():
-	global redcedar_obj
-	redcedar_obj = MockCedar(socketio, Path("/usr/app/tosearch"))
-	redcedar_obj.run()
+	global controller_obj
+	controller_obj = JobController(socketio)
+	controller_obj.start()
 
 @app.route("/")
 def index():
@@ -75,11 +70,11 @@ def api_v1_queue():
 	if request.method != "GET":
 		abort(405)
 
-	if redcedar_obj == None:
+	if controller_obj == None:
 		abort(500)
 
 	response_dict = {"queue": []}
-	for entry in redcedar_obj.get_job_queue():
+	for entry in controller_obj.get_job_queue():
 		response_dict["queue"].append({"filename": entry["file"],
 										"video_op": not entry["is_hevc"],
 										"audio_op": not entry["has_stereo"]
@@ -95,11 +90,11 @@ def api_v1_history():
 	if request.method != "GET":
 		abort(405)
 
-	if redcedar_obj == None:
+	if controller_obj == None:
 		abort(500)
 
 	history_to_send = []
-	for job in redcedar_obj.get_job_history():
+	for job in controller_obj.get_job_history():
 		job["datetime_completed"] = datetime.utcfromtimestamp(job["datetime_completed"]).strftime("%m-%d-%Y %H:%M:%S")
 		history_to_send.append(job)
 
@@ -111,9 +106,9 @@ def api_v1_history():
 
 @socketio.on("connect", namespace="/updates")
 def test_connect():
-	if redcedar_obj != None:
-		redcedar_obj.runner.emit_current_job()
-		redcedar_obj.runner.emit_current_job_status()
+	if controller_obj != None:
+		controller_obj.runner.emit_current_job()
+		controller_obj.runner.emit_current_job_status()
 	logger.info("Client connected")
 
 @socketio.on("disconnect", namespace="/updates")
@@ -121,10 +116,7 @@ def test_disconnect():
 	logger.info("Client disconnected")
 
 if __name__ == "__main__":
-	if "mockcedar" in argv:
-		logger.info("Running with mock RedCedar background process")
-		socketio.start_background_task(run_mockcedar)
-	elif "cwd" in argv:
+	if "cwd" in argv:
 		logger.info("Running RedCedar in current working directory")
 		socketio.start_background_task(run_redcedar_cwd)
 	elif "noredcedar" in argv:
@@ -143,5 +135,5 @@ if __name__ == "__main__":
 	socketio.run(app, host="0.0.0.0", debug=debug_mode)
 
 	logger.info("Stopping Project RedCedar")
-	if redcedar_obj != None:
-		redcedar_obj.stop()
+	if controller_obj != None:
+		controller_obj.stop()
