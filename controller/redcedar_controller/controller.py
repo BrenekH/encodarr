@@ -37,7 +37,7 @@ class JobController:
 
 		self.__job_history = deque()
 
-		self.__current_job = {"uuid": None, "file": None}
+		self.__dispatched_jobs = []
 
 		self.runner = None
 
@@ -56,6 +56,18 @@ class JobController:
 
 		self.__running = True
 		self.__run()
+
+	def get_new_job(self):
+		# TODO: Implement
+		pass
+
+	def update_job_status(self):
+		# TODO: Implement
+		pass
+
+	def job_complete(self):
+		# TODO: Implement
+		pass
 
 	def stop(self) -> None:
 		logger.info("Stopping JobController")
@@ -76,7 +88,10 @@ class JobController:
 				video_file_paths = self.get_video_file_paths()
 				for video_file in video_file_paths:
 					# Have we already added this file?
-					if len([job for job in self.get_job_queue() if job["file"] == str(video_file) or str(video_file) == self.__current_job["file"]]) > 0:
+					if len([job for job in self.get_job_queue() if job["file"] == str(video_file)]) > 0:
+						continue
+
+					if len([job for job in self.__dispatched_jobs if job["file"] == str(video_file)]) > 0:
 						continue
 
 					if "Plex Versions" in str(video_file): # Is the file 'optimized' by Plex?
@@ -113,17 +128,6 @@ class JobController:
 					self.socket_io.sleep(0.05)
 				logger.debug("File system check complete")
 
-			if self.runner.active == False and len(self.__job_queue) > 0:
-				job_to_send = self.__job_queue.popleft()
-				logger.info(f"Sending new job: {job_to_send['file']}")
-				self.__current_job["uuid"] = job_to_send["uuid"]
-				self.__current_job["file"] = job_to_send["file"]
-				self.runner.new_job(job_to_send)
-
-			for job in self.runner.completed_jobs():
-				self.__job_history.appendleft(job)
-				self.__save_job_history()
-
 			self.socket_io.sleep(0.075)
 
 	def get_video_file_paths(self) -> List[Path]:
@@ -134,3 +138,11 @@ class JobController:
 		to_save = {"history": self.get_job_history()}
 		with self.__history_file.open("w") as f:
 			dump(to_save, f, indent=4)
+
+	def emit_current_jobs(self):
+		# TODO: Implement
+		pass
+
+	def emit_current_jobs_statuses(self):
+		# TODO: Implement
+		pass
