@@ -27,4 +27,6 @@ root_logger.addHandler(file_handler)
 root_logger.setLevel(INFO)
 
 if __name__ == "__main__":
-	pass
+	runner = JobRunner(controller_ip="localhost:5000")
+
+	runner.run()

@@ -1,7 +1,6 @@
 import requests, signal, time
-from copy import copy
+from _thread import start_new_thread
 from datetime import datetime, timedelta
-from flask_socketio import SocketIO
 from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
 from shutil import move as shutil_move
@@ -27,7 +26,6 @@ class JobRunner:
 	def __init__(self, controller_ip: str="localhost:5000"):
 		self.controller_ip = controller_ip
 
-		self.active = False
 		self.__completed_jobs = [] # Contains dictionaries with file, datetime_completed(in UTC), warnings, and errors keys
 		self.__current_job_status = {
 			"percentage": None,
@@ -37,7 +35,7 @@ class JobRunner:
 			"stage_elapsed_time": None,
 			"stage": None
 		}
-		self.__running = False
+		self.__running = True
 
 		# Setup self.stop as a handler to handle terminate signals
 		signal.signal(signal.SIGINT, self.stop)
@@ -51,20 +49,30 @@ class JobRunner:
 		"""Runs the JobRunner
 		"""
 		while self.__running:
-			# TODO: Obtain job info from controller
 			new_job_info = self.new_job_from_controller()
-			# TODO: Run job
 			self.__start_job(new_job_info)
-			# TODO: Send job complete to controller
 
 	def new_job_from_controller(self):
 		"""Sends a get request to the controller for a new job
 		"""
-		pass
+		for i in range(100):
+			if self.__running:
+				r = requests.get(f"{self.controller_ip}/api/v1/job/request")
+
+				if r.status_code != 200:
+					logger.warning(f"Received status code {r.status_code} from controller because of error: {r.content}. Retrying in {i} seconds")
+					if not self.__running:
+						return None
+					time.sleep(i)
+					continue
+
+				return r.json()
+			else:
+				return None
+
+		raise RuntimeError(f"Controller did not respond with new job after 100 tries")
 
 	def __start_job(self, job_info: Dict):
-		self.__running = True
-
 		self._run_job(job_info)
 
 	def _run_ffmpeg(self, ffmpeg_command: List[str], interval_callback=None, *args):
@@ -149,7 +157,7 @@ class JobRunner:
 				extracted_audio.unlink()
 			extract_audio_command = ["ffmpeg", "-i", str(input_file), "-map", "-0:v?", "-map", "0:a:0", "-map", "-0:s?", "-c", "copy", str(extracted_audio)]
 			self.__current_job_status["stage"] = "Extract Audio"
-			self.emit_current_job_status()
+			self.send_current_job_status()
 			logger.info("Starting extraction of audio")
 			stage_start_time = time.time()
 			self._run_ffmpeg(extract_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
@@ -158,7 +166,7 @@ class JobRunner:
 			downmixed_audio = Path.cwd() / f"{job_info['uuid']}-downmixed-audio.mka"
 			downmix_audio_command = ["ffmpeg", "-i", str(extracted_audio), "-map", "0:a", "-c", "aac", "-af", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", str(downmixed_audio)]
 			self.__current_job_status["stage"] = "Downmix Audio"
-			self.emit_current_job_status()
+			self.send_current_job_status()
 			logger.info("Starting downmixing of audio")
 			stage_start_time = time.time()
 			self._run_ffmpeg(downmix_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
@@ -240,25 +248,14 @@ class JobRunner:
 			try:
 				output_file.unlink()
 			except PermissionError:
-				logger.debug("Could not remove output_file during critical failure cleanup")
+				logger.warning("Could not remove output_file during critical failure cleanup")
 
-		if self.__running:
-			self.__completed_jobs.append({
-				"file": job_info["file"],
-				"datetime_completed": datetime.utcnow().timestamp(),
-				"warnings": current_job_warnings,
-				"errors": current_job_errors
-			})
-
-		self.__current_job_status = {
-			"percentage": None,
-			"job_elapsed_time": None,
-			"stage_estimated_time_remaining": None,
-			"fps": None,
-			"stage_elapsed_time": None,
-			"stage": None
-		}
-		self.send_current_job_status()
+		self.send_job_complete({
+			"file": job_info["file"],
+			"datetime_completed": datetime.utcnow().timestamp(),
+			"warnings": current_job_warnings,
+			"errors": current_job_errors
+		})
 
 	def update_job_status(self, fps: float, current_file_time_str: str, current_speed: float, stage_start_time: float, job_start_time: float, job_info: Dict):
 		if fps == None:
@@ -294,12 +291,27 @@ class JobRunner:
 		return (True, "")
 
 	def send_current_job_status(self):
-		requests.post(f"{self.controller_ip}/api/v1/job/status", json={"percentage": str(self.__current_job_status["percentage"]),
+		def x():
+			r = requests.post(f"{self.controller_ip}/api/v1/job/status", json={"percentage": str(self.__current_job_status["percentage"]),
 												"job_elapsed_time": str(self.__current_job_status["job_elapsed_time"]),
 												"stage_estimated_time_remaining": str(self.__current_job_status["stage_estimated_time_remaining"]),
 												"fps": str(self.__current_job_status["fps"]),
 												"stage_elapsed_time": str(self.__current_job_status["stage_elapsed_time"]),
 												"stage": str(self.__current_job_status["stage"])})
+			if r.status_code != 200:
+				logger.warning(f"Current job status failed to send because of error: {r.content}")
+
+		start_new_thread(x, ())
+
+	def send_job_complete(self, history_entry):
+		for i in range(100):
+			r = requests.post(f"{self.controller_ip}/api/v1/job/complete", json=history_entry)
+			if r.status_code != 200:
+				logger.warning(f"Job complete failed to send because of error: {r.content}. Retrying in {i} seconds...")
+				if not self.__running:
+					logger.error("Exiting without sending job complete signal to controller")
+					return
+				time.sleep(i)
 
 def chop_ms(delta):
 	return delta - timedelta(microseconds=delta.microseconds)
