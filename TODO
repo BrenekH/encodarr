@@ -1,20 +1,6 @@
-Client Side:
-	Auto Updating Information:
-		✔ Properly handle status_update @done(20-06-16 13:32)
-		✔ Properly handle connect_info @done(20-06-20 17:15)
-		✔ Properly handle file_complete @done(20-06-20 17:15)
-		✔ Properly handle file_skip @done(20-06-20 17:15)
+JobRunner:
+	☐ Handle failures during stereo audio creation (probably just warn user and skip stereo audio creation)
 
-Server Side:
-	Send state of all files when client connects:
-		✔ Implement queue between RedCedar and Web Server @done(20-06-20 17:15)
-		✔ RedCedar emits "connect_info" event when queue has new connection string @done(20-06-20 17:15)
-			✔ Only does once per loop to prevent oversending info to clients @done(20-06-20 17:15)
-	Misc:
-		✔ Strip floating points from timestamps @done(20-06-20 17:15)
-
-completed_videos.json verifier script:
-	✔ Load completed_videos.json from sys.argv @done(20-07-06 23:36)
-	✔ Iterate through each entry @done(20-07-06 23:49)
-		✔ Check each file suffix for existing video file @done(20-07-06 23:49)
-	✔ Display results in comprehensive manner @done(20-07-07 00:13)
+Command line options:
+	☐ Trace logging command-line option (enables extremely spammy debug logging like every ffmpeg line)
+	☐ Pass custom directory to monitor

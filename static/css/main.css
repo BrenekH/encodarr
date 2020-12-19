@@ -1,86 +1,15 @@
-body {
-	background-color: #f0f0f0f0;
+.spacer {
+	margin-top: 3em;
 }
 
-hr {
-	color: #1a1a1a;
-	border-color: #1a1a1a;
-	margin-top: 0px;
+.playButtonImage {
+	padding-right: 5px;
 }
 
-.header-content {
-	/* Bootstrap aligned center */
+.queue-icon-container {
+	white-space: nowrap;
 }
 
-.total-time-label {
-	/* Bootstrap aligned right */
+.queue-icon {
+	display: inline;
 }
-
-.total-time {}
-
-.file-counter-label {
-	/* Bootstrap aligned right */
-}
-
-.file-counter {}
-
-
-/* Current File */
-.current-file-header {
-	/* Bootstrap aligned center */
-}
-
-.current-file {}
-
-.percent-complete {
-	/* Bootstrap aligned center */
-}
-
-.current-time-running-label {
-	/* Bootstrap aligned right */
-}
-
-.current-time-running {}
-
-.fps-label {
-	/* Bootstrap aligned right */
-}
-
-.fps {}
-
-.completion-estimate-label {
-	/* Bootstrap aligned right */
-}
-
-.completion-estimate {}
-
-.avg-fps-label {
-	/* Bootstrap aligned right */
-}
-
-.avg-fps {}
-
-
-/* Completed Files Log */
-.completed-header {
-	/* Bootstrap aligned center */
-}
-
-.completed-file-path {}
-
-.completed-avg-fps {}
-
-.completed-time {}
-
-.completed-timestamp {}
-
-
-/* Skipped Files Log */
-
-.skipped-header {
-	/* Bootstrap aligned center */
-}
-
-.skipped-file-path {}
-
-.skipped-reason {}

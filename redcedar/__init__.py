@@ -1,1 +1,1 @@
-from .redcedar import RedCedar
+from .controller import JobController
