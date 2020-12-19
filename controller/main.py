@@ -104,22 +104,41 @@ def api_v1_history():
 
 	return response
 
-@app.route("/api/v1/job", methods=["GET", "POST"])
-def api_v1_job():
-	if request.method != "GET" and request.method != "POST":
+@app.route("/api/v1/job/request", methods=["GET"])
+def api_v1_job_request():
+	if request.method != "GET":
+		abort(405)
+
+	return ""
+
+@app.route("/api/v1/job/status", methods=["POST"])
+def api_v1_job_status():
+	if request.method != "POST":
+		abort(405)
+
+	return ""
+
+@app.route("/api/v1/job/complete", methods=["POST"])
+def api_v1_job_complete():
+	if request.method != "POST":
 		abort(405)
 
 	return ""
 
 @socketio.on("connect", namespace="/updates")
-def test_connect():
+def on_connect():
 	if controller_obj != None:
-		controller_obj.runner.emit_current_job()
-		controller_obj.runner.emit_current_job_status()
+		controller_obj.emit_current_jobs()
+		controller_obj.emit_current_jobs_statuses()
+
+		# TODO: Maybe the above can replace the below? Need to look more into it
+
+		# controller_obj.runner.emit_current_job()
+		# controller_obj.runner.emit_current_job_status()
 	logger.debug("Client connected")
 
 @socketio.on("disconnect", namespace="/updates")
-def test_disconnect():
+def on_disconnect():
 	logger.debug("Client disconnected")
 
 if __name__ == "__main__":

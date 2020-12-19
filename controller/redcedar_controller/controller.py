@@ -9,8 +9,6 @@ from pymediainfo import MediaInfo
 from typing import List
 from uuid import uuid4
 
-from .runner import JobRunner
-
 # Setup logging for controller.py
 # Create a custom logger
 logger = getLogger(__name__)
@@ -56,15 +54,12 @@ class JobController:
 			for history_obj in load(f)["history"]:
 				self.__job_history.appendleft(history_obj)
 
-		self.runner = JobRunner(self.socket_io)
-
 		self.__running = True
 		self.__run()
 
 	def stop(self) -> None:
 		logger.info("Stopping JobController")
 		self.__running = False
-		self.runner.stop()
 
 	def get_job_history(self):
 		return deepcopy(list(self.__job_history))

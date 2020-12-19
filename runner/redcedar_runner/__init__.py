@@ -1,4 +1,4 @@
-import time
+import requests, signal, time
 from copy import copy
 from datetime import datetime, timedelta
 from flask_socketio import SocketIO
@@ -24,8 +24,9 @@ console_handler.setFormatter(console_format)
 logger.addHandler(console_handler)
 
 class JobRunner:
-	def __init__(self, socket_io: SocketIO):
-		self.socket_io = socket_io
+	def __init__(self, controller_ip: str="localhost:5000"):
+		self.controller_ip = controller_ip
+
 		self.active = False
 		self.__completed_jobs = [] # Contains dictionaries with file, datetime_completed(in UTC), warnings, and errors keys
 		self.__current_job_status = {
@@ -36,39 +37,35 @@ class JobRunner:
 			"stage_elapsed_time": None,
 			"stage": None
 		}
-		self.__waiting_jobs = [] # In case new_job gets called even when runner is active
-		self.__current_job = {
-			"file": None,
-			"uuid": None
-		}
 		self.__running = False
 
-	def stop(self):
+		# Setup self.stop as a handler to handle terminate signals
+		signal.signal(signal.SIGINT, self.stop)
+		signal.signal(signal.SIGTERM, self.stop)
+
+	def stop(self, *args):
 		logger.info("Stopping JobRunner")
 		self.__running = False
 
-	def new_job(self, job_info: Dict):
-		self.active = True
-		if self.__current_job["uuid"] != None:
-			self.__waiting_jobs.append(job_info)
-			return
+	def run(self):
+		"""Runs the JobRunner
+		"""
+		while self.__running:
+			# TODO: Obtain job info from controller
+			new_job_info = self.new_job_from_controller()
+			# TODO: Run job
+			self.__start_job(new_job_info)
+			# TODO: Send job complete to controller
 
-		self.__start_job(job_info)
-
-	def completed_jobs(self):
-		to_return = copy(self.__completed_jobs)
-		self.__completed_jobs = []
-		return to_return
+	def new_job_from_controller(self):
+		"""Sends a get request to the controller for a new job
+		"""
+		pass
 
 	def __start_job(self, job_info: Dict):
 		self.__running = True
-		self.__current_job = {
-			"file": job_info["file"],
-			"uuid": job_info["uuid"]
-		}
 
-		self.emit_current_job()
-		self.socket_io.start_background_task(self._run_job, job_info)
+		self._run_job(job_info)
 
 	def _run_ffmpeg(self, ffmpeg_command: List[str], interval_callback=None, *args):
 		if type(ffmpeg_command) != list:
@@ -114,10 +111,10 @@ class JobRunner:
 				if not self.__running:
 					return
 
-				self.socket_io.sleep(0.05)
+				time.sleep(0.05)
 			exit_code = p.poll()
 			while exit_code == None:
-				self.socket_io.sleep(0.1)
+				time.sleep(0.1)
 				logger.debug("Rechecking for non-None exit code")
 				exit_code = p.poll()
 			logger.debug(f"ffmpeg command returned exit code: {exit_code}")
@@ -187,9 +184,10 @@ class JobRunner:
 
 		final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + ["-c", "copy"] + encoding_commands + [str(output_file)]
 		self.__current_job_status["stage"] = "Final encode"
-		self.emit_current_job_status()
+		self.send_current_job_status()
 		logger.info("Starting final encode")
 		stage_start_time = time.time()
+
 		try:
 			ffmpeg_exit_code = self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 		except SubtitleError:
@@ -260,22 +258,14 @@ class JobRunner:
 			"stage_elapsed_time": None,
 			"stage": None
 		}
-		self.emit_current_job_status()
-
-		self.__current_job = {"file": None, "uuid": None}
-
-		if len(self.__waiting_jobs) > 0:
-			next_job = self.__waiting_jobs.pop(0)
-			self.__start_job(next_job)
-		else:
-			self.active = False
+		self.send_current_job_status()
 
 	def update_job_status(self, fps: float, current_file_time_str: str, current_speed: float, stage_start_time: float, job_start_time: float, job_info: Dict):
 		if fps == None:
 			fps = "N/A"
 
 		if current_file_time_str == None or current_speed == None:
-			self.emit_current_job_status()
+			self.send_current_job_status()
 			return
 
 		total_length = str([track for track in job_info["media_info"]["tracks"] if track["kind_of_stream"] == "General"][0]["duration"])
@@ -299,24 +289,17 @@ class JobRunner:
 			"stage_elapsed_time": chop_ms(timedelta(seconds=(current_time - stage_start_time))),
 			"stage": self.__current_job_status["stage"]
 		}
-		self.emit_current_job_status()
+		self.send_current_job_status()
 
 		return (True, "")
 
-	def emit_current_job_status(self):
-		self.emit_event("current_job_status_update", {"percentage": str(self.__current_job_status["percentage"]),
+	def send_current_job_status(self):
+		requests.post(f"{self.controller_ip}/api/v1/job/status", json={"percentage": str(self.__current_job_status["percentage"]),
 												"job_elapsed_time": str(self.__current_job_status["job_elapsed_time"]),
 												"stage_estimated_time_remaining": str(self.__current_job_status["stage_estimated_time_remaining"]),
 												"fps": str(self.__current_job_status["fps"]),
 												"stage_elapsed_time": str(self.__current_job_status["stage_elapsed_time"]),
 												"stage": str(self.__current_job_status["stage"])})
-
-	def emit_current_job(self):
-		self.emit_event("current_job_update", {"file": str(self.__current_job["file"])})
-
-	def emit_event(self, event_name: str, data):
-		logger.debug(f"Emitting event {event_name} with data: {data}")
-		self.socket_io.emit(event_name, data, namespace="/updates")
 
 def chop_ms(delta):
 	return delta - timedelta(microseconds=delta.microseconds)
