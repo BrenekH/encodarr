@@ -7,7 +7,7 @@ from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler,
 from pathlib import Path
 from sys import argv
 
-from redcedar import JobController
+from redcedar_controller import JobController
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "my_secret"
@@ -103,6 +103,13 @@ def api_v1_history():
 	response.headers["content-type"] = "application/json"
 
 	return response
+
+@app.route("/api/v1/job", methods=["GET", "POST"])
+def api_v1_job():
+	if request.method != "GET" and request.method != "POST":
+		abort(405)
+
+	return ""
 
 @socketio.on("connect", namespace="/updates")
 def test_connect():
