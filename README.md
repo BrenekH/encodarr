@@ -1,6 +1,6 @@
-# Project RedCedar Web
+# Project RedCedar
 
-Docker-based webapp for the handbrake-based [Project RedCedar](http://github.com/zPaw/project-redcedar)
+Docker-based webapp for encoding video files to the HEVC \(H.265\) standard.
 
 ## Docker Compose
 
