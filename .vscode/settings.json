@@ -4,5 +4,9 @@
 		"pymediainfo",
 		"redcedar",
 		"socketio"
+	],
+	"python.analysis.extraPaths": [
+		"controller",
+		"runner"
 	]
 }
