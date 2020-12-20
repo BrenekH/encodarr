@@ -37,6 +37,7 @@ class JobController:
 
 		self.__job_history = deque()
 
+		# TODO: Save this on exit
 		self.__dispatched_jobs = {}
 
 		self.runner = None
@@ -58,7 +59,9 @@ class JobController:
 		self.__run()
 
 	def get_new_job(self) -> Dict:
-		# TODO: Make sure this works
+		while len(self.__job_queue) == 0:
+			self.socket_io.sleep(0.5)
+
 		to_send = self.__job_queue.popleft()
 		self.__dispatched_jobs[to_send["uuid"]] = to_send
 		return to_send
@@ -93,6 +96,7 @@ class JobController:
 					if len([job for job in self.get_job_queue() if job["file"] == str(video_file)]) > 0:
 						continue
 
+					# Have we already dispatched this file?
 					if len([job for job in self.__dispatched_jobs if job["file"] == str(video_file)]) > 0:
 						continue
 

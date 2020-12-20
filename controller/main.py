@@ -56,6 +56,11 @@ def run_redcedar_cwd():
 	controller_obj = JobController(socketio)
 	controller_obj.start()
 
+def run_redcedar_custom_dir(to_search: str):
+	global controller_obj
+	controller_obj = JobController(socketio, Path(to_search))
+	controller_obj.start()
+
 @app.route("/")
 def index():
 	# Only by sending this page first will the client be connected to the socketio instance
@@ -109,12 +114,18 @@ def api_v1_job_request():
 	if request.method != "GET":
 		abort(405)
 
-	return ""
+	if controller_obj == None:
+		abort(500)
+
+	return controller_obj.get_new_job()
 
 @app.route("/api/v1/job/status", methods=["POST"])
 def api_v1_job_status():
 	if request.method != "POST":
 		abort(405)
+
+	if controller_obj == None:
+		abort(500)
 
 	return ""
 
@@ -122,6 +133,9 @@ def api_v1_job_status():
 def api_v1_job_complete():
 	if request.method != "POST":
 		abort(405)
+
+	if controller_obj == None:
+		abort(500)
 
 	return ""
 
@@ -150,6 +164,14 @@ if __name__ == "__main__":
 	elif "logtree" in argv:
 		import logging_tree
 		logging_tree.printout()
+	elif "-d" in argv:
+		logger.info("Starting RedCedar with a custom directory")
+		# Custom to search directory
+		flag_index = argv.index("-d")
+		try:
+			socketio.start_background_task(run_redcedar_custom_dir, argv[flag_index + 1])
+		except IndexError:
+			raise RuntimeError("-d must be followed with a directory")
 	else:
 		logger.info("Starting RedCedar")
 		socketio.start_background_task(run_redcedar)
