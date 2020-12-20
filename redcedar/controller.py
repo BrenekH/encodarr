@@ -76,7 +76,7 @@ class JobController:
 		while self.__running:
 			# If last time file system was checked is greater than wait time: parse through all files
 			if time.time() - self.__file_system_check_offset > self.__last_file_system_check:
-				logger.info("Starting file system check")
+				logger.debug("Starting file system check")
 				self.__last_file_system_check = time.time()
 				video_file_paths = self.get_video_file_paths()
 				for video_file in video_file_paths:
@@ -116,7 +116,7 @@ class JobController:
 						self.__job_queue.appendleft(to_append)
 					logger.info(f"Added to job queue: {to_append['file']}")
 					self.socket_io.sleep(0.05)
-				logger.info("File system check complete")
+				logger.debug("File system check complete")
 
 			if self.runner.active == False and len(self.__job_queue) > 0:
 				job_to_send = self.__job_queue.popleft()
