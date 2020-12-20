@@ -15,6 +15,10 @@ $(document).ready(function() {
 	socket.on("current_job_update", function(json_obj) {
 		$("#current-file").html(json_obj.file);
 	});
+
+	socket.on("current_jobs_update", function(json_obj) {
+		console.log(json_obj)
+	});
 });
 
 $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {

@@ -127,6 +127,8 @@ def api_v1_job_status():
 	if controller_obj == None:
 		abort(500)
 
+	controller_obj.update_job_status(request.json)
+
 	return ""
 
 @app.route("/api/v1/job/complete", methods=["POST"])
@@ -137,13 +139,15 @@ def api_v1_job_complete():
 	if controller_obj == None:
 		abort(500)
 
+	controller_obj.job_complete(request.json)
+
 	return ""
 
 @socketio.on("connect", namespace="/updates")
 def on_connect():
 	if controller_obj != None:
 		controller_obj.emit_current_jobs()
-		controller_obj.emit_current_jobs_statuses()
+		# controller_obj.emit_current_jobs_statuses()
 
 		# TODO: Maybe the above can replace the below? Need to look more into it
 

@@ -64,15 +64,20 @@ class JobController:
 
 		to_send = self.__job_queue.popleft()
 		self.__dispatched_jobs[to_send["uuid"]] = to_send
+		self.emit_current_jobs()
 		return to_send
 
 	def update_job_status(self, status_info: Dict):
 		# TODO: Make sure this works
 		self.__dispatched_jobs[status_info["uuid"]]["status"] = status_info["status"]
+		self.emit_current_jobs()
 
 	def job_complete(self, history_entry: Dict):
-		# TODO: Implement (Remove from dispatched jobs and add history entry)
-		pass
+		# TODO: Make sure this works
+		del self.__dispatched_jobs[history_entry["uuid"]]
+		self.__job_history.appendleft(history_entry["history"])
+		self.__save_job_history()
+		self.emit_current_jobs()
 
 	def stop(self) -> None:
 		logger.info("Stopping JobController")
@@ -146,9 +151,8 @@ class JobController:
 			dump(to_save, f, indent=4)
 
 	def emit_current_jobs(self):
-		# TODO: Implement
-		pass
+		self.emit_event("current_jobs_update", self.__dispatched_jobs)
 
-	def emit_current_jobs_statuses(self):
-		# TODO: Implement
-		pass
+	def emit_event(self, event_name: str, data):
+		logger.debug(f"Emitting event {event_name} with data: {data}")
+		self.socket_io.emit(event_name, data, namespace="/updates")
