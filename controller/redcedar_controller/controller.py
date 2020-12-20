@@ -6,7 +6,7 @@ from json import dump, load
 from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
 from pymediainfo import MediaInfo
-from typing import List
+from typing import Dict, List
 from uuid import uuid4
 
 # Setup logging for controller.py
@@ -37,7 +37,7 @@ class JobController:
 
 		self.__job_history = deque()
 
-		self.__dispatched_jobs = []
+		self.__dispatched_jobs = {}
 
 		self.runner = None
 
@@ -57,16 +57,18 @@ class JobController:
 		self.__running = True
 		self.__run()
 
-	def get_new_job(self):
-		# TODO: Implement
-		pass
+	def get_new_job(self) -> Dict:
+		# TODO: Make sure this works
+		to_send = self.__job_queue.popleft()
+		self.__dispatched_jobs[to_send["uuid"]] = to_send
+		return to_send
 
-	def update_job_status(self):
-		# TODO: Implement
-		pass
+	def update_job_status(self, status_info: Dict):
+		# TODO: Make sure this works
+		self.__dispatched_jobs[status_info["uuid"]]["status"] = status_info["status"]
 
-	def job_complete(self):
-		# TODO: Implement
+	def job_complete(self, history_entry: Dict):
+		# TODO: Implement (Remove from dispatched jobs and add history entry)
 		pass
 
 	def stop(self) -> None:
