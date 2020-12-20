@@ -109,11 +109,11 @@ def test_connect():
 	if controller_obj != None:
 		controller_obj.runner.emit_current_job()
 		controller_obj.runner.emit_current_job_status()
-	logger.info("Client connected")
+	logger.debug("Client connected")
 
 @socketio.on("disconnect", namespace="/updates")
 def test_disconnect():
-	logger.info("Client disconnected")
+	logger.debug("Client disconnected")
 
 if __name__ == "__main__":
 	if "cwd" in argv:
