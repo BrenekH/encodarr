@@ -1,6 +1,6 @@
 $(document).ready(function() {
 	// Connect to the socket server.
-	var socket = io.connect("http://" + document.domain + ":" + location.port + "/updates");
+	var socket = io.connect(`http://${document.domain}:${location.port}/updates`);
 
 	socket.on("current_job_status_update", function(json_obj) {
 		$("#current-stage").html(`Stage: ${json_obj.stage}`);
@@ -17,7 +17,26 @@ $(document).ready(function() {
 	});
 
 	socket.on("current_jobs_update", function(json_obj) {
-		console.log(json_obj)
+		let HTMLString = "";
+		let looped = false; // This var is used to tell if the no running jobs message should be displayed or not
+
+		for (const uuid in json_obj) {
+			looped = true;
+			HTMLString += renderRunningJobCard(uuid,
+				json_obj[uuid].file,
+				json_obj[uuid].status.stage,
+				json_obj[uuid].status.percentage,
+				json_obj[uuid].status.job_elapsed_time,
+				json_obj[uuid].status.fps,
+				json_obj[uuid].status.stage_elapsed_time,
+				json_obj[uuid].status.stage_estimated_time_remaining);
+		}
+
+		if (!looped) {
+			HTMLString = `<h5 style="text-align: center;">No running jobs</h5>`
+		}
+
+		$("#running-jobs").html(HTMLString)
 	});
 });
 
@@ -95,4 +114,47 @@ function enableTooltips() {
 	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 		return new bootstrap.Tooltip(tooltipTriggerEl)
 	})
+}
+
+function renderRunningJobCard(uuid, filename, stageValue, progress, jobElapsedTime, fps, stageElapsedTime, stageEstimatedTimeRemaining) {
+	return `
+<div class="card" id="${uuid}-job-card" style="padding: 1rem;">
+	<div class="card-header text-center" style="padding-bottom: .25rem;">
+		<h5 id="${uuid}-current-file">${filename}</h5>
+		<h6 id="${uuid}-current-stage">Stage: ${stageValue}</h6>
+	</div>
+	<div class="progress" style="margin-bottom: 1rem; margin-top: 1rem; height: 2rem;">
+		<div class="progress-bar progress-bar-striped progress-bar-animated" id="${uuid}-progress-bar" role="progressbar" style="width: ${progress}%; font-size: 0.9rem;" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100">${progress}%</div>
+	</div>
+	<div class="row">
+		<div class="col">
+			<h6 class="job-elapsed-time-label text-right">Job Elapsed Time:</h6>
+		</div>
+		<div class="col job-elapsed-time">
+			<p id="${uuid}-job-elapsed-time">${jobElapsedTime}</p>
+		</div>
+		<div class="col">
+			<h6 class="fps-label text-right">FPS:</h6>
+		</div>
+		<div class="col fps">
+			<p id="${uuid}-fps">${fps}</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col">
+			<h6 class="stage-elapsed-time-label text-right">Stage Elapsed Time:</h6>
+		</div>
+		<div class="col stage-elapsed-time">
+			<p id="${uuid}-stage-elapsed-time">${stageElapsedTime}</p>
+		</div>
+		<div class="col">
+			<h6 class="stage-estimated-time-remaining-label text-right">Stage Estimated Time Remaining:</h6>
+		</div>
+		<div class="col stage-estimated-time-remaining">
+			<p id="${uuid}-stage-estimated-time-remaining">${stageEstimatedTimeRemaining}</p>
+		</div>
+	</div>
+</div>
+<div class="smol-spacer"></div>
+`;
 }

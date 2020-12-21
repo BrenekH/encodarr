@@ -20,7 +20,7 @@
 
 			<ul class="nav nav-pills nav-fill" id="myTab" role="tablist">
 				<li class="nav-item" role="presentation">
-					<a class="nav-link active" id="running-tab" data-toggle="tab" href="#running" role="tab" aria-controls="running"
+					<a class="nav-link active" id="running-tab" data-toggle="tab" href="#running-jobs" role="tab" aria-controls="running-jobs"
 						aria-selected="true">Running</a>
 				</li>
 				<li class="nav-item" role="presentation">
@@ -36,45 +36,8 @@
 			<div class="spacer"></div>
 
 			<div class="tab-content" id="myTabContent">
-				<div class="tab-pane show active" id="running" role="tabpanel" aria-labelledby="running-tab">
-					<!-- TODO: Allow side tab nav for multiple runners -->
-					<div class="card" style="padding: 1rem;">
-						<div class="card-header text-center" style="padding-bottom: .25rem;">
-							<h5 id="current-file">/path/to/search/TV Shows/Random (2020)/Random (2020)-s01e12.mp4</h5>
-							<h6 id="current-stage">Stage:</h6>
-						</div>
-						<div class="progress" style="margin-bottom: 1rem; margin-top: 1rem; height: 2rem;">
-							<div class="progress-bar progress-bar-striped progress-bar-animated" id="progress-bar" role="progressbar" style="width: 25%; font-size: 0.9rem;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
-						</div>
-						<div class="row">
-							<div class="col">
-								<h6 class="job-elapsed-time-label text-right">Job Elapsed Time:</h6>
-							</div>
-							<div class="col job-elapsed-time">
-								<p id="job-elapsed-time">0:00:00</p>
-							</div>
-							<div class="col">
-								<h6 class="fps-label text-right">FPS:</h6>
-							</div>
-							<div class="col fps">
-								<p id="fps">0.000</p>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col">
-								<h6 class="stage-elapsed-time-label text-right">Stage Elapsed Time:</h6>
-							</div>
-							<div class="col stage-elapsed-time">
-								<p id="stage-elapsed-time">0.000</p>
-							</div>
-							<div class="col">
-								<h6 class="stage-estimated-time-remaining-label text-right">Stage Estimated Time Remaining:</h6>
-							</div>
-							<div class="col stage-estimated-time-remaining">
-								<p id="stage-estimated-time-remaining">0:00:00</p>
-							</div>
-						</div>
-					</div>
+				<!-- Running job cards go inside the below div -->
+				<div class="tab-pane show active" id="running-jobs" role="tabpanel" aria-labelledby="running-tab">
 				</div>
 				<div class="tab-pane" id="queue" role="tabpanel" aria-labelledby="queue-tab">
 					<div class="card">

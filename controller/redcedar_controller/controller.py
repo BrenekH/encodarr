@@ -40,6 +40,15 @@ class JobController:
 		# TODO: Save this on exit
 		self.__dispatched_jobs = {}
 
+		self.empty_status = {
+			"fps": "N/A",
+			"job_elapsed_time": "N/A",
+			"percentage": "N/A",
+			"stage": "Intermission",
+			"stage_elapsed_time": "N/A",
+			"stage_estimated_time_remaining": "N/A"
+		}
+
 		self.runner = None
 
 		self.__running = False
@@ -59,11 +68,13 @@ class JobController:
 		self.__run()
 
 	def get_new_job(self) -> Dict:
-		while len(self.__job_queue) == 0:
-			self.socket_io.sleep(0.5)
+		if len(self.__job_queue) == 0:
+			while len(self.__job_queue) == 0:
+				self.socket_io.sleep(0.5)
 
 		to_send = self.__job_queue.popleft()
 		self.__dispatched_jobs[to_send["uuid"]] = to_send
+		self.__dispatched_jobs[to_send["uuid"]]["status"] = deepcopy(self.empty_status)
 		self.emit_current_jobs()
 		return to_send
 
