@@ -26,7 +26,6 @@ class JobRunner:
 	def __init__(self, controller_ip: str="localhost:5000"):
 		self.controller_ip = controller_ip
 
-		self.__completed_jobs = [] # Contains dictionaries with file, datetime_completed(in UTC), warnings, and errors keys
 		self.__current_job_status = {
 			"percentage": None,
 			"job_elapsed_time": None,
