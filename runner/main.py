@@ -1,4 +1,5 @@
 from logging import INFO, getLogger, WARNING, StreamHandler, FileHandler, Formatter
+from os import getenv as os_getenv
 
 from redcedar_runner import JobRunner
 
@@ -27,7 +28,15 @@ root_logger.addHandler(file_handler)
 root_logger.setLevel(INFO)
 
 if __name__ == "__main__":
-	runner = JobRunner(controller_ip="localhost:5000")
+	controller_ip = os_getenv("REDCEDAR_RUNNER_CONTROLLER_IP")
+	controller_port = os_getenv("REDCEDAR_RUNNER_CONTROLLER_PORT")
+
+	if controller_ip == None:
+		controller_ip = "localhost"
+	if controller_port == None:
+		controller_port = "5000"
+
+	runner = JobRunner(controller_ip=f"{controller_ip}:{controller_port}")
 
 	logger.info("Starting RedCedarRunner")
 	runner.run()
