@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 ENV TZ=America/Boise
 
-RUN apt-get update -qq && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y ffmpeg python3-pip
+RUN apt-get update -qq && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata ffmpeg python3-pip
 
 WORKDIR /usr/src/app
 
