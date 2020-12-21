@@ -37,12 +37,14 @@ class JobRunner:
 		}
 		self.__running = True
 
+		self.__current_uuid = None
+
 		# Setup self.stop as a handler to handle terminate signals
 		signal.signal(signal.SIGINT, self.stop)
 		signal.signal(signal.SIGTERM, self.stop)
 
 	def stop(self, *args):
-		logger.info("Stopping JobRunner")
+		logger.info("Stopping RedCedarRunner")
 		self.__running = False
 
 	def run(self):
@@ -57,7 +59,7 @@ class JobRunner:
 		"""
 		for i in range(100):
 			if self.__running:
-				r = requests.get(f"{self.controller_ip}/api/v1/job/request")
+				r = requests.get(f"http://{self.controller_ip}/api/v1/job/request")
 
 				if r.status_code != 200:
 					logger.warning(f"Received status code {r.status_code} from controller because of error: {r.content}. Retrying in {i} seconds")
@@ -73,6 +75,7 @@ class JobRunner:
 		raise RuntimeError(f"Controller did not respond with new job after 100 tries")
 
 	def __start_job(self, job_info: Dict):
+		self.__current_uuid = job_info["uuid"]
 		self._run_job(job_info)
 
 	def _run_ffmpeg(self, ffmpeg_command: List[str], interval_callback=None, *args):
@@ -218,7 +221,8 @@ class JobRunner:
 			logger.critical(f"Final encode ffmpeg command returned non-zero exit code: {ffmpeg_exit_code}")
 			current_job_errors.append(f"Final encode ffmpeg command returned non-zero exit code: {ffmpeg_exit_code}")
 		else:
-			logger.info(f"Completed final encode for {input_file}")
+			if self.__running:
+				logger.info(f"Completed final encode for {input_file}")
 
 		if downmixed_audio != None and downmixed_audio.exists():
 			downmixed_audio.unlink()
@@ -292,12 +296,18 @@ class JobRunner:
 
 	def send_current_job_status(self):
 		def x():
-			r = requests.post(f"{self.controller_ip}/api/v1/job/status", json={"percentage": str(self.__current_job_status["percentage"]),
-												"job_elapsed_time": str(self.__current_job_status["job_elapsed_time"]),
-												"stage_estimated_time_remaining": str(self.__current_job_status["stage_estimated_time_remaining"]),
-												"fps": str(self.__current_job_status["fps"]),
-												"stage_elapsed_time": str(self.__current_job_status["stage_elapsed_time"]),
-												"stage": str(self.__current_job_status["stage"])})
+			if self.__current_uuid == None:
+				logger.warning(f"Current job status failed to send because self.__current_uuid is None")
+				return
+			r = requests.post(f"http://{self.controller_ip}/api/v1/job/status", json={
+												"uuid": self.__current_uuid,
+												"status": {"percentage": str(self.__current_job_status["percentage"]),
+													"job_elapsed_time": str(self.__current_job_status["job_elapsed_time"]),
+													"stage_estimated_time_remaining": str(self.__current_job_status["stage_estimated_time_remaining"]),
+													"fps": str(self.__current_job_status["fps"]),
+													"stage_elapsed_time": str(self.__current_job_status["stage_elapsed_time"]),
+													"stage": str(self.__current_job_status["stage"])}
+												})
 			if r.status_code != 200:
 				logger.warning(f"Current job status failed to send because of error: {r.content}")
 
@@ -305,13 +315,18 @@ class JobRunner:
 
 	def send_job_complete(self, history_entry):
 		for i in range(100):
-			r = requests.post(f"{self.controller_ip}/api/v1/job/complete", json=history_entry)
+			if self.__current_uuid == None:
+				logger.error(f"Failed to send job complete signal because self.__current_uuid is None")
+				return
+			r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete", json={"uuid": self.__current_uuid, "history": history_entry})
 			if r.status_code != 200:
 				logger.warning(f"Job complete failed to send because of error: {r.content}. Retrying in {i} seconds...")
 				if not self.__running:
 					logger.error("Exiting without sending job complete signal to controller")
 					return
 				time.sleep(i)
+			else:
+				return
 
 def chop_ms(delta):
 	return delta - timedelta(microseconds=delta.microseconds)

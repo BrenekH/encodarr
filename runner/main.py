@@ -29,4 +29,5 @@ root_logger.setLevel(INFO)
 if __name__ == "__main__":
 	runner = JobRunner(controller_ip="localhost:5000")
 
+	logger.info("Starting RedCedarRunner")
 	runner.run()

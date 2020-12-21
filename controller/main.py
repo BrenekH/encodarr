@@ -147,12 +147,7 @@ def api_v1_job_complete():
 def on_connect():
 	if controller_obj != None:
 		controller_obj.emit_current_jobs()
-		# controller_obj.emit_current_jobs_statuses()
 
-		# TODO: Maybe the above can replace the below? Need to look more into it
-
-		# controller_obj.runner.emit_current_job()
-		# controller_obj.runner.emit_current_job_status()
 	logger.debug("Client connected")
 
 @socketio.on("disconnect", namespace="/updates")

@@ -68,12 +68,10 @@ class JobController:
 		return to_send
 
 	def update_job_status(self, status_info: Dict):
-		# TODO: Make sure this works
 		self.__dispatched_jobs[status_info["uuid"]]["status"] = status_info["status"]
 		self.emit_current_jobs()
 
 	def job_complete(self, history_entry: Dict):
-		# TODO: Make sure this works
 		del self.__dispatched_jobs[history_entry["uuid"]]
 		self.__job_history.appendleft(history_entry["history"])
 		self.__save_job_history()
@@ -102,7 +100,7 @@ class JobController:
 						continue
 
 					# Have we already dispatched this file?
-					if len([job for job in self.__dispatched_jobs if job["file"] == str(video_file)]) > 0:
+					if len([job for job in self.__dispatched_jobs if self.__dispatched_jobs[job]["file"] == str(video_file)]) > 0:
 						continue
 
 					if "Plex Versions" in str(video_file): # Is the file 'optimized' by Plex?
