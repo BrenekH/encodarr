@@ -75,17 +75,20 @@ class JobController:
 		to_send = self.__job_queue.popleft()
 		self.__dispatched_jobs[to_send["uuid"]] = to_send
 		self.__dispatched_jobs[to_send["uuid"]]["status"] = deepcopy(self.empty_status)
+		logger.info(f"Dispatching job for {to_send['file']}")
 		self.emit_current_jobs()
 		return to_send
 
 	def update_job_status(self, status_info: Dict):
 		self.__dispatched_jobs[status_info["uuid"]]["status"] = status_info["status"]
+		logger.debug(f"Received status: {status_info}")
 		self.emit_current_jobs()
 
 	def job_complete(self, history_entry: Dict):
 		del self.__dispatched_jobs[history_entry["uuid"]]
 		self.__job_history.appendleft(history_entry["history"])
 		self.__save_job_history()
+		logger.info(f"Received job complete for {history_entry['history']['file']}")
 		self.emit_current_jobs()
 
 	def stop(self) -> None:

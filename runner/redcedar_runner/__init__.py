@@ -242,23 +242,38 @@ class JobRunner:
 
 			# Move output.mkv to take the original file's place
 			if output_file.exists():
+				copied = True
 				if delete_successful:
-					shutil_move(str(output_file), input_file.with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+					try:
+						shutil_move(str(output_file), input_file.with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+					except PermissionError:
+						logger.critical(f"Could not copy output file. Does the runner have sufficient permissions?")
+						self.__running = False
+						critical_failure = True
+						copied = False
 				else:
-					shutil_move(str(output_file), input_file.with_name(f"{input_file.stem}-RedCedar").with_suffix(output_file.suffix))	# Retains the file suffix with the new name
-			logger.info("Output file copied")
+					try:
+						shutil_move(str(output_file), input_file.with_name(f"{input_file.stem}-RedCedar").with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+					except PermissionError:
+						logger.critical(f"Could not copy output file. Does the runner have sufficient permissions?")
+						self.__running = False
+						critical_failure = True
+						copied = False
+				if copied:
+					logger.info("Output file copied")
 		else:
 			try:
 				output_file.unlink()
 			except PermissionError:
-				logger.warning("Could not remove output_file during critical failure cleanup")
+				logger.warning("Could not remove output file during critical failure cleanup")
 
-		self.send_job_complete({
-			"file": job_info["file"],
-			"datetime_completed": datetime.utcnow().timestamp(),
-			"warnings": current_job_warnings,
-			"errors": current_job_errors
-		})
+		if self.__running:
+			self.send_job_complete({
+				"file": job_info["file"],
+				"datetime_completed": datetime.utcnow().timestamp(),
+				"warnings": current_job_warnings,
+				"errors": current_job_errors
+			})
 
 	def update_job_status(self, fps: float, current_file_time_str: str, current_speed: float, stage_start_time: float, job_start_time: float, job_info: Dict):
 		if fps == None:
@@ -310,7 +325,9 @@ class JobRunner:
 			if r.status_code != 200:
 				logger.warning(f"Current job status failed to send because of error: {r.content}")
 
-		start_new_thread(x, ())
+		# Just trying to see if this makes the ui less laggy and weird
+		# start_new_thread(x, ())
+		x()
 
 	def send_job_complete(self, history_entry):
 		for i in range(100):

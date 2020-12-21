@@ -3,7 +3,8 @@ from flask.helpers import send_file
 from flask_socketio import SocketIO
 from flask import abort, Flask, render_template, request, make_response
 from json import dumps
-from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
+from logging import DEBUG, INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
+from os import getenv as os_getenv
 from pathlib import Path
 from sys import argv
 
@@ -33,14 +34,16 @@ console_handler.setFormatter(console_format)
 # Add handlers to the logger
 logger.addHandler(console_handler)
 
+log_level = DEBUG if os_getenv("REDCEDAR_DEBUG") == "True" else INFO
+
 file_handler = FileHandler("/config/log.log")
-file_handler.setLevel(INFO)
+file_handler.setLevel(log_level)
 file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
 file_handler.setFormatter(file_format)
 
 root_logger = getLogger()
 root_logger.addHandler(file_handler)
-root_logger.setLevel(INFO)
+root_logger.setLevel(log_level)
 
 # Turn the flask app into a socketio app
 socketio = SocketIO(app, async_mode=None, logger=False, engineio_logger=False)
@@ -113,6 +116,8 @@ def api_v1_history():
 def api_v1_job_request():
 	if request.method != "GET":
 		abort(405)
+
+	logger.info(f"New Job Request from {request.remote_addr}")
 
 	if controller_obj == None:
 		abort(500)
