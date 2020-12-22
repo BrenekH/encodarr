@@ -6,7 +6,7 @@ from json import dump, load
 from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
 from pymediainfo import MediaInfo
-from typing import Dict, List
+from typing import Dict, List, Union
 from uuid import uuid4
 
 # Setup logging for controller.py
@@ -178,3 +178,16 @@ class JobController:
 	def emit_event(self, event_name: str, data):
 		logger.debug(f"Emitting event {event_name} with data: {data}")
 		self.socket_io.emit(event_name, data, namespace="/updates")
+
+	def health_check(self):
+		while self.__running:
+			self.socket_io.sleep(60)
+
+	def micro_sleep(self, seconds: Union[int, float]):
+		self.socket_io.sleep(seconds - int(seconds)) # Complete any sub-second sleeping
+
+		for _ in range(int(seconds)):
+			for _ in range(10):
+				if not self.__running:
+					return
+				self.socket_io.sleep(0.1)
