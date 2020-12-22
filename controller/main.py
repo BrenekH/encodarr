@@ -122,7 +122,7 @@ def api_v1_job_request():
 	if controller_obj == None:
 		abort(500)
 
-	return controller_obj.get_new_job()
+	return controller_obj.get_new_job(runner_name=request.headers.get("redcedar-runner-name", "None"))
 
 @app.route("/api/v1/job/status", methods=["POST"])
 def api_v1_job_status():

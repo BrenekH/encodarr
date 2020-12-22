@@ -67,13 +67,14 @@ class JobController:
 		self.__running = True
 		self.__run()
 
-	def get_new_job(self) -> Dict:
+	def get_new_job(self, runner_name="None") -> Dict:
 		if len(self.__job_queue) == 0:
 			while len(self.__job_queue) == 0:
 				self.socket_io.sleep(0.5)
 
 		to_send = self.__job_queue.popleft()
 		self.__dispatched_jobs[to_send["uuid"]] = to_send
+		self.__dispatched_jobs[to_send["runner_name"]] = runner_name
 		self.__dispatched_jobs[to_send["uuid"]]["status"] = deepcopy(self.empty_status)
 		logger.info(f"Dispatching job for {to_send['file']}")
 		self.emit_current_jobs()
