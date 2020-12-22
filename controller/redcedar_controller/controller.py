@@ -30,6 +30,7 @@ class JobController:
 		self.__path_to_search = path_to_search
 
 		self.__file_system_check_offset = 15 * 60 # 15 minutes in seconds
+		self.health_check_interval = 60  # Seconds
 
 		self.__last_file_system_check = 0
 
@@ -82,6 +83,7 @@ class JobController:
 
 	def update_job_status(self, status_info: Dict):
 		self.__dispatched_jobs[status_info["uuid"]]["status"] = status_info["status"]
+		self.__dispatched_jobs[status_info["uuid"]]["last_updated"] = time.time()
 		logger.debug(f"Received status: {status_info}")
 		self.emit_current_jobs()
 
@@ -181,7 +183,21 @@ class JobController:
 
 	def health_check(self):
 		while self.__running:
-			self.socket_io.sleep(60)
+			self.micro_sleep(self.health_check_interval)
+			for key in self.__dispatched_jobs:
+				#? Maybe use two different settings for interval vs time dead?
+				if self.__dispatched_jobs[key]["last_updated"] < time.time() - self.health_check_interval:
+					# Runner is unresponsive
+					logger.warning(f"{self.__dispatched_jobs[key]['runner_name']} is unresponsive. Add its job back into the queue")
+					to_append = {
+						"uuid": self.__dispatched_jobs[key]["uuid"],
+						"file": self.__dispatched_jobs[key]["file"],
+						"is_hevc": self.__dispatched_jobs[key]["is_hevc"],
+						"has_stereo": self.__dispatched_jobs[key]["has_stereo"],
+						"is_interlaced": self.__dispatched_jobs[key]["is_interlaced"],
+						"media_info": self.__dispatched_jobs[key]["media_info"]
+					}
+					self.__job_queue.appendleft(to_append)
 
 	def micro_sleep(self, seconds: Union[int, float]):
 		self.socket_io.sleep(seconds - int(seconds)) # Complete any sub-second sleeping
