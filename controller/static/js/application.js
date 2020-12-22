@@ -24,6 +24,7 @@ $(document).ready(function() {
 			looped = true;
 			HTMLString += renderRunningJobCard(uuid,
 				json_obj[uuid].file,
+				json_obj[uuid].runner_name,
 				json_obj[uuid].status.stage,
 				json_obj[uuid].status.percentage,
 				json_obj[uuid].status.job_elapsed_time,
@@ -116,12 +117,13 @@ function enableTooltips() {
 	})
 }
 
-function renderRunningJobCard(uuid, filename, stageValue, progress, jobElapsedTime, fps, stageElapsedTime, stageEstimatedTimeRemaining) {
+function renderRunningJobCard(uuid, filename, runnerName, stageValue, progress, jobElapsedTime, fps, stageElapsedTime, stageEstimatedTimeRemaining) {
 	return `
 <div class="card" id="${uuid}-job-card" style="padding: 1rem;">
 	<div class="card-header text-center" style="padding-bottom: .25rem;">
 		<h5 id="${uuid}-current-file">${filename}</h5>
 		<h6 id="${uuid}-current-stage">Stage: ${stageValue}</h6>
+		<h6 id="${uuid}-runner-name">Runner: ${runnerName}</h6>
 	</div>
 	<div class="progress" style="margin-bottom: 1rem; margin-top: 1rem; height: 2rem;">
 		<div class="progress-bar progress-bar-striped progress-bar-animated" id="${uuid}-progress-bar" role="progressbar" style="width: ${progress}%; font-size: 0.9rem;" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100">${progress}%</div>
