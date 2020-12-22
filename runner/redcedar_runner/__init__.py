@@ -43,6 +43,7 @@ class JobRunner:
 		signal.signal(signal.SIGTERM, self.stop)
 
 	def stop(self, *args):
+		# This method accepts *args because the signal module calls with extra info that we don't care about when shutting down
 		logger.info("Stopping RedCedarRunner")
 		self.__running = False
 
@@ -58,7 +59,7 @@ class JobRunner:
 		"""
 		for i in range(100):
 			if self.__running:
-				r = requests.get(f"http://{self.controller_ip}/api/v1/job/request")
+				r = requests.get(f"http://{self.controller_ip}/api/v1/job/request", headers={"redcedar-runner-name": self.runner_name})
 
 				if r.status_code != 200:
 					logger.warning(f"Received status code {r.status_code} from controller because of error: {r.content}. Retrying in {i} seconds")
