@@ -1,9 +1,13 @@
 from logging import DEBUG, INFO, getLogger, WARNING, StreamHandler, FileHandler, Formatter
 from os import getenv as os_getenv
+from random import randint
 
 from redcedar_runner import JobRunner
 
 # Setup logging for main.py
+# Loggin related env var setup
+log_level = DEBUG if os_getenv("REDCEDAR_DEBUG") == "True" else INFO
+
 # Create a custom logger
 logger = getLogger(__name__)
 
@@ -18,8 +22,6 @@ console_handler.setFormatter(console_format)
 # Add handlers to the logger
 logger.addHandler(console_handler)
 
-log_level = DEBUG if os_getenv("REDCEDAR_DEBUG") == "True" else INFO
-
 file_handler = FileHandler("/config/log.log")
 file_handler.setLevel(log_level)
 file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
@@ -28,6 +30,15 @@ file_handler.setFormatter(file_format)
 root_logger = getLogger()
 root_logger.addHandler(file_handler)
 root_logger.setLevel(log_level)
+
+# Non-logging related env var setup
+raw_runner_name = os_getenv("REDCEDAR_RUNNER_NAME")
+
+if raw_runner_name == None:
+	runner_name = f"Runner-{str(randint(1, 999)).rjust(3, '0')}"
+	logger.warning(f"No runner name was set. Using {runner_name}.")
+else:
+	runner_name = raw_runner_name
 
 if __name__ == "__main__":
 	controller_ip = os_getenv("REDCEDAR_RUNNER_CONTROLLER_IP")
@@ -38,7 +49,7 @@ if __name__ == "__main__":
 	if controller_port == None:
 		controller_port = "5000"
 
-	runner = JobRunner(controller_ip=f"{controller_ip}:{controller_port}")
+	runner = JobRunner(controller_ip=f"{controller_ip}:{controller_port}", runner_name=runner_name)
 
 	logger.info("Starting RedCedarRunner")
 	runner.run()

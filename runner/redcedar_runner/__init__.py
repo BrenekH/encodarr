@@ -22,8 +22,9 @@ console_handler.setFormatter(console_format)
 logger.addHandler(console_handler)
 
 class JobRunner:
-	def __init__(self, controller_ip: str="localhost:5000"):
+	def __init__(self, controller_ip: str="localhost:5000", runner_name=""):
 		self.controller_ip = controller_ip
+		self.runner_name = runner_name
 
 		self.__current_job_status = {
 			"percentage": None,
