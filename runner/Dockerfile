@@ -6,8 +6,10 @@ RUN apt-get update -qq && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -
 
 WORKDIR /usr/src/app
 
-COPY . .
+COPY requirements.txt ./
 
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
+
+COPY . .
 
 CMD ["python3", "main.py"]
