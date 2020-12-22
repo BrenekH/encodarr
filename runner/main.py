@@ -18,11 +18,7 @@ console_handler.setFormatter(console_format)
 # Add handlers to the logger
 logger.addHandler(console_handler)
 
-# For some reason this doesn't work in docker
 log_level = DEBUG if os_getenv("REDCEDAR_DEBUG") == "True" else INFO
-
-# Manually set for now
-log_level = DEBUG
 
 file_handler = FileHandler("/config/log.log")
 file_handler.setLevel(log_level)
