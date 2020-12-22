@@ -1,6 +1,5 @@
 import requests, signal, time
-from _thread import start_new_thread
-from datetime import datetime, timedelta
+from datetime import timedelta
 from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
 from shutil import move as shutil_move
@@ -270,7 +269,7 @@ class JobRunner:
 		if self.__running:
 			self.send_job_complete({
 				"file": job_info["file"],
-				"datetime_completed": datetime.utcnow().timestamp(),
+				"datetime_completed": time.time(),
 				"warnings": current_job_warnings,
 				"errors": current_job_errors
 			})

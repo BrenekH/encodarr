@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask.helpers import send_file
 from flask_socketio import SocketIO
 from flask import abort, Flask, render_template, request, make_response
@@ -107,7 +107,7 @@ def api_v1_history():
 
 	history_to_send = []
 	for job in controller_obj.get_job_history():
-		job["datetime_completed"] = datetime.utcfromtimestamp(job["datetime_completed"]).strftime("%m-%d-%Y %H:%M:%S")
+		job["datetime_completed"] = datetime.utcfromtimestamp(job["datetime_completed"]).replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%m-%d-%Y %H:%M:%S")
 		history_to_send.append(job)
 
 	response = make_response(dumps({"history": history_to_send}))
