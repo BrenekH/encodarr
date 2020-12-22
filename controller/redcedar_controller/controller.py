@@ -164,7 +164,16 @@ class JobController:
 			dump(to_save, f, indent=4)
 
 	def emit_current_jobs(self):
-		self.emit_event("current_jobs_update", self.__dispatched_jobs)
+		filtered_dict = {}
+
+		for key in self.__dispatched_jobs:
+			filtered_dict[key] = {
+				"file": self.__dispatched_jobs[key]["file"],
+				"runner_name": self.__dispatched_jobs[key]["runner_name"],
+				"status": self.__dispatched_jobs[key]["status"]
+			}
+
+		self.emit_event("current_jobs_update", filtered_dict)
 
 	def emit_event(self, event_name: str, data):
 		logger.debug(f"Emitting event {event_name} with data: {data}")
