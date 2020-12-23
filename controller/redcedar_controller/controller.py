@@ -77,10 +77,14 @@ class JobController:
 
 	def get_new_job(self, runner_name="None") -> Dict:
 		if len(self.__job_queue) == 0:
-			while len(self.__job_queue) == 0:
+			while len(self.__job_queue) == 0 and self.__running:
 				self.socket_io.sleep(0.5)
 
-		to_send = self.__job_queue.popleft()
+		while self.__running:
+			to_send = self.__job_queue.popleft()
+			if Path(to_send["file"]).exists():
+				break
+
 		self.__dispatched_jobs[to_send["uuid"]] = to_send
 		self.__dispatched_jobs[to_send["uuid"]]["runner_name"] = runner_name
 		self.__dispatched_jobs[to_send["uuid"]]["last_updated"] = time.time()
