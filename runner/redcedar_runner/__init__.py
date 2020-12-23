@@ -1,4 +1,5 @@
 import requests, signal, time
+from _thread import start_new_thread
 from datetime import timedelta
 from json import dumps, loads
 from logging import getLogger, WARNING, StreamHandler, Formatter
@@ -324,9 +325,7 @@ class JobRunner:
 					return
 				logger.warning(f"Current job status failed to send because of error: {r.content}")
 
-		# Just trying to see if this makes the ui less laggy and weird
-		# start_new_thread(x, ())
-		x()
+		start_new_thread(x, ()) # This is threaded because sending the status takes approx. 2 seconds which significantly reduces the speed of the runner
 
 	def send_job_complete(self, history_entry, output_file_path: Path):
 		# TODO: Allow for output_file_path to be None, signalling to not copy any file
