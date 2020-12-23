@@ -59,7 +59,7 @@ class JobRunner:
 		"""
 		for i in range(100):
 			if self.__running:
-				r = requests.get(f"http://{self.controller_ip}/api/v1/job/request", headers={"redcedar-runner-name": self.runner_name})
+				r = requests.get(f"http://{self.controller_ip}/api/v1/job/request", headers={"redcedar-runner-name": self.runner_name}, stream=True)
 
 				if r.status_code != 200:
 					logger.warning(f"Received status code {r.status_code} from controller because of error: {r.content}. Retrying in {i} seconds")
@@ -68,7 +68,19 @@ class JobRunner:
 					time.sleep(i)
 					continue
 
-				return r.json()
+				job_info = r.headers.get("x-rc-job-info")
+				input_file = Path.cwd() / f"input{Path(job_info['file']).suffix}" # Creates an input file with the same suffix as the input
+
+				if input_file.exists():
+					input_file.unlink()
+
+				with input_file.open("wb") as f:
+					for chunk in r.iter_content(1024):
+						f.write(chunk)
+
+				job_info["in_file"] = str(input_file)
+
+				return job_info
 			else:
 				return None
 
@@ -134,12 +146,12 @@ class JobRunner:
 			return exit_code
 
 	def _run_job(self, job_info: Dict):
-		input_file = Path(job_info["file"])
+		input_file = Path(job_info["in_file"])
 		is_hevc = job_info["is_hevc"]
 		has_stereo = job_info["has_stereo"]
 		is_interlaced = job_info["is_interlaced"]
 
-		logger.info(f"Running job {input_file} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}, is_interlaced: {is_interlaced}]")
+		logger.info(f"Running job {job_info['file']} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}, is_interlaced: {is_interlaced}]")
 
 		current_job_warnings, current_job_errors = ([], [])
 		critical_failure = False

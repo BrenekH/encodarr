@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
-from flask.helpers import send_file
 from flask_socketio import SocketIO
-from flask import abort, Flask, render_template, request, make_response
+from flask import abort, Flask, render_template, request, make_response, send_file
 from json import dumps
 from logging import DEBUG, INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
 from os import getenv as os_getenv
@@ -129,7 +128,13 @@ def api_v1_job_request():
 	if controller_obj == None:
 		abort(500)
 
-	return controller_obj.get_new_job(runner_name=request.headers.get("redcedar-runner-name", "None"))
+	to_send_dict = controller_obj.get_new_job(runner_name=request.headers.get("redcedar-runner-name", "None"))
+	file_path = Path(to_send_dict["file"])
+
+	response = make_response(send_file(file_path))
+	response.headers["x-rc-job-info"] = dumps(to_send_dict)
+
+	return response
 
 @app.route("/api/v1/job/status", methods=["POST"])
 def api_v1_job_status():
