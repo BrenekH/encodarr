@@ -324,6 +324,10 @@ class JobRunner:
 													"stage": str(self.__current_job_status["stage"])}
 												})
 			if r.status_code != 200:
+				if r.status_code == 409:
+					logger.critical("Detected self as unresponsive while send job status. Shutting down")
+					self.__running = False
+					return
 				logger.warning(f"Current job status failed to send because of error: {r.content}")
 
 		# Just trying to see if this makes the ui less laggy and weird
@@ -337,6 +341,9 @@ class JobRunner:
 				return
 			r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete", json={"uuid": self.__current_uuid, "history": history_entry})
 			if r.status_code != 200:
+				if r.status_code == 409:
+					logger.warning("Detected self as unresponsive while sending job complete signal")
+					return
 				logger.warning(f"Job complete failed to send because of error: {r.content}. Retrying in {i} seconds...")
 				if not self.__running:
 					logger.error("Exiting without sending job complete signal to controller")
