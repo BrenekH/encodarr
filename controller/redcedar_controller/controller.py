@@ -180,7 +180,7 @@ class JobController:
 			self.__save_dispatched_jobs()
 
 		with self.__dispatched_jobs_file.open("r") as f:
-			self.__dispatched_jobs = load(f)["dispatched_jobs"]
+			self.__dispatched_jobs = load(f)["jobs"]
 
 	def emit_current_jobs(self):
 		filtered_dict = {}
