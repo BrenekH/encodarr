@@ -255,6 +255,9 @@ class JobController:
 
 			for key in keys_to_del:
 				del self.__dispatched_jobs[key]
+
+			if len(keys_to_del) > 0:
+				self.emit_current_jobs()
 			logger.debug("Health Check complete")
 
 	def micro_sleep(self, seconds: Union[int, float]):
