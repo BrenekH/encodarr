@@ -24,13 +24,13 @@ services:
 
 ## Environment Variables
 
-### Controller
+### Common
 
 - REDCEDAR_DEBUG (bool)
+
+- REDCEDAR_LOG_FILE (string)
 
 ### Runner
-
-- REDCEDAR_DEBUG (bool)
 
 - REDCEDAR_RUNNER_NAME (string)
 

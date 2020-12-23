@@ -5,8 +5,15 @@ from random import randint
 from redcedar_runner import JobRunner
 
 # Setup logging for main.py
-# Loggin related env var setup
+# Logging related env var setup
 log_level = DEBUG if os_getenv("REDCEDAR_DEBUG") == "True" else INFO
+
+temp = os_getenv("REDCEDAR_LOG_FILE")
+
+if temp != None:
+	log_file = temp
+else:
+	log_file = "/config/runner.log"
 
 # Create a custom logger
 logger = getLogger(__name__)
@@ -22,7 +29,7 @@ console_handler.setFormatter(console_format)
 # Add handlers to the logger
 logger.addHandler(console_handler)
 
-file_handler = FileHandler("/config/runner.log")
+file_handler = FileHandler(log_file)
 file_handler.setLevel(log_level)
 file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
 file_handler.setFormatter(file_format)
