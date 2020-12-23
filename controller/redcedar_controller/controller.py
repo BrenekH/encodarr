@@ -7,6 +7,7 @@ from json import dump, load
 from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
 from pymediainfo import MediaInfo
+from shutil import move as shutil_move
 from typing import Dict, List, Union
 from uuid import uuid4
 
@@ -115,11 +116,13 @@ class JobController:
 		self.emit_current_jobs()
 		return True
 
-	def job_complete(self, history_entry: Dict) -> bool:
+	def job_complete(self, history_entry: Dict, file_to_import: Path) -> bool:
 		"""Marks a running job as complete and saves the supplied history information
 
 		Args:
 			history_entry (Dict): The history information to save
+
+			file_to_import (Path): The file to import
 
 		Returns:
 			bool: Whether or not the operation was completed
@@ -129,6 +132,8 @@ class JobController:
 			logger.warning(f"Received job complete signal from previously unresponsive runner")
 			return False
 
+		self.import_file(history_entry["uuid"], file_to_import)
+
 		del self.__dispatched_jobs[history_entry["uuid"]]
 		self.__job_history.appendleft(history_entry["history"])
 		self.__save_job_history()
@@ -136,6 +141,35 @@ class JobController:
 		logger.info(f"Received job complete for {history_entry['history']['file']}")
 		self.emit_current_jobs()
 		return True
+
+	def import_file(self, uuid: str, file_to_import: Path):
+		original_file = Path(self.__dispatched_jobs[uuid]["file"])
+
+		delete_successful = False
+		if original_file.exists():
+			try:
+				original_file.unlink()
+				delete_successful = True
+			except PermissionError:
+				logger.warning(f"Could not delete {original_file}", exc_info=True)
+
+		# Move output.mkv to take the original file's place
+		if file_to_import.exists():
+			copied = True
+			if delete_successful:
+				try:
+					shutil_move(str(file_to_import), original_file.with_suffix(file_to_import.suffix))	# Retains the file suffix with the new name
+				except PermissionError:
+					logger.critical(f"Could not copy import file. Does the Controller have sufficient permissions?")
+					copied = False
+			else:
+				try:
+					shutil_move(str(file_to_import), original_file.with_name(f"{original_file.stem}-RedCedar").with_suffix(file_to_import.suffix))	# Retains the file suffix with the new name
+				except PermissionError:
+					logger.critical(f"Could not copy import file. Does the Controller have sufficient permissions?")
+					copied = False
+			if copied:
+				logger.info("Output file copied")
 
 	def stop(self) -> None:
 		logger.info("Stopping JobController")

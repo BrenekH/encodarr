@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from flask_socketio import SocketIO
 from flask import abort, Flask, render_template, request, make_response, send_file
-from json import dumps
+from json import dumps, loads
 from logging import DEBUG, INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
 from os import getenv as os_getenv
 from pathlib import Path
@@ -160,7 +160,24 @@ def api_v1_job_complete():
 	if controller_obj == None:
 		abort(500)
 
-	completed = controller_obj.job_complete(request.json)
+	history_info = loads(request.headers["x-rc-history-entry"])
+
+	# TODO: Add check in history_info for failure conditions (Runner set file to None)
+
+	# Check if the post request has the file part
+	if "file" not in request.files:
+		abort(400)
+	file_to_save = request.files["file"]
+
+	# If a user does not select a file, the browser still submits an empty file part without a filename
+	if file_to_save.filename == "":
+		abort(400)
+
+	if file_to_save:
+		saved_file = (Path.cwd() / f"{history_info['uuid']}.import").with_suffix(Path(file_to_save.filename).suffix)
+		file_to_save.save(str(saved_file))
+
+	completed = controller_obj.job_complete(history_info, saved_file)
 
 	if not completed:
 		# 409 is used to tell the Runner that it should request a new job to run
