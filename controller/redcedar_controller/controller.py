@@ -81,6 +81,7 @@ class JobController:
 		to_send = self.__job_queue.popleft()
 		self.__dispatched_jobs[to_send["uuid"]] = to_send
 		self.__dispatched_jobs[to_send["uuid"]]["runner_name"] = runner_name
+		self.__dispatched_jobs[to_send["uuid"]]["last_updated"] = time.time()
 		self.__dispatched_jobs[to_send["uuid"]]["status"] = deepcopy(self.empty_status)
 		logger.info(f"Dispatching job for {to_send['file']}")
 		self.emit_current_jobs()
