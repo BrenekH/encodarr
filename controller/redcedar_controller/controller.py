@@ -234,11 +234,13 @@ class JobController:
 	def health_check(self):
 		while self.__running:
 			self.micro_sleep(self.health_check_interval)
+			logger.debug("Starting Health Check")
+			keys_to_del = []
 			for key in self.__dispatched_jobs:
 				#? Maybe use two different settings for interval vs time dead?
 				if self.__dispatched_jobs[key]["last_updated"] < time.time() - self.health_check_interval:
 					# Runner is unresponsive
-					logger.warning(f"Runner {self.__dispatched_jobs[key]['runner_name']} is unresponsive. Adding its job back into the queue")
+					logger.warning(f"Runner {self.__dispatched_jobs[key]['runner_name']} is unresponsive. Adding its job back into the queue.")
 					to_append = {
 						"uuid": str(uuid4()),
 						"file": deepcopy(self.__dispatched_jobs[key]["file"]),
@@ -247,9 +249,13 @@ class JobController:
 						"is_interlaced": deepcopy(self.__dispatched_jobs[key]["is_interlaced"]),
 						"media_info": deepcopy(self.__dispatched_jobs[key]["media_info"])
 					}
-					del self.__dispatched_jobs[key]
+					keys_to_del.append(key)
 					self.__job_queue.appendleft(to_append)
 					self.__unresponsive_jobs_uuids.append(key)
+
+			for key in keys_to_del:
+				del self.__dispatched_jobs[key]
+			logger.debug("Health Check complete")
 
 	def micro_sleep(self, seconds: Union[int, float]):
 		self.socket_io.sleep(seconds - int(seconds)) # Complete any sub-second sleeping
