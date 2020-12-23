@@ -1,7 +1,5 @@
-import time
-from copy import copy
-from datetime import datetime, timedelta
-from flask_socketio import SocketIO
+import requests, signal, time
+from datetime import timedelta
 from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
 from shutil import move as shutil_move
@@ -24,10 +22,10 @@ console_handler.setFormatter(console_format)
 logger.addHandler(console_handler)
 
 class JobRunner:
-	def __init__(self, socket_io: SocketIO):
-		self.socket_io = socket_io
-		self.active = False
-		self.__completed_jobs = [] # Contains dictionaries with file, datetime_completed(in UTC), warnings, and errors keys
+	def __init__(self, controller_ip: str="localhost:5000", runner_name=""):
+		self.controller_ip = controller_ip
+		self.runner_name = runner_name
+
 		self.__current_job_status = {
 			"percentage": None,
 			"job_elapsed_time": None,
@@ -36,39 +34,49 @@ class JobRunner:
 			"stage_elapsed_time": None,
 			"stage": None
 		}
-		self.__waiting_jobs = [] # In case new_job gets called even when runner is active
-		self.__current_job = {
-			"file": None,
-			"uuid": None
-		}
+		self.__running = True
+
+		self.__current_uuid = None
+
+		# Setup self.stop as a handler to handle terminate signals
+		signal.signal(signal.SIGINT, self.stop)
+		signal.signal(signal.SIGTERM, self.stop)
+
+	def stop(self, *args):
+		# This method accepts *args because the signal module calls with extra info that we don't care about when shutting down
+		logger.info("Stopping RedCedarRunner")
 		self.__running = False
 
-	def stop(self):
-		logger.info("Stopping JobRunner")
-		self.__running = False
+	def run(self):
+		"""Runs the JobRunner
+		"""
+		while self.__running:
+			new_job_info = self.new_job_from_controller()
+			self.__start_job(new_job_info)
 
-	def new_job(self, job_info: Dict):
-		self.active = True
-		if self.__current_job["uuid"] != None:
-			self.__waiting_jobs.append(job_info)
-			return
+	def new_job_from_controller(self):
+		"""Sends a get request to the controller for a new job
+		"""
+		for i in range(100):
+			if self.__running:
+				r = requests.get(f"http://{self.controller_ip}/api/v1/job/request", headers={"redcedar-runner-name": self.runner_name})
 
-		self.__start_job(job_info)
+				if r.status_code != 200:
+					logger.warning(f"Received status code {r.status_code} from controller because of error: {r.content}. Retrying in {i} seconds")
+					if not self.__running:
+						return None
+					time.sleep(i)
+					continue
 
-	def completed_jobs(self):
-		to_return = copy(self.__completed_jobs)
-		self.__completed_jobs = []
-		return to_return
+				return r.json()
+			else:
+				return None
+
+		raise RuntimeError(f"Controller did not respond with new job after 100 tries")
 
 	def __start_job(self, job_info: Dict):
-		self.__running = True
-		self.__current_job = {
-			"file": job_info["file"],
-			"uuid": job_info["uuid"]
-		}
-
-		self.emit_current_job()
-		self.socket_io.start_background_task(self._run_job, job_info)
+		self.__current_uuid = job_info["uuid"]
+		self._run_job(job_info)
 
 	def _run_ffmpeg(self, ffmpeg_command: List[str], interval_callback=None, *args):
 		if type(ffmpeg_command) != list:
@@ -114,10 +122,10 @@ class JobRunner:
 				if not self.__running:
 					return
 
-				self.socket_io.sleep(0.05)
+				time.sleep(0.05)
 			exit_code = p.poll()
 			while exit_code == None:
-				self.socket_io.sleep(0.1)
+				time.sleep(0.1)
 				logger.debug("Rechecking for non-None exit code")
 				exit_code = p.poll()
 			logger.debug(f"ffmpeg command returned exit code: {exit_code}")
@@ -152,7 +160,7 @@ class JobRunner:
 				extracted_audio.unlink()
 			extract_audio_command = ["ffmpeg", "-i", str(input_file), "-map", "-0:v?", "-map", "0:a:0", "-map", "-0:s?", "-c", "copy", str(extracted_audio)]
 			self.__current_job_status["stage"] = "Extract Audio"
-			self.emit_current_job_status()
+			self.send_current_job_status()
 			logger.info("Starting extraction of audio")
 			stage_start_time = time.time()
 			self._run_ffmpeg(extract_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
@@ -161,7 +169,7 @@ class JobRunner:
 			downmixed_audio = Path.cwd() / f"{job_info['uuid']}-downmixed-audio.mka"
 			downmix_audio_command = ["ffmpeg", "-i", str(extracted_audio), "-map", "0:a", "-c", "aac", "-af", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", str(downmixed_audio)]
 			self.__current_job_status["stage"] = "Downmix Audio"
-			self.emit_current_job_status()
+			self.send_current_job_status()
 			logger.info("Starting downmixing of audio")
 			stage_start_time = time.time()
 			self._run_ffmpeg(downmix_audio_command, self.update_job_status, stage_start_time, job_start_time, job_info)
@@ -187,9 +195,10 @@ class JobRunner:
 
 		final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + ["-c", "copy"] + encoding_commands + [str(output_file)]
 		self.__current_job_status["stage"] = "Final encode"
-		self.emit_current_job_status()
+		self.send_current_job_status()
 		logger.info("Starting final encode")
 		stage_start_time = time.time()
+
 		try:
 			ffmpeg_exit_code = self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 		except SubtitleError:
@@ -212,7 +221,8 @@ class JobRunner:
 			logger.critical(f"Final encode ffmpeg command returned non-zero exit code: {ffmpeg_exit_code}")
 			current_job_errors.append(f"Final encode ffmpeg command returned non-zero exit code: {ffmpeg_exit_code}")
 		else:
-			logger.info(f"Completed final encode for {input_file}")
+			if self.__running:
+				logger.info(f"Completed final encode for {input_file}")
 
 		if downmixed_audio != None and downmixed_audio.exists():
 			downmixed_audio.unlink()
@@ -233,49 +243,45 @@ class JobRunner:
 
 			# Move output.mkv to take the original file's place
 			if output_file.exists():
+				copied = True
 				if delete_successful:
-					shutil_move(str(output_file), input_file.with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+					try:
+						shutil_move(str(output_file), input_file.with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+					except PermissionError:
+						logger.critical(f"Could not copy output file. Does the runner have sufficient permissions?")
+						self.__running = False
+						critical_failure = True
+						copied = False
 				else:
-					shutil_move(str(output_file), input_file.with_name(f"{input_file.stem}-RedCedar").with_suffix(output_file.suffix))	# Retains the file suffix with the new name
-			logger.info("Output file copied")
+					try:
+						shutil_move(str(output_file), input_file.with_name(f"{input_file.stem}-RedCedar").with_suffix(output_file.suffix))	# Retains the file suffix with the new name
+					except PermissionError:
+						logger.critical(f"Could not copy output file. Does the runner have sufficient permissions?")
+						self.__running = False
+						critical_failure = True
+						copied = False
+				if copied:
+					logger.info("Output file copied")
 		else:
 			try:
 				output_file.unlink()
 			except PermissionError:
-				logger.debug("Could not remove output_file during critical failure cleanup")
+				logger.warning("Could not remove output file during critical failure cleanup")
 
 		if self.__running:
-			self.__completed_jobs.append({
+			self.send_job_complete({
 				"file": job_info["file"],
-				"datetime_completed": datetime.utcnow().timestamp(),
+				"datetime_completed": time.time(),
 				"warnings": current_job_warnings,
 				"errors": current_job_errors
 			})
-
-		self.__current_job_status = {
-			"percentage": None,
-			"job_elapsed_time": None,
-			"stage_estimated_time_remaining": None,
-			"fps": None,
-			"stage_elapsed_time": None,
-			"stage": None
-		}
-		self.emit_current_job_status()
-
-		self.__current_job = {"file": None, "uuid": None}
-
-		if len(self.__waiting_jobs) > 0:
-			next_job = self.__waiting_jobs.pop(0)
-			self.__start_job(next_job)
-		else:
-			self.active = False
 
 	def update_job_status(self, fps: float, current_file_time_str: str, current_speed: float, stage_start_time: float, job_start_time: float, job_info: Dict):
 		if fps == None:
 			fps = "N/A"
 
 		if current_file_time_str == None or current_speed == None:
-			self.emit_current_job_status()
+			self.send_current_job_status()
 			return
 
 		total_length = str([track for track in job_info["media_info"]["tracks"] if track["kind_of_stream"] == "General"][0]["duration"])
@@ -299,24 +305,45 @@ class JobRunner:
 			"stage_elapsed_time": chop_ms(timedelta(seconds=(current_time - stage_start_time))),
 			"stage": self.__current_job_status["stage"]
 		}
-		self.emit_current_job_status()
+		self.send_current_job_status()
 
 		return (True, "")
 
-	def emit_current_job_status(self):
-		self.emit_event("current_job_status_update", {"percentage": str(self.__current_job_status["percentage"]),
-												"job_elapsed_time": str(self.__current_job_status["job_elapsed_time"]),
-												"stage_estimated_time_remaining": str(self.__current_job_status["stage_estimated_time_remaining"]),
-												"fps": str(self.__current_job_status["fps"]),
-												"stage_elapsed_time": str(self.__current_job_status["stage_elapsed_time"]),
-												"stage": str(self.__current_job_status["stage"])})
+	def send_current_job_status(self):
+		def x():
+			if self.__current_uuid == None:
+				logger.warning(f"Current job status failed to send because self.__current_uuid is None")
+				return
+			r = requests.post(f"http://{self.controller_ip}/api/v1/job/status", json={
+												"uuid": self.__current_uuid,
+												"status": {"percentage": str(self.__current_job_status["percentage"]),
+													"job_elapsed_time": str(self.__current_job_status["job_elapsed_time"]),
+													"stage_estimated_time_remaining": str(self.__current_job_status["stage_estimated_time_remaining"]),
+													"fps": str(self.__current_job_status["fps"]),
+													"stage_elapsed_time": str(self.__current_job_status["stage_elapsed_time"]),
+													"stage": str(self.__current_job_status["stage"])}
+												})
+			if r.status_code != 200:
+				logger.warning(f"Current job status failed to send because of error: {r.content}")
 
-	def emit_current_job(self):
-		self.emit_event("current_job_update", {"file": str(self.__current_job["file"])})
+		# Just trying to see if this makes the ui less laggy and weird
+		# start_new_thread(x, ())
+		x()
 
-	def emit_event(self, event_name: str, data):
-		logger.debug(f"Emitting event {event_name} with data: {data}")
-		self.socket_io.emit(event_name, data, namespace="/updates")
+	def send_job_complete(self, history_entry):
+		for i in range(100):
+			if self.__current_uuid == None:
+				logger.error(f"Failed to send job complete signal because self.__current_uuid is None")
+				return
+			r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete", json={"uuid": self.__current_uuid, "history": history_entry})
+			if r.status_code != 200:
+				logger.warning(f"Job complete failed to send because of error: {r.content}. Retrying in {i} seconds...")
+				if not self.__running:
+					logger.error("Exiting without sending job complete signal to controller")
+					return
+				time.sleep(i)
+			else:
+				return
 
 def chop_ms(delta):
 	return delta - timedelta(microseconds=delta.microseconds)

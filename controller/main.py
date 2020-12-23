@@ -1,13 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask.helpers import send_file
 from flask_socketio import SocketIO
 from flask import abort, Flask, render_template, request, make_response
 from json import dumps
-from logging import INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
+from logging import DEBUG, INFO, getLogger, ERROR, WARNING, StreamHandler, FileHandler, Formatter
+from os import getenv as os_getenv
 from pathlib import Path
 from sys import argv
 
-from redcedar import JobController
+from redcedar_controller import JobController
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "my_secret"
@@ -33,14 +34,23 @@ console_handler.setFormatter(console_format)
 # Add handlers to the logger
 logger.addHandler(console_handler)
 
-file_handler = FileHandler("/config/log.log")
-file_handler.setLevel(INFO)
+log_level = DEBUG if os_getenv("REDCEDAR_DEBUG") == "True" else INFO
+
+temp = os_getenv("REDCEDAR_LOG_FILE")
+
+if temp != None:
+	log_file = temp
+else:
+	log_file = "/config/controller.log"
+
+file_handler = FileHandler(log_file)
+file_handler.setLevel(log_level)
 file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
 file_handler.setFormatter(file_format)
 
 root_logger = getLogger()
 root_logger.addHandler(file_handler)
-root_logger.setLevel(INFO)
+root_logger.setLevel(log_level)
 
 # Turn the flask app into a socketio app
 socketio = SocketIO(app, async_mode=None, logger=False, engineio_logger=False)
@@ -54,6 +64,11 @@ def run_redcedar():
 def run_redcedar_cwd():
 	global controller_obj
 	controller_obj = JobController(socketio)
+	controller_obj.start()
+
+def run_redcedar_custom_dir(to_search: str):
+	global controller_obj
+	controller_obj = JobController(socketio, Path(to_search))
 	controller_obj.start()
 
 @app.route("/")
@@ -95,7 +110,7 @@ def api_v1_history():
 
 	history_to_send = []
 	for job in controller_obj.get_job_history():
-		job["datetime_completed"] = datetime.utcfromtimestamp(job["datetime_completed"]).strftime("%m-%d-%Y %H:%M:%S")
+		job["datetime_completed"] = datetime.utcfromtimestamp(job["datetime_completed"]).replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%m-%d-%Y %H:%M:%S")
 		history_to_send.append(job)
 
 	response = make_response(dumps({"history": history_to_send}))
@@ -104,15 +119,59 @@ def api_v1_history():
 
 	return response
 
+@app.route("/api/v1/job/request", methods=["GET"])
+def api_v1_job_request():
+	if request.method != "GET":
+		abort(405)
+
+	logger.info(f"New Job Request from {request.remote_addr}")
+
+	if controller_obj == None:
+		abort(500)
+
+	return controller_obj.get_new_job(runner_name=request.headers.get("redcedar-runner-name", "None"))
+
+@app.route("/api/v1/job/status", methods=["POST"])
+def api_v1_job_status():
+	if request.method != "POST":
+		abort(405)
+
+	if controller_obj == None:
+		abort(500)
+
+	completed = controller_obj.update_job_status(request.json)
+
+	if not completed:
+		# 409 is used to tell the Runner that it should request a new job to run
+		abort(409)
+
+	return ""
+
+@app.route("/api/v1/job/complete", methods=["POST"])
+def api_v1_job_complete():
+	if request.method != "POST":
+		abort(405)
+
+	if controller_obj == None:
+		abort(500)
+
+	completed = controller_obj.job_complete(request.json)
+
+	if not completed:
+		# 409 is used to tell the Runner that it should request a new job to run
+		abort(409)
+
+	return ""
+
 @socketio.on("connect", namespace="/updates")
-def test_connect():
+def on_connect():
 	if controller_obj != None:
-		controller_obj.runner.emit_current_job()
-		controller_obj.runner.emit_current_job_status()
+		controller_obj.emit_current_jobs()
+
 	logger.debug("Client connected")
 
 @socketio.on("disconnect", namespace="/updates")
-def test_disconnect():
+def on_disconnect():
 	logger.debug("Client disconnected")
 
 if __name__ == "__main__":
@@ -124,6 +183,14 @@ if __name__ == "__main__":
 	elif "logtree" in argv:
 		import logging_tree
 		logging_tree.printout()
+	elif "-d" in argv:
+		logger.info("Starting RedCedar with a custom directory")
+		# Custom to search directory
+		flag_index = argv.index("-d")
+		try:
+			socketio.start_background_task(run_redcedar_custom_dir, argv[flag_index + 1])
+		except IndexError:
+			raise RuntimeError("-d must be followed with a directory")
 	else:
 		logger.info("Starting RedCedar")
 		socketio.start_background_task(run_redcedar)

@@ -3,11 +3,6 @@
 *.avi
 *.mkv
 
-README.md
-
-TODO
-*.sh
-
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/

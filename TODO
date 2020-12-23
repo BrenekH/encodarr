@@ -3,4 +3,3 @@ JobRunner:
 
 Command line options:
 	☐ Trace logging command-line option (enables extremely spammy debug logging like every ffmpeg line)
-	☐ Pass custom directory to monitor

@@ -21,3 +21,19 @@ services:
     cpus: 2.00
     stop_signal: SIGINT
 ```
+
+## Environment Variables
+
+### Common
+
+- REDCEDAR_DEBUG (bool)
+
+- REDCEDAR_LOG_FILE (string)
+
+### Runner
+
+- REDCEDAR_RUNNER_NAME (string)
+
+- REDCEDAR_RUNNER_CONTROLLER_IP (string)
+
+- REDCEDAR_RUNNER_CONTROLLER_PORT (integer)
