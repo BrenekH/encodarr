@@ -249,7 +249,7 @@ class JobController:
 					}
 					del self.__dispatched_jobs[key]
 					self.__job_queue.appendleft(to_append)
-
+					self.__unresponsive_jobs_uuids.append(key)
 
 	def micro_sleep(self, seconds: Union[int, float]):
 		self.socket_io.sleep(seconds - int(seconds)) # Complete any sub-second sleeping
