@@ -70,7 +70,7 @@ class JobController:
 
 		self.__running = True
 
-		start_new_thread(self.health_check)
+		start_new_thread(self.health_check, ())
 		self.__run()
 
 	def get_new_job(self, runner_name="None") -> Dict:
