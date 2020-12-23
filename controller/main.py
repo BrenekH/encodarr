@@ -132,7 +132,11 @@ def api_v1_job_status():
 	if controller_obj == None:
 		abort(500)
 
-	controller_obj.update_job_status(request.json)
+	completed = controller_obj.update_job_status(request.json)
+
+	if not completed:
+		# 409 is used to tell the Runner that it should request a new job to run
+		abort(409)
 
 	return ""
 
@@ -144,7 +148,11 @@ def api_v1_job_complete():
 	if controller_obj == None:
 		abort(500)
 
-	controller_obj.job_complete(request.json)
+	completed = controller_obj.job_complete(request.json)
+
+	if not completed:
+		# 409 is used to tell the Runner that it should request a new job to run
+		abort(409)
 
 	return ""
 

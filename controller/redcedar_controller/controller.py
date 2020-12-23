@@ -41,6 +41,8 @@ class JobController:
 
 		self.__dispatched_jobs = {}
 
+		self.__unresponsive_jobs_uuids = []
+
 		self.empty_status = {
 			"fps": "N/A",
 			"job_elapsed_time": "N/A",
@@ -87,18 +89,48 @@ class JobController:
 		self.emit_current_jobs()
 		return to_send
 
-	def update_job_status(self, status_info: Dict):
+	def update_job_status(self, status_info: Dict) -> bool:
+		"""Applies status information to the specified job
+
+		Args:
+			status_info (Dict): Status information to apply
+
+		Returns:
+			bool: Whether or not the status information was applied
+		"""
+		if status_info["uuid"] in self.__unresponsive_jobs_uuids:
+			# Runner is responsive again but the job has already been added back into the queue so we ignore this Runner
+			logger.warning(f"Received status information from previously unresponsive runner")
+			return False
+
 		self.__dispatched_jobs[status_info["uuid"]]["status"] = status_info["status"]
 		self.__dispatched_jobs[status_info["uuid"]]["last_updated"] = time.time()
+
 		logger.debug(f"Received status: {status_info}")
 		self.emit_current_jobs()
+		return True
 
-	def job_complete(self, history_entry: Dict):
+	def job_complete(self, history_entry: Dict) -> bool:
+		"""Marks a running job as complete and saves the supplied history information
+
+		Args:
+			history_entry (Dict): The history information to save
+
+		Returns:
+			bool: Whether or not the operation was completed
+		"""
+		if history_entry["uuid"] in self.__unresponsive_jobs_uuids:
+			# Runner is responsive again but the job has already been added back into the queue so we ignore this Runner
+			logger.warning(f"Received job complete signal from previously unresponsive runner")
+			return False
+
 		del self.__dispatched_jobs[history_entry["uuid"]]
 		self.__job_history.appendleft(history_entry["history"])
 		self.__save_job_history()
+
 		logger.info(f"Received job complete for {history_entry['history']['file']}")
 		self.emit_current_jobs()
+		return True
 
 	def stop(self) -> None:
 		logger.info("Stopping JobController")
@@ -206,16 +238,18 @@ class JobController:
 				#? Maybe use two different settings for interval vs time dead?
 				if self.__dispatched_jobs[key]["last_updated"] < time.time() - self.health_check_interval:
 					# Runner is unresponsive
-					logger.warning(f"{self.__dispatched_jobs[key]['runner_name']} is unresponsive. Add its job back into the queue")
+					logger.warning(f"Runner {self.__dispatched_jobs[key]['runner_name']} is unresponsive. Adding its job back into the queue")
 					to_append = {
-						"uuid": self.__dispatched_jobs[key]["uuid"],
-						"file": self.__dispatched_jobs[key]["file"],
-						"is_hevc": self.__dispatched_jobs[key]["is_hevc"],
-						"has_stereo": self.__dispatched_jobs[key]["has_stereo"],
-						"is_interlaced": self.__dispatched_jobs[key]["is_interlaced"],
-						"media_info": self.__dispatched_jobs[key]["media_info"]
+						"uuid": str(uuid4()),
+						"file": deepcopy(self.__dispatched_jobs[key]["file"]),
+						"is_hevc": deepcopy(self.__dispatched_jobs[key]["is_hevc"]),
+						"has_stereo": deepcopy(self.__dispatched_jobs[key]["has_stereo"]),
+						"is_interlaced": deepcopy(self.__dispatched_jobs[key]["is_interlaced"]),
+						"media_info": deepcopy(self.__dispatched_jobs[key]["media_info"])
 					}
+					del self.__dispatched_jobs[key]
 					self.__job_queue.appendleft(to_append)
+
 
 	def micro_sleep(self, seconds: Union[int, float]):
 		self.socket_io.sleep(seconds - int(seconds)) # Complete any sub-second sleeping
