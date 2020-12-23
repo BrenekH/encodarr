@@ -162,20 +162,21 @@ def api_v1_job_complete():
 
 	history_info = loads(request.headers["x-rc-history-entry"])
 
-	# TODO: Add check in history_info for failure conditions (Runner set file to None)
+	saved_file = None
 
-	# Check if the post request has the file part
-	if "file" not in request.files:
-		abort(400)
-	file_to_save = request.files["file"]
+	if history_info["failed"] == True:
+		# Check if the post request has the file part
+		if "file" not in request.files:
+			abort(400)
+		file_to_save = request.files["file"]
 
-	# If a user does not select a file, the browser still submits an empty file part without a filename
-	if file_to_save.filename == "":
-		abort(400)
+		# If a user does not select a file, the browser still submits an empty file part without a filename
+		if file_to_save.filename == "":
+			abort(400)
 
-	if file_to_save:
-		saved_file = (Path.cwd() / f"{history_info['uuid']}.import").with_suffix(Path(file_to_save.filename).suffix)
-		file_to_save.save(str(saved_file))
+		if file_to_save:
+			saved_file = (Path.cwd() / f"{history_info['uuid']}.import").with_suffix(Path(file_to_save.filename).suffix)
+			file_to_save.save(str(saved_file))
 
 	completed = controller_obj.job_complete(history_info, saved_file)
 

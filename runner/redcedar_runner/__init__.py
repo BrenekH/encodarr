@@ -328,20 +328,24 @@ class JobRunner:
 		start_new_thread(x, ()) # This is threaded because sending the status takes approx. 2 seconds which significantly reduces the speed of the runner
 
 	def send_job_complete(self, history_entry, output_file_path: Path):
-		# TODO: Allow for output_file_path to be None, signalling to not copy any file
 		for i in range(100):
 			if self.__current_uuid == None:
 				logger.error(f"Failed to send job complete signal because self.__current_uuid is None")
 				return
 
-			with output_file_path.open("rb") as f:
-				m = MultipartEncoder(fields={"file": (output_file_path.name, f)})
-				r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete",
-					data=m,
-					headers={
-						"Content-Type": m.content_type,
-						"x-rc-history-entry": dumps({"uuid": self.__current_uuid, "history": history_entry})
-					})
+			if output_file_path != None:
+				with output_file_path.open("rb") as f:
+					m = MultipartEncoder(fields={"file": (output_file_path.name, f)})
+					r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete",
+						data=m,
+						headers={
+							"Content-Type": m.content_type,
+							"x-rc-history-entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": False})
+						})
+			else:
+				r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete", headers={
+					"x-rc-history-entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": True})
+				})
 
 			if r.status_code != 200:
 				if r.status_code == 409:

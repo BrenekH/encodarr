@@ -122,7 +122,7 @@ class JobController:
 		Args:
 			history_entry (Dict): The history information to save
 
-			file_to_import (Path): The file to import
+			file_to_import (Path | None): The file to import
 
 		Returns:
 			bool: Whether or not the operation was completed
@@ -132,7 +132,8 @@ class JobController:
 			logger.warning(f"Received job complete signal from previously unresponsive runner")
 			return False
 
-		self.import_file(history_entry["uuid"], file_to_import)
+		if file_to_import != None:
+			self.import_file(history_entry["uuid"], file_to_import)
 
 		del self.__dispatched_jobs[history_entry["uuid"]]
 		self.__job_history.appendleft(history_entry["history"])
