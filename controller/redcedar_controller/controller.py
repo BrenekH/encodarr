@@ -32,6 +32,7 @@ class JobController:
 
 		self.__file_system_check_offset = 15 * 60 # 15 minutes in seconds
 		self.health_check_interval = 60  # Seconds
+		self.unresponsive_timeout = 60 * 60 # 1 hour in seconds
 
 		self.__last_file_system_check = 0
 
@@ -242,7 +243,7 @@ class JobController:
 			keys_to_del = []
 			for key in self.__dispatched_jobs:
 				#? Maybe use two different settings for interval vs time dead?
-				if self.__dispatched_jobs[key]["last_updated"] < time.time() - self.health_check_interval:
+				if self.__dispatched_jobs[key]["last_updated"] < time.time() - self.unresponsive_timeout:
 					# Runner is unresponsive
 					logger.warning(f"Runner {self.__dispatched_jobs[key]['runner_name']} is unresponsive. Adding its job back into the queue.")
 					to_append = {
