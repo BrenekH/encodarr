@@ -1,4 +1,5 @@
 import time
+from _thread import start_new_thread
 from collections import deque
 from copy import deepcopy
 from flask_socketio import SocketIO
@@ -38,7 +39,6 @@ class JobController:
 
 		self.__job_history = deque()
 
-		# TODO: Save this on exit
 		self.__dispatched_jobs = {}
 
 		self.empty_status = {
@@ -55,6 +55,7 @@ class JobController:
 		self.__running = False
 
 		self.__history_file = config_dir / "history.json"
+		self.__dispatched_jobs_file = config_dir / "dispatched_jobs.json"
 
 	def start(self) -> None:
 		if not self.__history_file.exists():
@@ -65,7 +66,11 @@ class JobController:
 			for history_obj in load(f)["history"]:
 				self.__job_history.appendleft(history_obj)
 
+		self.__load_dispatched_jobs()
+
 		self.__running = True
+
+		start_new_thread(self.health_check)
 		self.__run()
 
 	def get_new_job(self, runner_name="None") -> Dict:
@@ -164,6 +169,18 @@ class JobController:
 		to_save = {"history": self.get_job_history()}
 		with self.__history_file.open("w") as f:
 			dump(to_save, f, indent=4)
+
+	def __save_dispatched_jobs(self):
+		to_save = {"jobs": self.__dispatched_jobs}
+		with self.__dispatched_jobs_file.open("w") as f:
+			dump(to_save, f, indent=4)
+
+	def __load_dispatched_jobs(self):
+		if not self.__dispatched_jobs_file.exists():
+			self.__save_dispatched_jobs()
+
+		with self.__dispatched_jobs_file.open("r") as f:
+			self.__dispatched_jobs = load(f)["dispatched_jobs"]
 
 	def emit_current_jobs(self):
 		filtered_dict = {}
