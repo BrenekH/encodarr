@@ -22,7 +22,7 @@ console_handler.setFormatter(console_format)
 # Add handlers to the logger
 logger.addHandler(console_handler)
 
-file_handler = FileHandler("/config/log.log")
+file_handler = FileHandler("/config/runner.log")
 file_handler.setLevel(log_level)
 file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
 file_handler.setFormatter(file_format)

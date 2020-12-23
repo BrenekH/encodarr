@@ -36,7 +36,7 @@ logger.addHandler(console_handler)
 
 log_level = DEBUG if os_getenv("REDCEDAR_DEBUG") == "True" else INFO
 
-file_handler = FileHandler("/config/log.log")
+file_handler = FileHandler("/config/controller.log")
 file_handler.setLevel(log_level)
 file_format = Formatter("%(asctime)s|%(name)s|%(levelname)s|%(lineno)d|%(message)s")
 file_handler.setFormatter(file_format)
