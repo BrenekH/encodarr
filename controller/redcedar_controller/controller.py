@@ -48,7 +48,7 @@ class JobController:
 			"fps": "N/A",
 			"job_elapsed_time": "N/A",
 			"percentage": "N/A",
-			"stage": "Intermission",
+			"stage": "Waiting to start",
 			"stage_elapsed_time": "N/A",
 			"stage_estimated_time_remaining": "N/A"
 		}
