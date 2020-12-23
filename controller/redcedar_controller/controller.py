@@ -82,7 +82,7 @@ class JobController:
 
 		while self.__running:
 			to_send = self.__job_queue.popleft()
-			if Path(to_send["file"]).exists():
+			if Path(to_send["file"]).exists():  # TODO: Do more than just check if it exists (verify is_hevc, has_stereo, and is_interlaced attributes)
 				break
 
 		self.__dispatched_jobs[to_send["uuid"]] = to_send
