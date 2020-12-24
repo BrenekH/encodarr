@@ -4,7 +4,7 @@ from datetime import timedelta
 from json import dumps, loads
 from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
-from shutil import move as shutil_move
+from random import randint
 from requests_toolbelt import MultipartEncoder
 from typing import Dict, List
 from subprocess import PIPE, Popen, STDOUT
@@ -25,8 +25,11 @@ console_handler.setFormatter(console_format)
 logger.addHandler(console_handler)
 
 class JobRunner:
-	def __init__(self, controller_ip: str="localhost:5000", runner_name=""):
+	def __init__(self, controller_ip: str="localhost:5000", runner_name=None):
 		self.controller_ip = controller_ip
+		if runner_name == None:
+			runner_name = f"Runner-{str(randint(1, 999)).rjust(3, '0')}"
+			logger.warning(f"No runner name was set. Using {runner_name}.")
 		self.runner_name = runner_name
 
 		self.__current_job_status = {
