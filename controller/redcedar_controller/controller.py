@@ -87,6 +87,9 @@ class JobController:
 			if Path(to_send["file"]).exists():  # TODO: Do more than just check if it exists (verify is_hevc, has_stereo, and is_interlaced attributes)
 				break
 
+		if not self.__running:
+			return
+
 		self.__dispatched_jobs[to_send["uuid"]] = to_send
 		self.__dispatched_jobs[to_send["uuid"]]["runner_name"] = runner_name
 		self.__dispatched_jobs[to_send["uuid"]]["last_updated"] = time.time()
