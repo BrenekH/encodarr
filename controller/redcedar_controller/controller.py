@@ -94,6 +94,7 @@ class JobController:
 		self.__dispatched_jobs[to_send["uuid"]]["runner_name"] = runner_name
 		self.__dispatched_jobs[to_send["uuid"]]["last_updated"] = time.time()
 		self.__dispatched_jobs[to_send["uuid"]]["status"] = deepcopy(self.empty_status)
+		self.__save_dispatched_jobs()
 		logger.info(f"Dispatching job for {to_send['file']}")
 		self.emit_current_jobs()
 		return to_send
@@ -114,6 +115,7 @@ class JobController:
 
 		self.__dispatched_jobs[status_info["uuid"]]["status"] = status_info["status"]
 		self.__dispatched_jobs[status_info["uuid"]]["last_updated"] = time.time()
+		self.__save_dispatched_jobs()
 
 		logger.debug(f"Received status: {status_info}")
 		self.emit_current_jobs()
@@ -139,6 +141,7 @@ class JobController:
 			self.import_file(history_entry["uuid"], file_to_import)
 
 		del self.__dispatched_jobs[history_entry["uuid"]]
+		self.__save_dispatched_jobs()
 		self.__job_history.appendleft(history_entry["history"])
 		self.__save_job_history()
 
@@ -301,7 +304,9 @@ class JobController:
 				del self.__dispatched_jobs[key]
 
 			if len(keys_to_del) > 0:
+				self.__save_dispatched_jobs()
 				self.emit_current_jobs()
+
 			logger.debug("Health Check complete")
 
 	def micro_sleep(self, seconds: Union[int, float]):
