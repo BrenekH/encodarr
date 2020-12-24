@@ -164,7 +164,7 @@ def api_v1_job_complete():
 
 	saved_file = None
 
-	if history_info["failed"] == True:
+	if history_info["failed"] != True:
 		# Check if the post request has the file part
 		if "file" not in request.files:
 			abort(400)

@@ -145,6 +145,7 @@ class JobController:
 
 	def import_file(self, uuid: str, file_to_import: Path):
 		original_file = Path(self.__dispatched_jobs[uuid]["file"])
+		logger.debug(f"Importing {file_to_import} to {original_file}")
 
 		delete_successful = False
 		if original_file.exists():
