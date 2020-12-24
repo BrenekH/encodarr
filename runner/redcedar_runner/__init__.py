@@ -1,8 +1,11 @@
 import requests, signal, time
+from _thread import start_new_thread
 from datetime import timedelta
+from json import dumps, loads
 from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
 from shutil import move as shutil_move
+from requests_toolbelt import MultipartEncoder
 from typing import Dict, List
 from subprocess import PIPE, Popen, STDOUT
 
@@ -59,7 +62,7 @@ class JobRunner:
 		"""
 		for i in range(100):
 			if self.__running:
-				r = requests.get(f"http://{self.controller_ip}/api/v1/job/request", headers={"redcedar-runner-name": self.runner_name})
+				r = requests.get(f"http://{self.controller_ip}/api/v1/job/request", headers={"redcedar-runner-name": self.runner_name}, stream=True)
 
 				if r.status_code != 200:
 					logger.warning(f"Received status code {r.status_code} from controller because of error: {r.content}. Retrying in {i} seconds")
@@ -68,7 +71,19 @@ class JobRunner:
 					time.sleep(i)
 					continue
 
-				return r.json()
+				job_info = loads(r.headers.get("x-rc-job-info"))
+				input_file = Path.cwd() / f"input{Path(job_info['file']).suffix}" # Creates an input file with the same suffix as the input
+
+				if input_file.exists():
+					input_file.unlink()
+
+				with input_file.open("wb") as f:
+					for chunk in r.iter_content(1024):
+						f.write(chunk)
+
+				job_info["in_file"] = str(input_file)
+
+				return job_info
 			else:
 				return None
 
@@ -134,12 +149,12 @@ class JobRunner:
 			return exit_code
 
 	def _run_job(self, job_info: Dict):
-		input_file = Path(job_info["file"])
+		input_file = Path(job_info["in_file"])
 		is_hevc = job_info["is_hevc"]
 		has_stereo = job_info["has_stereo"]
 		is_interlaced = job_info["is_interlaced"]
 
-		logger.info(f"Running job {input_file} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}, is_interlaced: {is_interlaced}]")
+		logger.info(f"Running job {job_info['file']} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}, is_interlaced: {is_interlaced}]")
 
 		current_job_warnings, current_job_errors = ([], [])
 		critical_failure = False
@@ -230,51 +245,31 @@ class JobRunner:
 		if not self.__running:
 			return
 
-		if not critical_failure:
-			# Remove original file
-			delete_successful = False
-			if input_file.exists():
-				try:
-					input_file.unlink()
-					delete_successful = True
-				except PermissionError:
-					current_job_warnings.append(f"Could not delete {input_file}, adding '-RedCedar' as a suffix")
-					logger.warning(f"Could not delete {input_file}", exc_info=True)
+		history_entry = {
+			"file": job_info["file"],
+			"datetime_completed": time.time(),
+			"warnings": current_job_warnings,
+			"errors": current_job_errors
+		}
 
-			# Move output.mkv to take the original file's place
+		if not critical_failure:
+			self.send_job_complete(history_entry, output_file)
+			if input_file.exists():
+				input_file.unlink()
 			if output_file.exists():
-				copied = True
-				if delete_successful:
-					try:
-						shutil_move(str(output_file), input_file.with_suffix(output_file.suffix))	# Retains the file suffix with the new name
-					except PermissionError:
-						logger.critical(f"Could not copy output file. Does the runner have sufficient permissions?")
-						self.__running = False
-						critical_failure = True
-						copied = False
-				else:
-					try:
-						shutil_move(str(output_file), input_file.with_name(f"{input_file.stem}-RedCedar").with_suffix(output_file.suffix))	# Retains the file suffix with the new name
-					except PermissionError:
-						logger.critical(f"Could not copy output file. Does the runner have sufficient permissions?")
-						self.__running = False
-						critical_failure = True
-						copied = False
-				if copied:
-					logger.info("Output file copied")
+				output_file.unlink()
 		else:
 			try:
 				output_file.unlink()
 			except PermissionError:
 				logger.warning("Could not remove output file during critical failure cleanup")
 
-		if self.__running:
-			self.send_job_complete({
-				"file": job_info["file"],
-				"datetime_completed": time.time(),
-				"warnings": current_job_warnings,
-				"errors": current_job_errors
-			})
+			try:
+				input_file.unlink()
+			except PermissionError:
+				logger.warning("Could not remove input file during critical failure cleanup")
+
+			self.send_job_complete(history_entry, None)
 
 	def update_job_status(self, fps: float, current_file_time_str: str, current_speed: float, stage_start_time: float, job_start_time: float, job_info: Dict):
 		if fps == None:
@@ -330,16 +325,28 @@ class JobRunner:
 					return
 				logger.warning(f"Current job status failed to send because of error: {r.content}")
 
-		# Just trying to see if this makes the ui less laggy and weird
-		# start_new_thread(x, ())
-		x()
+		start_new_thread(x, ()) # This is threaded because sending the status takes approx. 2 seconds which significantly reduces the speed of the runner
 
-	def send_job_complete(self, history_entry):
+	def send_job_complete(self, history_entry, output_file_path: Path):
 		for i in range(100):
 			if self.__current_uuid == None:
 				logger.error(f"Failed to send job complete signal because self.__current_uuid is None")
 				return
-			r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete", json={"uuid": self.__current_uuid, "history": history_entry})
+
+			if output_file_path != None:
+				with output_file_path.open("rb") as f:
+					m = MultipartEncoder(fields={"file": (output_file_path.name, f)})
+					r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete",
+						data=m,
+						headers={
+							"Content-Type": m.content_type,
+							"x-rc-history-entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": False})
+						})
+			else:
+				r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete", headers={
+					"x-rc-history-entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": True})
+				})
+
 			if r.status_code != 200:
 				if r.status_code == 409:
 					logger.warning("Detected self as unresponsive while sending job complete signal")
