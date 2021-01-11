@@ -1,1 +1,1 @@
-mediainfo.go taken and modified from https://github.com/dreamCodeMan/go-mediainfo/blob/d386bf21b085f151221cf3b7527f26a843ffaa33/mediainfo.go
+mediainfo.go taken and modified from https://github.com/pascoej/go-mediainfo/blob/509f5adb9998a8fe497be4eed69c73d75161709e/mediainfo.go

@@ -12,46 +12,47 @@ import (
 var MediainfoBinary = flag.String("mediainfo-bin", "mediainfo", "the path to the mediainfo binary if it is not in the system $PATH")
 
 type mediainfo struct {
-	XMLName xml.Name `xml:"MediaInfo"`
-	File    file     `xml:"media"`
+	XMLName xml.Name `xml:"Mediainfo"`
+	File    file     `xml:"File"`
 }
 
 type track struct {
 	XMLName                xml.Name `xml:"track"`
 	Type                   string   `xml:"type,attr"`
-	FileName               string   `xml:"FileName"`
+	FileName               string   `xml:"File_name"`
 	FormatInfo             string   `xml:"Format_Info"`
-	ColorSpace             string   `xml:"ColorSpace"`
-	CompleteName           string   `xml:"CompleteName"`
-	FormatProfile          string   `xml:"Format_Profile"`
-	FileExtension          string   `xml:"FileExtension"`
-	ChromaSubsampling      string   `xml:"ChromaSubsampling"`
+	ColorSpace             string   `xml:"Color_space"`
+	CompleteName           string   `xml:"Complete_name"`
+	FormatProfile          string   `xml:"Format_profile"`
+	FileExtension          string   `xml:"File_extension"`
+	ChromaSubsampling      string   `xml:"Chroma_subsampling"`
 	WritingApplication     string   `xml:"Writing_application"`
 	ProportionOfThisStream string   `xml:"Proportion_of_this_stream"`
 	Width                  []string `xml:"Width"`
 	Height                 []string `xml:"Height"`
 	Format                 []string `xml:"Format"`
 	Duration               []string `xml:"Duration"`
-	BitRate                []string `xml:"BitRate"`
-	BitDepth               []string `xml:"BitDepth"`
-	ScanType               []string `xml:"ScanType"`
-	FileSize               []string `xml:"FileSize"`
-	Framerate              []string `xml:"FrameRate"`
-	Channels               []string `xml:"Channels"`
-	StreamSize             []string `xml:"StreamSize"`
-	BitRateMode            []string `xml:"BitRate_Mode"`
-	SamplingRate           []string `xml:"SamplingRate"`
+	BitRate                []string `xml:"Bit_rate"`
+	BitDepth               []string `xml:"Bit_depth"`
+	ScanType               []string `xml:"Scan_type"`
+	FileSize               []string `xml:"File_size"`
+	FrameRate              []string `xml:"Frame_rate"`
+	Channels               []string `xml:"Channel_s_"`
+	StreamSize             []string `xml:"Stream_size"`
+	Interlacement          []string `xml:"Interlacement"`
+	BitRateMode            []string `xml:"Bit_rate_mode"`
+	SamplingRate           []string `xml:"Sampling_rate"`
 	WritingLibrary         []string `xml:"Writing_library"`
-	FramerateMode          []string `xml:"Frame_rate_mode"`
-	OverallBitRate         []string `xml:"OverallBitRate"`
-	DisplayAspectRatio     []string `xml:"DisplayAspectRatio"`
+	FrameRateMode          []string `xml:"Frame_rate_mode"`
+	OverallBitRate         []string `xml:"Overall_bit_rate"`
+	DisplayAspectRatio     []string `xml:"Display_aspect_ratio"`
 	OverallBitRateMode     []string `xml:"Overall_bit_rate_mode"`
 	FormatSettingsCABAC    []string `xml:"Format_settings__CABAC"`
 	FormatSettingsReFrames []string `xml:"Format_settings__ReFrames"`
 }
 
 type file struct {
-	XMLName xml.Name `xml:"media"`
+	XMLName xml.Name `xml:"File"`
 	Tracks  []track  `xml:"track"`
 }
 
@@ -72,7 +73,7 @@ type general struct {
 	CompleteName       string `json:"complete_name"`
 	FileName           string `json:"file_name"`
 	FileExtension      string `json:"file_extension"`
-	Framerate          string `json:"frame_rate"`
+	FrameRate          string `json:"frame_rate"`
 	StreamSize         string `json:"stream_size"`
 	WritingApplication string `json:"writing_application"`
 }
@@ -87,7 +88,7 @@ type video struct {
 	FormatProfile          string `json:"format_profile"`
 	FormatSettingsCABAC    string `json:"format_settings_cabac"`
 	FormatSettingsReFrames string `json:"format_settings__reframes"`
-	Framerate              string `json:"frame_rate"`
+	FrameRate              string `json:"frame_rate"`
 	BitDepth               string `json:"bit_depth"`
 	ScanType               string `json:"scan_type"`
 	Interlacement          string `json:"interlacement"`
@@ -99,7 +100,7 @@ type audio struct {
 	Duration      string `json:"duration"`
 	BitRate       string `json:"bitrate"`
 	Channels      string `json:"channels"`
-	Framerate     string `json:"frame_rate"`
+	FrameRate     string `json:"frame_rate"`
 	FormatInfo    string `json:"format_Info"`
 	SamplingRate  string `json:"sampling_rate"`
 	FormatProfile string `json:"format_profile"`
@@ -131,6 +132,13 @@ func (info MediaInfo) IsMedia() bool {
 	return info.Video.Duration != "" && info.Audio.Duration != ""
 }
 
+func getOrDefault(input []string, index int) string {
+	if len(input) > index {
+		return input[index]
+	}
+	return ""
+}
+
 // GetMediaInfo returns MediaInfo from the supplied filename
 func GetMediaInfo(fname string) (MediaInfo, error) {
 	info := MediaInfo{}
@@ -143,8 +151,7 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 	if !IsInstalled() {
 		return info, fmt.Errorf("Must install mediainfo")
 	}
-
-	out, err := exec.Command(*MediainfoBinary, "--Output=XML", "-f", fname).Output()
+	out, err := exec.Command(*MediainfoBinary, "--Output=OLDXML", "-f", fname).Output()
 
 	if err != nil {
 		return info, err
@@ -154,57 +161,48 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 		return info, err
 	}
 
-	fmt.Println(minfo)
-
 	for _, v := range minfo.File.Tracks {
 		if v.Type == "General" {
-			general.Duration = v.Duration[0]
-			general.Format = v.Format[0]
-			general.FileSize = v.FileSize[0]
+			general.Duration = getOrDefault(v.Duration, 0)
+			general.Format = getOrDefault(v.Format, 0)
+			general.FileSize = getOrDefault(v.FileSize, 0)
 			if len(v.OverallBitRateMode) > 0 {
-				general.OverallBitRateMode = v.OverallBitRateMode[0]
+				general.OverallBitRateMode = getOrDefault(v.OverallBitRateMode, 0)
 			}
-			general.OverallBitRate = v.OverallBitRate[0]
+			general.OverallBitRate = getOrDefault(v.OverallBitRate, 0)
 			general.CompleteName = v.CompleteName
 			general.FileName = v.FileName
 			general.FileExtension = v.FileExtension
-			general.Framerate = v.Framerate[0]
-			general.StreamSize = v.StreamSize[0]
+			general.FrameRate = getOrDefault(v.FrameRate, 0)
+			general.StreamSize = getOrDefault(v.StreamSize, 0)
 			general.WritingApplication = v.WritingApplication
 		} else if v.Type == "Video" {
-			video.Width = v.Width[0]
-			video.Height = v.Height[0]
-			video.Format = v.Format[0]
-			video.BitRate = v.BitRate[0]
-			video.Duration = v.Duration[0]
-			video.BitDepth = v.BitDepth[0]
-			video.ScanType = v.ScanType[0]
+			video.Width = getOrDefault(v.Width, 0)
+			video.Height = getOrDefault(v.Height, 0)
+			video.Format = getOrDefault(v.Format, 0)
+			video.BitRate = getOrDefault(v.BitRate, 0)
+			video.Duration = getOrDefault(v.Duration, 0)
+			video.BitDepth = getOrDefault(v.BitDepth, 0)
+			video.ScanType = getOrDefault(v.ScanType, 0)
 			video.FormatInfo = v.FormatInfo
-			video.Framerate = v.Framerate[0]
+			video.FrameRate = getOrDefault(v.FrameRate, 0)
 			video.FormatProfile = v.FormatProfile
-			if len(v.WritingLibrary) > 0 {
-				video.WritingLibrary = v.WritingLibrary[0]
-			}
-			if len(v.FormatSettingsCABAC) > 0 {
-				video.FormatSettingsCABAC = v.FormatSettingsCABAC[0]
-			}
-			if len(v.FormatSettingsReFrames) > 0 {
-				video.FormatSettingsReFrames = v.FormatSettingsReFrames[0]
-			}
+			video.Interlacement = getOrDefault(v.Interlacement, 1)
+			video.WritingLibrary = getOrDefault(v.WritingLibrary, 0)
+			video.FormatSettingsCABAC = getOrDefault(v.FormatSettingsCABAC, 0)
+			video.FormatSettingsReFrames = getOrDefault(v.FormatSettingsReFrames, 0)
 		} else if v.Type == "Audio" {
-			audio.Format = v.Format[0]
-			audio.Channels = v.Channels[0]
-			audio.Duration = v.Duration[0]
-			audio.BitRate = v.BitRate[0]
+			audio.Format = getOrDefault(v.Format, 0)
+			audio.Channels = getOrDefault(v.Channels, 0)
+			audio.Duration = getOrDefault(v.Duration, 0)
+			audio.BitRate = getOrDefault(v.BitRate, 0)
 			audio.FormatInfo = v.FormatInfo
-			if len(v.Framerate) > 0 {
-				audio.Framerate = v.Framerate[0]
-			}
-			audio.SamplingRate = v.SamplingRate[0]
+			audio.FrameRate = getOrDefault(v.FrameRate, 0)
+			audio.SamplingRate = getOrDefault(v.SamplingRate, 0)
 			audio.FormatProfile = v.FormatProfile
 		} else if v.Type == "Menu" {
-			menu.Duration = v.Duration[0]
-			menu.Format = v.Format[0]
+			menu.Duration = getOrDefault(v.Duration, 0)
+			menu.Format = getOrDefault(v.Format, 0)
 		}
 	}
 	info = MediaInfo{General: general, Video: video, Audio: audio, Menu: menu}
