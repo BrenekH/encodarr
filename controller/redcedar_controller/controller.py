@@ -265,6 +265,7 @@ class JobController:
 	def emit_current_jobs(self):
 		filtered_dict = {}
 
+		# Filters out unnecessary keys like the data gathered from MediaInfo
 		for key in self.__dispatched_jobs:
 			filtered_dict[key] = {
 				"file": self.__dispatched_jobs[key]["file"],
