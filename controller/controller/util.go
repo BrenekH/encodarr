@@ -1,21 +1,21 @@
-package util
+package controller
 
 import "sync"
 
-// Queue is a basic implementation of a FIFO Queue
+// Queue is a basic implementation of a FIFO Queue.
 type Queue struct {
 	sync.Mutex
 	Items []interface{}
 }
 
-// Push appends an item to the end of a Queue
+// Push appends an item to the end of a Queue.
 func (q *Queue) Push(item interface{}) {
 	q.Lock()
 	defer q.Unlock()
 	q.Items = append(q.Items, item)
 }
 
-// Pop removes and returns the first item of a Queue
+// Pop removes and returns the first item of a Queue.
 func (q *Queue) Pop() interface{} {
 	q.Lock()
 	defer q.Unlock()
@@ -28,7 +28,7 @@ func (q *Queue) Pop() interface{} {
 	return item
 }
 
-// Dequeue returns a copy of the underlying slice in the Queue
+// Dequeue returns a copy of the underlying slice in the Queue.
 func (q *Queue) Dequeue() []interface{} {
 	q.Lock()
 	defer q.Unlock()

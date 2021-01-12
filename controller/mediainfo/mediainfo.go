@@ -8,10 +8,10 @@ import (
 	"strings"
 )
 
-// mediainfoBinary specifies a custom MediaInfo binary
+// mediainfoBinary specifies a custom MediaInfo binary.
 var mediainfoBinary = flag.String("mediainfo-bin", "mediainfo", "the path to the mediainfo binary if it is not in the system $PATH")
 
-// SetMediaInfoBinary sets the MediaInfo binary to use. Returns an error if the passed binary is invalid
+// SetMediaInfoBinary sets the MediaInfo binary to use. Returns an error if the passed binary is invalid.
 func SetMediaInfoBinary(s string) error {
 	oldVersion := *mediainfoBinary
 	mediainfoBinary = &s
@@ -67,7 +67,7 @@ type file struct {
 	Tracks  []track  `xml:"track"`
 }
 
-// MediaInfo represents the MediaInfo from a file
+// MediaInfo represents the MediaInfo from a file.
 type MediaInfo struct {
 	General general `json:"general,omitempty"`
 	Video   video   `json:"video,omitempty"`
@@ -122,7 +122,7 @@ type menu struct {
 	Duration string `json:"duration"`
 }
 
-// IsInstalled checks if MediaInfo is installed
+// IsInstalled checks if MediaInfo is installed.
 func IsInstalled() bool {
 	cmd := exec.Command(*mediainfoBinary)
 	err := cmd.Run()
@@ -138,7 +138,7 @@ func IsInstalled() bool {
 	return true
 }
 
-// IsMedia checks if the MediaInfo is actual media
+// IsMedia checks if the MediaInfo is actual media.
 func (info MediaInfo) IsMedia() bool {
 	return info.Video.Duration != "" && info.Audio.Duration != ""
 }
@@ -150,7 +150,7 @@ func getOrDefault(input []string, index int) string {
 	return ""
 }
 
-// GetMediaInfo returns MediaInfo from the supplied filename
+// GetMediaInfo returns MediaInfo from the supplied filename.
 func GetMediaInfo(fname string) (MediaInfo, error) {
 	info := MediaInfo{}
 	minfo := mediainfo{}
