@@ -6,7 +6,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/BrenekH/project-redcedar-controller/controller"
+	"github.com/BrenekH/project-redcedar-controller/mediainfo"
 )
 
 // Queue is a basic implementation of a FIFO Queue
@@ -44,9 +44,9 @@ func (q *Queue) Dequeue() []interface{} {
 
 func main() {
 	windowsMediaInfo := "MediaInfo.exe"
-	controller.MediainfoBinary = &windowsMediaInfo
+	mediainfo.MediainfoBinary = &windowsMediaInfo
 
-	mediainfo, err := controller.GetMediaInfo("I:\\input.avi")
+	mediainfo, err := mediainfo.GetMediaInfo("I:\\input.avi")
 	if err != nil {
 		log.Fatal(err)
 	}
