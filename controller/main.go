@@ -15,7 +15,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mediainfo, err := mediainfo.GetMediaInfo("I:\\input.avi")
+	mediainfo, err := mediainfo.GetMediaInfo("I:/input.avi")
 	if err != nil {
 		log.Fatal(err)
 	}
