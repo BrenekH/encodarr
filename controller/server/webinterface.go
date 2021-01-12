@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 )
 
 // favicon is a HTTP handler for the favicon.ico file
@@ -24,7 +23,6 @@ func favicon(w http.ResponseWriter, r *http.Request) {
 
 // resources is a HTTP handler for resource(css, js, svg) requests to the server.
 func resources(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Addr: %v; Page: %v; Time: %v; X-Forwarded_For: %v\n", r.RemoteAddr, r.URL, time.Now().String(), r.Header.Get("x-forwarded-for"))
 	switch r.Method {
 	case "GET":
 		cssRequest := strings.Contains(r.URL.String(), "css")
@@ -53,9 +51,7 @@ func resources(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write(fileData)
 	default:
-		w.Header().Set("Content-Type", "text/html")
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(`<html><body><h1>Project RedCedar</h1><p>METHOD FORBIDDEN: That HTTP method is not allowed to this route</p></body></html>`))
+		methodForbidden(w, r)
 	}
 }
 
@@ -66,16 +62,13 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html")
 	switch r.Method {
 	case "GET":
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
 		w.Write(indexFileData)
 	default:
-		w.Header().Set("Content-Type", "text/html")
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(`<html><body><h1>Project RedCedar</h1><p>METHOD FORBIDDEN: That HTTP method is not allowed to this route</p></body></html>`))
+		methodForbidden(w, r)
 	}
 }
 

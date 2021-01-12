@@ -24,8 +24,7 @@ func apiSample(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`<html><head><title>Project RedCedar - API Test</title></head><body><h4>Hello, World!</h4></body></html>`))
 	default:
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(`<html><body><h1>Project RedCedar - API Test</h1><p>METHOD FORBIDDEN: That HTTP method is not allowed to this route</p></body></html>`))
+		methodForbidden(w, r)
 	}
 }
 
