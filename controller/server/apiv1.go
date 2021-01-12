@@ -22,7 +22,7 @@ func apiSample(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><head><title>Project RedCedar - API Test</title></head><body><h4>Hello, World!</h4></body></html>`))
+		w.Write([]byte(`<html><head><title>API Test - Project RedCedar</title></head><body><h4>Hello, World!</h4></body></html>`))
 	default:
 		methodForbidden(w, r)
 	}
