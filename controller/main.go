@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/controller"
@@ -29,8 +30,8 @@ func main() {
 	wg.Add(1)
 	go controller.RunController(&config.ControllerConfiguration{UpdateChan: &updateChan,
 		SearchDir:               "I:/redcedar_test_env",
-		FileSystemCheckInterval: 10 * 1e9, // Nanoseconds are stupid
-		HealthCheckInterval:     10 * 1e9},
+		FileSystemCheckInterval: int(10 * time.Second),
+		HealthCheckInterval:     int(10 * time.Second)},
 		&stopChan,
 		wg)
 
