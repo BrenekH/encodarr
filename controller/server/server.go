@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 func serverError(w http.ResponseWriter, r *http.Request, reason string) {
@@ -41,8 +42,9 @@ func RunHTTPServer(stopChan *chan interface{}, wg *sync.WaitGroup) {
 
 	log.Printf("HTTP Server: Stopping HTTP server")
 
-	// TODO: Replace TODO context with something more appropriate
-	if err := srv.Shutdown(context.TODO()); err != nil {
+	ctx, ctxCancel := context.WithTimeout(context.Background(), time.Duration(10*time.Second))
+	defer ctxCancel()
+	if err := srv.Shutdown(ctx); err != nil {
 		panic(err) // Failure/timeout shutting down the server gracefully
 	}
 
