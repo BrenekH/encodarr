@@ -1,6 +1,9 @@
 package controller
 
-import "sync"
+import (
+	"os"
+	"sync"
+)
 
 // Queue is a basic implementation of a FIFO Queue.
 type Queue struct {
@@ -33,4 +36,13 @@ func (q *Queue) Dequeue() []interface{} {
 	q.Lock()
 	defer q.Unlock()
 	return append(make([]interface{}, 0, len(q.Items)), q.Items...)
+}
+
+// IsDirectory returns a bool representing whether or not the provided path is a directory
+func IsDirectory(path string) (bool, error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	return fileInfo.IsDir(), err
 }
