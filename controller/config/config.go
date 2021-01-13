@@ -5,7 +5,10 @@ package config
 
 // ControllerConfiguration contains all of the config options relating to the Controller. Use UpdateChan to update values on the fly.
 type ControllerConfiguration struct {
-	UpdateChan *chan string
+	UpdateChan              *chan string
+	SearchDir               string
+	FileSystemCheckInterval int
+	HealthCheckInterval     int
 }
 
 // ProcessUpdates reads the update channel and applies any configuration updates that have been sent through
