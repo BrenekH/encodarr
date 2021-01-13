@@ -27,14 +27,18 @@ func main() {
 		stopChan <- true
 	}()
 
-	wg.Add(1)
-	go controller.RunController(&config.ControllerConfiguration{UpdateChan: &updateChan,
+	controllerConfig := config.ControllerConfiguration{
+		UpdateChan:              &updateChan,
 		SearchDir:               "I:/redcedar_test_env",
 		FileSystemCheckInterval: int(10 * time.Second),
-		HealthCheckInterval:     int(10 * time.Second)},
-		&stopChan,
-		wg)
+		HealthCheckInterval:     int(10 * time.Second),
+	}
 
+	// Start Controller goroutine
+	wg.Add(1)
+	go controller.RunController(&controllerConfig, &stopChan, wg)
+
+	// Start HTTP Server goroutine
 	wg.Add(1)
 	go server.RunHTTPServer(&stopChan, wg)
 
