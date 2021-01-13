@@ -4,19 +4,10 @@ import (
 	"net/http"
 )
 
-// subRouter registers HTTP handlers with a BaseRoute prepended to the passed route
-type subRouter struct {
-	BaseRoute string
-}
-
-func (r *subRouter) handleFunc(subPattern string, handler func(http.ResponseWriter, *http.Request)) {
-	http.HandleFunc(r.BaseRoute+subPattern, handler)
-}
-
-func newSubRouter(baseRoute string) subRouter {
-	return subRouter{baseRoute}
-}
-
+// Web interface API handlers
+// TODO: Get running jobs
+// TODO: Get queue
+// TODO: Get history
 func apiSample(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	switch r.Method {
@@ -28,8 +19,13 @@ func apiSample(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Runner API handlers
+// TODO: Get new job (job request)
+// TODO: Post job status
+// TODO: Post job complete
+
 func registerAPIv1Handlers() {
 	r := newSubRouter("/api/v1")
 
-	r.handleFunc("/sample", apiSample)
+	r.HandleFunc("/sample", apiSample)
 }

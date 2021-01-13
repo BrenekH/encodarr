@@ -13,4 +13,5 @@ type ControllerConfiguration struct {
 
 // ProcessUpdates reads the update channel and applies any configuration updates that have been sent through
 func (c *ControllerConfiguration) ProcessUpdates() {
+	// TODO: Actually process updates
 }

@@ -48,14 +48,15 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 }
 
 func controllerLoop() {
-	// TODO: Check if file system check should be run and complete it if necessary
 	if time.Since(fileSystemLastCheck) > time.Duration((*controllerConfig).FileSystemCheckInterval) {
 		fileSystemLastCheck = time.Now()
 		fmt.Println("Doing fileSystemCheck")
+		// TODO: Actual file system check
 	}
-	// TODO: Check if health check should be run and complete it if necessary
+
 	if time.Since(healthLastCheck) > time.Duration((*controllerConfig).HealthCheckInterval) {
 		healthLastCheck = time.Now()
 		fmt.Println("Doing healthCheck")
+		// TODO: Actual health check
 	}
 }
