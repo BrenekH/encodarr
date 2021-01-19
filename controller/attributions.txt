@@ -1,1 +1,1 @@
-mediainfo.go taken and modified from https://github.com/pascoej/go-mediainfo/blob/509f5adb9998a8fe497be4eed69c73d75161709e/mediainfo.go
+controller/mediainfo.go modified from https://github.com/pascoej/go-mediainfo/blob/509f5adb9998a8fe497be4eed69c73d75161709e/mediainfo.go

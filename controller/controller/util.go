@@ -1,49 +1,62 @@
 package controller
 
 import (
+	"fmt"
 	"os"
 	"sync"
 )
 
-// Queue is a basic implementation of a FIFO Queue.
+// Queue is a basic implementation of a FIFO Queue for the Job interface.
 type Queue struct {
 	sync.Mutex
-	items []interface{}
+	items []Job
 }
 
 // Push appends an item to the end of a Queue.
-func (q *Queue) Push(item interface{}) {
+func (q *Queue) Push(item Job) {
 	q.Lock()
 	defer q.Unlock()
 	q.items = append(q.items, item)
 }
 
 // Pop removes and returns the first item of a Queue.
-func (q *Queue) Pop() interface{} {
+func (q *Queue) Pop() (Job, error) {
 	q.Lock()
 	defer q.Unlock()
 	if len(q.items) == 0 {
-		return nil
+		return Job{}, fmt.Errorf("Queue is empty")
 	}
 	item := q.items[0]
-	q.items[0] = nil
+	q.items[0] = Job{} // Hopefully this garbage collects properly
 	q.items = q.items[1:]
-	return item
+	return item, nil
 }
 
 // Dequeue returns a copy of the underlying slice in the Queue.
-func (q *Queue) Dequeue() []interface{} {
+func (q *Queue) Dequeue() []Job {
 	q.Lock()
 	defer q.Unlock()
-	return append(make([]interface{}, 0, len(q.items)), q.items...)
+	return append(make([]Job, 0, len(q.items)), q.items...)
 }
 
 // InQueue returns a boolean representing whether or not the provided item is in the queue
-func (q *Queue) InQueue(item interface{}) bool {
+func (q *Queue) InQueue(item Job) bool {
 	q.Lock()
 	defer q.Unlock()
 	for _, i := range (*q).items {
-		if i == item {
+		if item.Equal(i) {
+			return true
+		}
+	}
+	return false
+}
+
+// InQueuePath returns a boolean representing whether or not the provided item is in the queue based on only the Path field
+func (q *Queue) InQueuePath(item Job) bool {
+	q.Lock()
+	defer q.Unlock()
+	for _, i := range (*q).items {
+		if item.Equal(i) {
 			return true
 		}
 	}

@@ -1,11 +1,13 @@
 package controller
 
 import (
-	"fmt"
+	"log"
+	"reflect"
 	"sync"
 	"time"
 
 	"github.com/BrenekH/project-redcedar-controller/config"
+	"github.com/google/uuid"
 )
 
 // Job represents a job in the RedCedar ecosystem.
@@ -23,22 +25,38 @@ type JobParameters struct {
 	Progressive bool // true when the file is interlaced
 }
 
+// Equal is a custom equality check for the Job type that ignores the UUID but checks everything else
+func (j Job) Equal(check Job) bool {
+	if j.Path != check.Path {
+		return false
+	}
+	if !reflect.DeepEqual(j.Parameters, check.Parameters) {
+		return false
+	}
+	return true
+}
+
+// EqualPath is a custom equality check for the Job type that ignores the UUID but checks everything else
+func (j Job) EqualPath(check Job) bool {
+	return j.Path == check.Path
+}
+
 var controllerConfig *config.ControllerConfiguration
 
 var fileSystemLastCheck time.Time
 var healthLastCheck time.Time
 
 // JobQueue is the queue of the jobs
-var JobQueue Queue = Queue{sync.Mutex{}, make([]interface{}, 0)}
+var JobQueue Queue = Queue{sync.Mutex{}, make([]Job, 0)}
 
 // RunController is a goroutine compliant way to run the controller.
 func RunController(inConfig *config.ControllerConfiguration, stopChan *chan interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
-	defer func() {
-		fmt.Println("stopped")
-	}()
+	defer log.Println("Controller: Successfully stopped")
 
 	controllerConfig = inConfig
+
+	// This loop is in charge of running the controller logic until the stop signal channel stopChan has a value pushed to it
 	for {
 		select {
 		default:
@@ -55,10 +73,11 @@ func controllerLoop() {
 		// fmt.Println("Doing fileSystemCheck")
 		// TODO: File system check
 		discoveredVideos := GetVideoFilesFromDir((*controllerConfig).SearchDir)
-		for _, vid := range discoveredVideos {
+		for _, videoFilepath := range discoveredVideos {
 			// TODO: Run MediaInfo(+ other) checks
-			job := Job{UUID: "", Path: vid, Parameters: JobParameters{HEVC: false, Stereo: false, Progressive: false}}
-			if !JobQueue.InQueue(job) {
+			u := uuid.New()
+			job := Job{UUID: u.String(), Path: videoFilepath, Parameters: JobParameters{HEVC: false, Stereo: false, Progressive: false}}
+			if !JobQueue.InQueuePath(job) {
 				JobQueue.Push(job)
 			}
 		}
