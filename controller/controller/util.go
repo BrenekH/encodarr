@@ -8,26 +8,26 @@ import (
 // Queue is a basic implementation of a FIFO Queue.
 type Queue struct {
 	sync.Mutex
-	Items []interface{}
+	items []interface{}
 }
 
 // Push appends an item to the end of a Queue.
 func (q *Queue) Push(item interface{}) {
 	q.Lock()
 	defer q.Unlock()
-	q.Items = append(q.Items, item)
+	q.items = append(q.items, item)
 }
 
 // Pop removes and returns the first item of a Queue.
 func (q *Queue) Pop() interface{} {
 	q.Lock()
 	defer q.Unlock()
-	if len(q.Items) == 0 {
+	if len(q.items) == 0 {
 		return nil
 	}
-	item := q.Items[0]
-	q.Items[0] = nil
-	q.Items = q.Items[1:]
+	item := q.items[0]
+	q.items[0] = nil
+	q.items = q.items[1:]
 	return item
 }
 
@@ -35,7 +35,19 @@ func (q *Queue) Pop() interface{} {
 func (q *Queue) Dequeue() []interface{} {
 	q.Lock()
 	defer q.Unlock()
-	return append(make([]interface{}, 0, len(q.Items)), q.Items...)
+	return append(make([]interface{}, 0, len(q.items)), q.items...)
+}
+
+// InQueue returns a boolean representing whether or not the provided item is in the queue
+func (q *Queue) InQueue(item interface{}) bool {
+	q.Lock()
+	defer q.Unlock()
+	for _, i := range (*q).items {
+		if i == item {
+			return true
+		}
+	}
+	return false
 }
 
 // IsDirectory returns a bool representing whether or not the provided path is a directory

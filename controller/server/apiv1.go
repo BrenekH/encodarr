@@ -1,19 +1,38 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
+
+	"github.com/BrenekH/project-redcedar-controller/controller"
 )
 
 // Web interface API handlers
 // TODO: Get running jobs
-// TODO: Get queue
-// TODO: Get history
-func apiSample(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
+
+// TODO: Complete GET queue
+func getQueue(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "GET":
+	case http.MethodGet:
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><head><title>API Test - Project RedCedar</title></head><body><h4>Hello, World!</h4></body></html>`))
+		queueJSONBytes, err := json.Marshal(controller.JobQueue.Dequeue())
+		if err != nil {
+			serverError(w, r, "Error marshaling Job queue to json")
+		}
+		w.Write(queueJSONBytes)
+	default:
+		methodForbidden(w, r)
+	}
+}
+
+// TODO: Complete GET history
+func getHistory(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"test": true}`))
 	default:
 		methodForbidden(w, r)
 	}
@@ -27,5 +46,6 @@ func apiSample(w http.ResponseWriter, r *http.Request) {
 func registerAPIv1Handlers() {
 	r := newSubRouter("/api/v1")
 
-	r.HandleFunc("/sample", apiSample)
+	r.HandleFunc("/queue", getQueue)
+	r.HandleFunc("/history", getHistory)
 }

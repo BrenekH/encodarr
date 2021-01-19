@@ -33,9 +33,15 @@ func getFilesFromDir(dirToSearch string) (files []string, _ error) {
 }
 
 // filterNonVideoExts removes any filepath from the provided slice that doesn't end with a known video file extension.
-func filterNonVideoExts(toFilter []string) (filtered []string) {
+func filterNonVideoExts(toFilter []string) []string {
+	// A named return value is not used here because it initializes a nil slice instead of an empty one
+	filtered := make([]string, 0)
+
 	for _, i := range toFilter {
-		filtered = append(filtered, i)
+		fileExt := filepath.Ext(i)
+		if isVideoFileExt(fileExt) {
+			filtered = append(filtered, i)
+		}
 	}
 	return filtered
 }

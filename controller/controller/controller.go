@@ -6,15 +6,14 @@ import (
 	"time"
 
 	"github.com/BrenekH/project-redcedar-controller/config"
-	"github.com/BrenekH/project-redcedar-controller/mediainfo"
 )
 
 // Job represents a job in the RedCedar ecosystem.
 type Job struct {
-	UUID         string
-	Path         string
-	Parameters   JobParameters
-	RawMediaInfo mediainfo.MediaInfo
+	UUID       string
+	Path       string
+	Parameters JobParameters
+	// RawMediaInfo mediainfo.MediaInfo
 }
 
 // JobParameters represents the actions that need to be taken against a job.
@@ -28,6 +27,9 @@ var controllerConfig *config.ControllerConfiguration
 
 var fileSystemLastCheck time.Time
 var healthLastCheck time.Time
+
+// JobQueue is the queue of the jobs
+var JobQueue Queue = Queue{sync.Mutex{}, make([]interface{}, 0)}
 
 // RunController is a goroutine compliant way to run the controller.
 func RunController(inConfig *config.ControllerConfiguration, stopChan *chan interface{}, wg *sync.WaitGroup) {
@@ -50,13 +52,21 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 func controllerLoop() {
 	if time.Since(fileSystemLastCheck) > time.Duration((*controllerConfig).FileSystemCheckInterval) {
 		fileSystemLastCheck = time.Now()
-		fmt.Println("Doing fileSystemCheck")
-		// TODO: Actual file system check
+		// fmt.Println("Doing fileSystemCheck")
+		// TODO: File system check
+		discoveredVideos := GetVideoFilesFromDir((*controllerConfig).SearchDir)
+		for _, vid := range discoveredVideos {
+			// TODO: Run MediaInfo(+ other) checks
+			job := Job{UUID: "", Path: vid, Parameters: JobParameters{HEVC: false, Stereo: false, Progressive: false}}
+			if !JobQueue.InQueue(job) {
+				JobQueue.Push(job)
+			}
+		}
 	}
 
 	if time.Since(healthLastCheck) > time.Duration((*controllerConfig).HealthCheckInterval) {
 		healthLastCheck = time.Now()
-		fmt.Println("Doing healthCheck")
-		// TODO: Actual health check
+		// fmt.Println("Doing healthCheck")
+		// TODO: Health check
 	}
 }
