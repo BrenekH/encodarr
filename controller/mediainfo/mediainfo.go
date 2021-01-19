@@ -60,6 +60,7 @@ type track struct {
 	OverallBitRateMode     []string `xml:"Overall_bit_rate_mode"`
 	FormatSettingsCABAC    []string `xml:"Format_settings__CABAC"`
 	FormatSettingsReFrames []string `xml:"Format_settings__ReFrames"`
+	ColorPrimaries         []string `xml:"Color_primaries"`
 }
 
 type file struct {
@@ -104,6 +105,7 @@ type video struct {
 	ScanType               string `json:"scan_type"`
 	Interlacement          string `json:"interlacement"`
 	WritingLibrary         string `json:"writing_library"`
+	ColorPrimaries         string `json:"color_primaries"`
 }
 
 type audio struct {
@@ -202,6 +204,7 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 			video.WritingLibrary = getOrDefault(v.WritingLibrary, 0)
 			video.FormatSettingsCABAC = getOrDefault(v.FormatSettingsCABAC, 0)
 			video.FormatSettingsReFrames = getOrDefault(v.FormatSettingsReFrames, 0)
+			video.ColorPrimaries = getOrDefault(v.ColorPrimaries, 0)
 		} else if v.Type == "Audio" {
 			audio.Format = getOrDefault(v.Format, 0)
 			audio.Channels = getOrDefault(v.Channels, 0)

@@ -56,7 +56,7 @@ func (q *Queue) InQueuePath(item Job) bool {
 	q.Lock()
 	defer q.Unlock()
 	for _, i := range (*q).items {
-		if item.Equal(i) {
+		if item.EqualPath(i) {
 			return true
 		}
 	}
