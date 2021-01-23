@@ -1,46 +1,3 @@
-$(document).ready(function() {
-	// Connect to the socket server.
-	var socket = io.connect(`http://${document.domain}:${location.port}/updates`);
-
-	socket.on("current_job_status_update", function(json_obj) {
-		$("#current-stage").html(`Stage: ${json_obj.stage}`);
-
-		setProgressBar(json_obj.percentage);
-		$("#job-elapsed-time").html(json_obj.job_elapsed_time);
-		$("#stage-estimated-time-remaining").html(json_obj.stage_estimated_time_remaining);
-		$("#fps").html(json_obj.fps);
-		$("#stage-elapsed-time").html(json_obj.stage_elapsed_time);
-	});
-
-	socket.on("current_job_update", function(json_obj) {
-		$("#current-file").html(json_obj.file);
-	});
-
-	socket.on("current_jobs_update", function(json_obj) {
-		let HTMLString = "";
-		let looped = false; // This var is used to tell if the no running jobs message should be displayed or not
-
-		for (const uuid in json_obj) {
-			looped = true;
-			HTMLString += renderRunningJobCard(uuid,
-				json_obj[uuid].file,
-				json_obj[uuid].runner_name,
-				json_obj[uuid].status.stage,
-				json_obj[uuid].status.percentage,
-				json_obj[uuid].status.job_elapsed_time,
-				json_obj[uuid].status.fps,
-				json_obj[uuid].status.stage_elapsed_time,
-				json_obj[uuid].status.stage_estimated_time_remaining);
-		}
-
-		if (!looped) {
-			HTMLString = `<h5 style="text-align: center;">No running jobs</h5>`
-		}
-
-		$("#running-jobs").html(HTMLString)
-	});
-});
-
 $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
 	var target = $(e.target).attr("href");
 	if (target == "#queue") {
@@ -66,7 +23,7 @@ function updateQueue() {
 		}
 		let finalHTMLString = "";
 		for (let i = 1; i <= queue.length; i++) {
-			finalHTMLString += renderQueueEntry(i, queue[i-1].filename, queue[i-1].video_op, queue[i-1].audio_op);
+			finalHTMLString += renderQueueEntry(i, queue[i-1].path, queue[i-1].parameters.hevc, queue[i-1].parameters.stereo);
 		}
 		$("#queue-content").html(finalHTMLString);
 		enableTooltips();
@@ -78,12 +35,12 @@ function updateQueue() {
 function renderQueueEntry(entryNumber, filePath, videoOp, audioOp) {
 	let videoHTML = "";
 	if (videoOp) {
-		videoHTML = `<img class="playButtonImage queue-icon" src="/static/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`
+		videoHTML = `<img class="playButtonImage queue-icon" src="/resources/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`
 	}
 
 	let audioHTML = "";
 	if (audioOp) {
-		audioHTML = `<img class="queue-icon" src="/static/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`
+		audioHTML = `<img class="queue-icon" src="/resources/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`
 	}
 	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td><td><div class="queue-icon-container">${videoHTML}${audioHTML}</div></td></tr>\n`;
 }

@@ -8,6 +8,10 @@ import (
 	"github.com/BrenekH/project-redcedar-controller/controller"
 )
 
+type queueJSONResponse struct {
+	JobQueue []controller.Job `json:"queue"`
+}
+
 // Web interface API handlers
 // TODO: Get running jobs
 
@@ -15,12 +19,13 @@ import (
 func getQueue(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		queueJSONBytes, err := json.Marshal(controller.JobQueue.Dequeue())
+		jsonResponseStruct := queueJSONResponse{controller.JobQueue.Dequeue()}
+		queueJSONBytes, err := json.Marshal(jsonResponseStruct)
 		if err != nil {
 			serverError(w, r, fmt.Sprintf("Error marshaling Job queue to json: %v", err))
 		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		w.Write(queueJSONBytes)
 	default:
 		methodForbidden(w, r)
