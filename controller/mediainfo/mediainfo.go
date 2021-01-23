@@ -41,6 +41,7 @@ type track struct {
 	XMLName                xml.Name `xml:"track"`
 	Type                   string   `xml:"type,attr"`
 	FileName               string   `xml:"File_name"`
+	UniqueID               string   `xml:"Unique_ID"`
 	FormatInfo             string   `xml:"Format_Info"`
 	ColorSpace             string   `xml:"Color_space"`
 	CompleteName           string   `xml:"Complete_name"`
@@ -82,7 +83,7 @@ type file struct {
 type MediaInfo struct {
 	General general `json:"general,omitempty"`
 	Video   video   `json:"video,omitempty"`
-	Audio   audio   `json:"audio,omitempty"`
+	Audio   []audio `json:"audio,omitempty"`
 	Menu    menu    `json:"menu,omitempty"`
 }
 
@@ -152,7 +153,7 @@ func IsInstalled() bool {
 
 // IsMedia checks if the MediaInfo is actual media.
 func (info MediaInfo) IsMedia() bool {
-	return info.Video.Duration != "" && info.Audio.Duration != ""
+	return info.Video.Duration != "" && info.Audio[0].Duration != ""
 }
 
 func getOrDefault(input []string, index int) string {
@@ -166,10 +167,10 @@ func getOrDefault(input []string, index int) string {
 func GetMediaInfo(fname string) (MediaInfo, error) {
 	info := MediaInfo{}
 	minfo := mediainfo{}
-	general := general{}
-	video := video{}
-	audio := audio{}
-	menu := menu{}
+	mGeneral := general{}
+	mVideo := video{}
+	mMenu := menu{}
+	mAudio := map[string]*audio{}
 
 	if !IsInstalled() {
 		return info, fmt.Errorf("Must install mediainfo")
@@ -186,67 +187,59 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 
 	for _, v := range minfo.File.Tracks {
 		if v.Type == "General" {
-			general.Duration = getOrDefault(v.Duration, 0)
-			general.Format = getOrDefault(v.Format, 0)
-			general.FileSize = getOrDefault(v.FileSize, 0)
+			mGeneral.Duration = getOrDefault(v.Duration, 0)
+			mGeneral.Format = getOrDefault(v.Format, 0)
+			mGeneral.FileSize = getOrDefault(v.FileSize, 0)
 			if len(v.OverallBitRateMode) > 0 {
-				general.OverallBitRateMode = getOrDefault(v.OverallBitRateMode, 0)
+				mGeneral.OverallBitRateMode = getOrDefault(v.OverallBitRateMode, 0)
 			}
-			general.OverallBitRate = getOrDefault(v.OverallBitRate, 0)
-			general.CompleteName = v.CompleteName
-			general.FileName = v.FileName
-			general.FileExtension = v.FileExtension
-			general.FrameRate = getOrDefault(v.FrameRate, 0)
-			general.StreamSize = getOrDefault(v.StreamSize, 0)
-			general.WritingApplication = v.WritingApplication
+			mGeneral.OverallBitRate = getOrDefault(v.OverallBitRate, 0)
+			mGeneral.CompleteName = v.CompleteName
+			mGeneral.FileName = v.FileName
+			mGeneral.FileExtension = v.FileExtension
+			mGeneral.FrameRate = getOrDefault(v.FrameRate, 0)
+			mGeneral.StreamSize = getOrDefault(v.StreamSize, 0)
+			mGeneral.WritingApplication = v.WritingApplication
 		} else if v.Type == "Video" {
-			video.Width = getOrDefault(v.Width, 0)
-			video.Height = getOrDefault(v.Height, 0)
-			video.Format = getOrDefault(v.Format, 0)
-			video.BitRate = getOrDefault(v.BitRate, 0)
-			video.Duration = getOrDefault(v.Duration, 0)
-			video.BitDepth = getOrDefault(v.BitDepth, 0)
-			video.ScanType = getOrDefault(v.ScanType, 0)
-			video.FormatInfo = v.FormatInfo
-			video.FrameRate = getOrDefault(v.FrameRate, 0)
-			video.FormatProfile = v.FormatProfile
-			video.Interlacement = getOrDefault(v.Interlacement, 1)
-			video.WritingLibrary = getOrDefault(v.WritingLibrary, 0)
-			video.FormatSettingsCABAC = getOrDefault(v.FormatSettingsCABAC, 0)
-			video.FormatSettingsReFrames = getOrDefault(v.FormatSettingsReFrames, 0)
-			video.ColorPrimaries = getOrDefault(v.ColorPrimaries, 0)
+			mVideo.Width = getOrDefault(v.Width, 0)
+			mVideo.Height = getOrDefault(v.Height, 0)
+			mVideo.Format = getOrDefault(v.Format, 0)
+			mVideo.BitRate = getOrDefault(v.BitRate, 0)
+			mVideo.Duration = getOrDefault(v.Duration, 0)
+			mVideo.BitDepth = getOrDefault(v.BitDepth, 0)
+			mVideo.ScanType = getOrDefault(v.ScanType, 0)
+			mVideo.FormatInfo = v.FormatInfo
+			mVideo.FrameRate = getOrDefault(v.FrameRate, 0)
+			mVideo.FormatProfile = v.FormatProfile
+			mVideo.Interlacement = getOrDefault(v.Interlacement, 1)
+			mVideo.WritingLibrary = getOrDefault(v.WritingLibrary, 0)
+			mVideo.FormatSettingsCABAC = getOrDefault(v.FormatSettingsCABAC, 0)
+			mVideo.FormatSettingsReFrames = getOrDefault(v.FormatSettingsReFrames, 0)
+			mVideo.ColorPrimaries = getOrDefault(v.ColorPrimaries, 0)
 		} else if v.Type == "Audio" {
-			audio.Format = getOrDefault(v.Format, 0)
-			audio.Channels = getOrDefault(v.Channels, 0)
-			audio.Duration = getOrDefault(v.Duration, 0)
-			audio.BitRate = getOrDefault(v.BitRate, 0)
-			audio.FormatInfo = v.FormatInfo
-			audio.FrameRate = getOrDefault(v.FrameRate, 0)
-			audio.SamplingRate = getOrDefault(v.SamplingRate, 0)
-			audio.FormatProfile = v.FormatProfile
+			audioTrack, inMap := mAudio[v.UniqueID]
+			if !inMap {
+				mAudio[v.UniqueID] = &audio{}
+				audioTrack = mAudio[v.UniqueID]
+			}
+			audioTrack.Format = getOrDefault(v.Format, 0)
+			audioTrack.Channels = getOrDefault(v.Channels, 0)
+			audioTrack.Duration = getOrDefault(v.Duration, 0)
+			audioTrack.BitRate = getOrDefault(v.BitRate, 0)
+			audioTrack.FormatInfo = v.FormatInfo
+			audioTrack.FrameRate = getOrDefault(v.FrameRate, 0)
+			audioTrack.SamplingRate = getOrDefault(v.SamplingRate, 0)
+			audioTrack.FormatProfile = v.FormatProfile
 		} else if v.Type == "Menu" {
-			menu.Duration = getOrDefault(v.Duration, 0)
-			menu.Format = getOrDefault(v.Format, 0)
+			mMenu.Duration = getOrDefault(v.Duration, 0)
+			mMenu.Format = getOrDefault(v.Format, 0)
 		}
 	}
-	info = MediaInfo{General: general, Video: video, Audio: audio, Menu: menu}
+	audioSlice := make([]audio, 0)
+	for _, v := range mAudio {
+		audioSlice = append(audioSlice, *v)
+	}
+	info = MediaInfo{General: mGeneral, Video: mVideo, Audio: audioSlice, Menu: mMenu}
 
 	return info, nil
 }
-
-// windowsMediaInfo := "MediaInfo.exe"
-// err := mediainfo.SetMediaInfoBinary(windowsMediaInfo)
-// if err != nil {
-// 	log.Fatal(err)
-// }
-
-// mediainfo, err := mediainfo.GetMediaInfo("I:/test_input.avi")
-// if err != nil {
-// 	log.Fatal(err)
-// }
-// fmt.Println(mediainfo)
-// info, _ := json.Marshal(mediainfo)
-// if err != nil {
-// 	log.Fatal(err)
-// }
-// fmt.Println(string(info))
