@@ -22,9 +22,8 @@ type Job struct {
 
 // JobParameters represents the actions that need to be taken against a job.
 type JobParameters struct {
-	HEVC        bool `json:"hevc"`        // true when the file is not HEVC
-	Stereo      bool `json:"stereo"`      // true when the file is missing a stereo audio track
-	Progressive bool `json:"progressive"` // true when the file is interlaced
+	HEVC   bool `json:"hevc"`   // true when the file is not HEVC
+	Stereo bool `json:"stereo"` // true when the file is missing a stereo audio track
 }
 
 // Equal is a custom equality check for the Job type
@@ -75,8 +74,6 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 func controllerLoop() {
 	if time.Since(fileSystemLastCheck) > time.Duration((*controllerConfig).FileSystemCheckInterval) {
 		fileSystemLastCheck = time.Now()
-		// fmt.Println("Doing fileSystemCheck")
-		// TODO: File system check
 		discoveredVideos := GetVideoFilesFromDir((*controllerConfig).SearchDir)
 		for _, videoFilepath := range discoveredVideos {
 			pathJob := Job{UUID: "", Path: videoFilepath, Parameters: JobParameters{}}
@@ -96,8 +93,26 @@ func controllerLoop() {
 				log.Fatal(err)
 			}
 
+			// Skips the file if it is not an actual media file
+			if !mediainfo.IsMedia() {
+				continue
+			}
+
 			// Is the file HDR?
 			if mediainfo.Video.ColorPrimaries == "BT.2020" {
+				continue
+			}
+
+			stereoAudioTrackExists := false
+			for _, v := range mediainfo.Audio {
+				if v.Channels == "2" {
+					stereoAudioTrackExists = true
+				}
+			}
+
+			isHEVC := mediainfo.Video.Format == "HEVC"
+
+			if isHEVC && stereoAudioTrackExists {
 				continue
 			}
 
@@ -106,9 +121,8 @@ func controllerLoop() {
 				UUID: u.String(),
 				Path: videoFilepath,
 				Parameters: JobParameters{
-					HEVC:        false,
-					Stereo:      false,
-					Progressive: false,
+					HEVC:   !isHEVC,
+					Stereo: !stereoAudioTrackExists,
 				},
 				RawMediaInfo: mediainfo,
 			}
