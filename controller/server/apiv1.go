@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/BrenekH/project-redcedar-controller/controller"
@@ -18,7 +19,7 @@ func getQueue(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		queueJSONBytes, err := json.Marshal(controller.JobQueue.Dequeue())
 		if err != nil {
-			serverError(w, r, "Error marshaling Job queue to json")
+			serverError(w, r, fmt.Sprintf("Error marshaling Job queue to json: %v", err))
 		}
 		w.Write(queueJSONBytes)
 	default:

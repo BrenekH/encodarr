@@ -91,13 +91,6 @@ func controllerLoop() {
 				continue
 			}
 
-			// TODO: Set platform binary in mediainfo.go, not here
-			windowsMediaInfo := "MediaInfo.exe"
-			err := mediainfo.SetMediaInfoBinary(windowsMediaInfo)
-			if err != nil {
-				log.Fatal(err)
-			}
-
 			mediainfo, err := mediainfo.GetMediaInfo(videoFilepath)
 			if err != nil {
 				log.Fatal(err)

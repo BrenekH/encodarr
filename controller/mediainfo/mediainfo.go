@@ -2,14 +2,24 @@ package mediainfo
 
 import (
 	"encoding/xml"
-	"flag"
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
 // mediainfoBinary specifies a custom MediaInfo binary.
-var mediainfoBinary = flag.String("mediainfo-bin", "mediainfo", "the path to the mediainfo binary if it is not in the system $PATH")
+var mediainfoBinary *string = platformMediaInfoBinary()
+
+func platformMediaInfoBinary() *string {
+	var s string
+	if runtime.GOOS == "windows" {
+		s = "MediaInfo.exe"
+	} else {
+		s = "mediainfo"
+	}
+	return &s
+}
 
 // SetMediaInfoBinary sets the MediaInfo binary to use. Returns an error if the passed binary is invalid.
 func SetMediaInfoBinary(s string) error {
