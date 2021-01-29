@@ -13,7 +13,17 @@ type queueJSONResponse struct {
 }
 
 // Web interface API handlers
-// TODO: Get running jobs
+// TODO: Complete get running jobs
+func getRunning(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"test": true}`))
+	default:
+		methodForbidden(w, r)
+	}
+}
 
 // TODO: Complete GET queue
 func getQueue(w http.ResponseWriter, r *http.Request) {
@@ -45,13 +55,53 @@ func getHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 // Runner API handlers
-// TODO: Get new job (job request)
-// TODO: Post job status
-// TODO: Post job complete
+// TODO: Complete get new job (job request)
+func getNewJob(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		// TODO: Get job from controller or wait until one is available
+
+		// TODO: Set correct Content-Type header
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"test": true}`))
+	default:
+		methodForbidden(w, r)
+	}
+}
+
+// TODO: Complete post job status
+func postJobStatus(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"test": true}`))
+	default:
+		methodForbidden(w, r)
+	}
+}
+
+// TODO: Complete post job complete
+func postJobComplete(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(""))
+	default:
+		methodForbidden(w, r)
+	}
+}
 
 func registerAPIv1Handlers() {
 	r := newSubRouter("/api/v1")
 
+	r.HandleFunc("/running", getRunning)
 	r.HandleFunc("/queue", getQueue)
 	r.HandleFunc("/history", getHistory)
+
+	r.HandleFunc("/job/request", getNewJob)
+	r.HandleFunc("/job/status", postJobStatus)
+	r.HandleFunc("/job/complete", postJobComplete)
 }
