@@ -2,6 +2,7 @@ package controller
 
 import (
 	"log"
+	"os"
 	"reflect"
 	"strings"
 	"sync"
@@ -45,6 +46,24 @@ func (j Job) EqualPath(check Job) bool {
 	return j.Path == check.Path
 }
 
+// DispatchedJob represents a dispatched job in the RedCedar ecosystem.
+type DispatchedJob struct {
+	Job         Job       `json:"job"`
+	RunnerName  string    `json:"runner_name"`
+	LastUpdated time.Time `json:"last_updated"`
+	Status      JobStatus `json:"status"`
+}
+
+// JobStatus represents the status of a dispatched job
+type JobStatus struct {
+	Stage                       string `json:"stage"`
+	Percentage                  string `json:"percentage"`
+	JobElapsedTime              string `json:"job_elapsed_time"`
+	FPS                         string `json:"fps"`
+	StageElapsedTime            string `json:"stage_elapsed_time"`
+	StageEstimatedTimeRemaining string `json:"stage_estimated_time_remaining"`
+}
+
 // JobRequest represents a request for a job
 type JobRequest struct {
 	RunnerName    string
@@ -58,6 +77,9 @@ var healthLastCheck time.Time
 
 // JobQueue is the queue of the jobs
 var JobQueue Queue = Queue{sync.Mutex{}, make([]Job, 0)}
+
+// DispatchedJobs is a collection for all dispatched jobs
+var DispatchedJobs DispatchedContainer = DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 
 // JobRequestChannel is a channel used to send job requests to the Controller
 var JobRequestChannel chan JobRequest = make(chan JobRequest)
@@ -97,11 +119,30 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 				select {
 				case val, ok := <-*requestChan:
 					if ok {
-						// TODO: Pop a job off the Queue
-						// TODO: Check if the job is still valid
+						var j Job
+						for {
+							// TODO: Pop a job off the Queue
+							j, err := JobQueue.Pop()
+							if err != nil {
+								log.Fatal(err)
+							}
+
+							// TODO: Check if the job is still valid
+							if _, err := os.Stat(j.Path); err == nil {
+								// TODO: Do more than just check if it exists (verify hevc and stereo attributes)
+								break
+							} else if os.IsNotExist(err) {
+								// File does not exist. Do not add back into queue
+								continue
+							} else {
+								// File may or may not exist. Error has more details.
+								log.Fatal(err)
+							}
+						}
+
 						// TODO: Add to dispatched jobs
 						// TODO: Return Job struct in return channel
-						_ = val
+						*val.ReturnChannel <- j
 					} else {
 						// Channel closed. Stop handler.
 						return

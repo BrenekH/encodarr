@@ -78,3 +78,9 @@ func IsDirectory(path string) (bool, error) {
 	}
 	return fileInfo.IsDir(), err
 }
+
+// DispatchedContainer is a container struct for dispatched jobs
+type DispatchedContainer struct {
+	sync.Mutex
+	items []DispatchedJob
+}
