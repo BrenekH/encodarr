@@ -45,6 +45,12 @@ func (j Job) EqualPath(check Job) bool {
 	return j.Path == check.Path
 }
 
+// JobRequest represents a request for a job
+type JobRequest struct {
+	RunnerName    string
+	ReturnChannel *chan Job
+}
+
 var controllerConfig *config.ControllerConfiguration
 
 var fileSystemLastCheck time.Time
@@ -53,12 +59,19 @@ var healthLastCheck time.Time
 // JobQueue is the queue of the jobs
 var JobQueue Queue = Queue{sync.Mutex{}, make([]Job, 0)}
 
+// JobRequestChannel is a channel used to send job requests to the Controller
+var JobRequestChannel chan JobRequest = make(chan JobRequest)
+
 // RunController is a goroutine compliant way to run the controller.
 func RunController(inConfig *config.ControllerConfiguration, stopChan *chan interface{}, wg *sync.WaitGroup) {
+	wg.Add(1) // This is done in the function rather than outside so that we can easily comment out this function in main.go
 	defer wg.Done()
 	defer log.Println("Controller: Successfully stopped")
 
 	controllerConfig = inConfig
+
+	// Start the job request handler
+	go jobRequestHandler(&JobRequestChannel, stopChan, wg)
 
 	// This loop is in charge of running the controller logic until the stop signal channel "stopChan" has a value pushed to it
 	for {
@@ -66,6 +79,36 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 		default:
 			fileSystemCheck()
 			healthCheck()
+		case <-*stopChan:
+			return
+		}
+	}
+}
+
+// jobRequestHandler continuously checks the requestChan interface and responds with a job
+func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{}, wg *sync.WaitGroup) {
+	wg.Add(1)
+	defer wg.Done()
+
+	for {
+		select {
+		default:
+			if !JobQueue.Empty() {
+				select {
+				case val, ok := <-*requestChan:
+					if ok {
+						// TODO: Pop a job off the Queue
+						// TODO: Check if the job is still valid
+						// TODO: Add to dispatched jobs
+						// TODO: Return Job struct in return channel
+						_ = val
+					} else {
+						// Channel closed. Stop handler.
+						return
+					}
+				default:
+				}
+			}
 		case <-*stopChan:
 			return
 		}

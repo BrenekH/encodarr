@@ -63,6 +63,13 @@ func (q *Queue) InQueuePath(item Job) bool {
 	return false
 }
 
+// Empty returns a boolean representing whether or not the queue is empty
+func (q *Queue) Empty() bool {
+	q.Lock()
+	defer q.Unlock()
+	return len(q.items) == 0
+}
+
 // IsDirectory returns a bool representing whether or not the provided path is a directory
 func IsDirectory(path string) (bool, error) {
 	fileInfo, err := os.Stat(path)

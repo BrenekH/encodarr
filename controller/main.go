@@ -35,11 +35,9 @@ func main() {
 	}
 
 	// Start Controller goroutine
-	wg.Add(1)
 	go controller.RunController(&controllerConfig, &stopChan, wg)
 
 	// Start HTTP Server goroutine
-	wg.Add(1)
 	go server.RunHTTPServer(&stopChan, wg)
 
 	<-stopChan

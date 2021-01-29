@@ -24,6 +24,7 @@ func methodForbidden(w http.ResponseWriter, r *http.Request) {
 
 // RunHTTPServer runs the HTTP server for Project RedCedar.
 func RunHTTPServer(stopChan *chan interface{}, wg *sync.WaitGroup) {
+	wg.Add(1) // This is done in the function rather than outside so that we can easily comment out this function in main.go
 	defer wg.Done()
 
 	registerWebInterfaceHandlers()
