@@ -65,7 +65,15 @@ class JobRunner:
 		"""
 		for i in range(100):
 			if self.__running:
-				r = requests.get(f"http://{self.controller_ip}/api/v1/job/request", headers={"redcedar-runner-name": self.runner_name}, stream=True)
+				try:
+					r = requests.get(f"http://{self.controller_ip}/api/v1/job/request", headers={"redcedar-runner-name": self.runner_name}, stream=True)
+				except requests.exceptions.ConnectionError as e:
+					logger.error(f"Received ConnectionError. Retrying in {i} seconds")
+					logger.debug(f"ConnectionError info: ", exc_info=True)
+					if not self.__running:
+						return None
+					time.sleep(i)
+					continue
 
 				if r.status_code != 200:
 					logger.warning(f"Received status code {r.status_code} from controller because of error: {r.content}. Retrying in {i} seconds")
