@@ -70,6 +70,20 @@ func (q *Queue) Empty() bool {
 	return len(q.items) == 0
 }
 
+// DispatchedContainer is a container struct for dispatched jobs
+type DispatchedContainer struct {
+	sync.Mutex
+	items []DispatchedJob
+}
+
+// Add adds the supplied DispatchedJob to the container
+func (c *DispatchedContainer) Add(item DispatchedJob) {
+	c.Lock()
+	defer c.Unlock()
+
+	c.items = append(c.items, item)
+}
+
 // IsDirectory returns a bool representing whether or not the provided path is a directory
 func IsDirectory(path string) (bool, error) {
 	fileInfo, err := os.Stat(path)
@@ -77,10 +91,4 @@ func IsDirectory(path string) (bool, error) {
 		return false, err
 	}
 	return fileInfo.IsDir(), err
-}
-
-// DispatchedContainer is a container struct for dispatched jobs
-type DispatchedContainer struct {
-	sync.Mutex
-	items []DispatchedJob
 }

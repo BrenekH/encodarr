@@ -121,13 +121,13 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 					if ok {
 						var j Job
 						for {
-							// TODO: Pop a job off the Queue
+							// Pop a job off the Queue
 							j, err := JobQueue.Pop()
 							if err != nil {
 								log.Fatal(err)
 							}
 
-							// TODO: Check if the job is still valid
+							// Check if the job is still valid
 							if _, err := os.Stat(j.Path); err == nil {
 								// TODO: Do more than just check if it exists (verify hevc and stereo attributes)
 								break
@@ -140,8 +140,22 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 							}
 						}
 
-						// TODO: Add to dispatched jobs
-						// TODO: Return Job struct in return channel
+						// Add to dispatched jobs
+						DispatchedJobs.Add(DispatchedJob{
+							Job:         j,
+							RunnerName:  val.RunnerName,
+							LastUpdated: time.Now(),
+							Status: JobStatus{
+								Stage:                       "Waiting to start",
+								Percentage:                  "N/A",
+								JobElapsedTime:              "N/A",
+								FPS:                         "N/A",
+								StageElapsedTime:            "N/A",
+								StageEstimatedTimeRemaining: "N/A",
+							},
+						})
+
+						// Return Job struct in return channel
 						*val.ReturnChannel <- j
 					} else {
 						// Channel closed. Stop handler.
