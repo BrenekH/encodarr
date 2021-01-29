@@ -83,7 +83,7 @@ class JobRunner:
 					continue
 
 				job_info = loads(r.headers.get("x-rc-job-info"))
-				input_file = Path.cwd() / f"input{Path(job_info['file']).suffix}" # Creates an input file with the same suffix as the input
+				input_file = Path.cwd() / f"input{Path(job_info['path']).suffix}" # Creates an input file with the same suffix as the input
 
 				if input_file.exists():
 					input_file.unlink()
@@ -161,11 +161,10 @@ class JobRunner:
 
 	def _run_job(self, job_info: Dict):
 		input_file = Path(job_info["in_file"])
-		is_hevc = job_info["is_hevc"]
-		has_stereo = job_info["has_stereo"]
-		is_interlaced = job_info["is_interlaced"]
+		is_hevc = not job_info["parameters"]["hevc"]
+		has_stereo = not job_info["parameters"]["stereo"]
 
-		logger.info(f"Running job {job_info['file']} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}, is_interlaced: {is_interlaced}]")
+		logger.info(f"Running job {job_info['file']} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}]")
 
 		current_job_warnings, current_job_errors = ([], [])
 		critical_failure = False
