@@ -40,7 +40,7 @@ func (j Job) Equal(check Job) bool {
 	return true
 }
 
-// EqualPath is a custom equality check for the Job type that ignores the UUID but checks everything else
+// EqualPath is a custom equality check for the Job type that only checks the Path parameter
 func (j Job) EqualPath(check Job) bool {
 	return j.Path == check.Path
 }
@@ -64,14 +64,15 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 	for {
 		select {
 		default:
-			controllerLoop()
+			fileSystemCheck()
+			healthCheck()
 		case <-*stopChan:
 			return
 		}
 	}
 }
 
-func controllerLoop() {
+func fileSystemCheck() {
 	if time.Since(fileSystemLastCheck) > time.Duration((*controllerConfig).FileSystemCheckInterval) {
 		fileSystemLastCheck = time.Now()
 		discoveredVideos := GetVideoFilesFromDir((*controllerConfig).SearchDir)
@@ -131,10 +132,11 @@ func controllerLoop() {
 			log.Printf("Controller: Added %v to the queue\n", job.Path)
 		}
 	}
+}
 
+func healthCheck() {
 	if time.Since(healthLastCheck) > time.Duration((*controllerConfig).HealthCheckInterval) {
 		healthLastCheck = time.Now()
-		// fmt.Println("Doing healthCheck")
 		// TODO: Health check
 	}
 }
