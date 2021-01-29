@@ -61,7 +61,15 @@ func getHistory(w http.ResponseWriter, r *http.Request) {
 func getNewJob(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		// TODO: Get job from controller or wait until one is available
+		requestChannel := make(chan controller.Job, 1)
+		controller.JobRequestChannel <- controller.JobRequest{RunnerName: "Runner-001", ReturnChannel: &requestChannel}
+		val, ok := <-requestChannel
+
+		if ok == false {
+			serverError(w, r, "Server shutdown")
+			return
+		}
+		_ = val // TODO: Remove
 
 		// TODO: Set correct Content-Type header
 		w.Header().Set("Content-Type", "application/json")
