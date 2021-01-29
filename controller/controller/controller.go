@@ -122,7 +122,8 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 						var j Job
 						for {
 							// Pop a job off the Queue
-							j, err := JobQueue.Pop()
+							var err error // err must be defined using var instead of := because j won't be set properly otherwise
+							j, err = JobQueue.Pop()
 							if err != nil {
 								log.Fatal(err)
 							}

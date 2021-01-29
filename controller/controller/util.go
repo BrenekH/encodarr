@@ -84,6 +84,13 @@ func (c *DispatchedContainer) Add(item DispatchedJob) {
 	c.items = append(c.items, item)
 }
 
+// Decontain returns a copy of the underlying slice in the Container.
+func (c *DispatchedContainer) Decontain() []DispatchedJob {
+	c.Lock()
+	defer c.Unlock()
+	return append(make([]DispatchedJob, 0, len(c.items)), c.items...)
+}
+
 // IsDirectory returns a bool representing whether or not the provided path is a directory
 func IsDirectory(path string) (bool, error) {
 	fileInfo, err := os.Stat(path)

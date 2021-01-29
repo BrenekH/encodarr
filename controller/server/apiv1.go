@@ -15,15 +15,54 @@ type queueJSONResponse struct {
 	JobQueue []controller.Job `json:"queue"`
 }
 
+type runningJSONResponse struct {
+	DispatchedJobs []filteredDispatchedJob `json:"jobs"`
+}
+
+type filteredDispatchedJob struct {
+	Job        filteredJob          `json:"job"`
+	RunnerName string               `json:"runner_name"`
+	Status     controller.JobStatus `json:"status"`
+}
+
+type filteredJob struct {
+	UUID       string                   `json:"uuid"`
+	Path       string                   `json:"path"`
+	Parameters controller.JobParameters `json:"parameters"`
+}
+
+func makeFilteredDispatchedJobs() runningJSONResponse {
+	dispatchedJobsSlice := controller.DispatchedJobs.Decontain()
+	runningJSONResponseStruct := runningJSONResponse{DispatchedJobs: make([]filteredDispatchedJob, len(dispatchedJobsSlice))}
+
+	for i, dJob := range dispatchedJobsSlice {
+		runningJSONResponseStruct.DispatchedJobs[i] = filteredDispatchedJob{
+			Job: filteredJob{
+				UUID:       dJob.Job.UUID,
+				Path:       dJob.Job.Path,
+				Parameters: dJob.Job.Parameters,
+			},
+			RunnerName: dJob.RunnerName,
+			Status:     dJob.Status,
+		}
+	}
+
+	return runningJSONResponseStruct
+}
+
 // Web interface API handlers
-// TODO: Complete get running jobs
 // getRunning is a HTTP handler that returns the current running jobs in a JSON response.
 func getRunning(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		runningJSONBytes, err := json.Marshal(makeFilteredDispatchedJobs())
+		if err != nil {
+			serverError(w, r, fmt.Sprintf("Error marshaling Job queue to json: %v", err))
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"test": true}`))
+		w.Write(runningJSONBytes)
 	default:
 		methodForbidden(w, r)
 	}
