@@ -14,6 +14,7 @@ type queueJSONResponse struct {
 
 // Web interface API handlers
 // TODO: Complete get running jobs
+// getRunning is a HTTP handler that returns the current running jobs in a JSON response.
 func getRunning(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -25,7 +26,7 @@ func getRunning(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: Complete GET queue
+// getQueue is a HTTP handler that returns the current queue in a JSON response.
 func getQueue(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -43,6 +44,7 @@ func getQueue(w http.ResponseWriter, r *http.Request) {
 }
 
 // TODO: Complete GET history
+// getHistory is a HTTP handler that returns the current history in a JSON response.
 func getHistory(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
