@@ -139,6 +139,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 								// File may or may not exist. Error has more details.
 								log.Fatal(err)
 							}
+							time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 						}
 
 						// Add to dispatched jobs
@@ -168,6 +169,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 		case <-*stopChan:
 			return
 		}
+		time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 	}
 }
 
