@@ -1,13 +1,42 @@
+var currentTab = "running";
+
+$(document).ready(function () {
+	updateCurrentTab();
+
+	window.setInterval(function(){
+		updateCurrentTab();
+	}, 5000);
+});
+
 $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
 	var target = $(e.target).attr("href");
 	if (target == "#queue") {
 		updateQueue();
+		currentTab = "queue";
 	} else if (target == "#history") {
 		updateHistory();
+		currentTab = "history";
 	} else if (target == "#running-jobs") {
 		updateRunning();
+		currentTab = "running";
 	}
 });
+
+function updateCurrentTab() {
+	switch (currentTab) {
+		case "running":
+			updateRunning();
+			break;
+		case "queue":
+			updateQueue();
+			break;
+		case "history":
+			updateHistory();
+			break;
+		default:
+			break;
+	}
+}
 
 function setProgressBar(progress) {
 	let progressBar = document.getElementById("progress-bar");
