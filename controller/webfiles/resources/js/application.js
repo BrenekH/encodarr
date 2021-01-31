@@ -46,10 +46,10 @@ function setProgressBar(progress) {
 }
 
 function updateRunning() {
-	axios.get("/api/v1/running").then(function (response) {
+	axios.get("/api/web/v1/running").then(function (response) {
 		let jobs = response.data.jobs;
 		if (jobs === undefined) {
-			console.error("Response from /api/v1/running returned undefined for data.jobs");
+			console.error("Response from /api/web/v1/running returned undefined for data.jobs");
 		}
 		let HTMLString = "";
 		let looped = false;
@@ -76,15 +76,15 @@ function updateRunning() {
 
 		$("#running-jobs").html(HTMLString)
 	}).catch(function (error) {
-		console.error(`Request to /api/v1/running failed with error: ${error}`);
+		console.error(`Request to /api/web/v1/running failed with error: ${error}`);
 	});
 }
 
 function updateQueue() {
-	axios.get("/api/v1/queue").then(function (response) {
+	axios.get("/api/web/v1/queue").then(function (response) {
 		let queue = response.data.queue; // List of files in queue order
 		if (queue === undefined) {
-			console.error("Response from /api/v1/queue returned undefined for data.queue");
+			console.error("Response from /api/web/v1/queue returned undefined for data.queue");
 			return;
 		}
 		let finalHTMLString = "";
@@ -94,7 +94,7 @@ function updateQueue() {
 		$("#queue-content").html(finalHTMLString);
 		enableTooltips();
 	}).catch(function (error) {
-		console.error(`Request to /api/v1/queue failed with error: ${error}`);
+		console.error(`Request to /api/web/v1/queue failed with error: ${error}`);
 	});
 }
 
@@ -112,10 +112,10 @@ function renderQueueEntry(entryNumber, filePath, videoOp, audioOp) {
 }
 
 function updateHistory() {
-	axios.get("/api/v1/history").then(function (response) {
+	axios.get("/api/web/v1/history").then(function (response) {
 		let history = response.data.history;
 		if (history === undefined) {
-			console.error("Response from /api/v1/history returned undefined for data.history")
+			console.error("Response from /api/web/v1/history returned undefined for data.history")
 			return
 		}
 		let finalHTMLString = "";
@@ -125,7 +125,7 @@ function updateHistory() {
 		}
 		$("#history-content").html(finalHTMLString);
 	}).catch(function (error) {
-		console.error(`Request to /api/v1/history failed with error: ${error}`);
+		console.error(`Request to /api/web/v1/history failed with error: ${error}`);
 	});
 }
 
