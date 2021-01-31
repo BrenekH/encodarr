@@ -28,14 +28,14 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 		// Marshal Job into json to be sent in a header
 		jobJSONBytes, err := json.Marshal(jobToSend)
 		if err != nil {
-			serverError(w, r, fmt.Sprintf("APIv1: Error marshaling Job to json: %v", err))
+			serverError(w, r, fmt.Sprintf("Runner API v1: Error marshaling Job to json: %v", err))
 		}
 		w.Header().Set("x-rc-job-info", string(jobJSONBytes))
 
 		// Send file to Runner
 		file, err := os.Open(jobToSend.Path)
 		if err != nil {
-			serverError(w, r, fmt.Sprintf("APIv1: Error opening %v: %v", jobToSend.Path, err))
+			serverError(w, r, fmt.Sprintf("Runner API v1: Error opening %v: %v", jobToSend.Path, err))
 			return
 		}
 		defer file.Close()
@@ -47,7 +47,7 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 			bytesRead, err := file.Read(buffer)
 			if err != nil {
 				if err != io.EOF {
-					serverError(w, r, fmt.Sprintf("APIv1: Error writing to HTTP Writer: %v", err))
+					serverError(w, r, fmt.Sprintf("Runner API v1: Error writing to HTTP Writer: %v", err))
 					return
 				}
 				break
