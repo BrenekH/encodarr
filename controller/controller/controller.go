@@ -180,8 +180,8 @@ func fileSystemCheck() {
 		for _, videoFilepath := range discoveredVideos {
 			pathJob := Job{UUID: "", Path: videoFilepath, Parameters: JobParameters{}}
 
-			// Is the file already in the queue?
-			if JobQueue.InQueuePath(pathJob) {
+			// Is the file already in the queue or dispatched?
+			if JobQueue.InQueuePath(pathJob) || DispatchedJobs.InContainerPath(pathJob) {
 				continue
 			}
 

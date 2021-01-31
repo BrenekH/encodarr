@@ -91,6 +91,18 @@ func (c *DispatchedContainer) Decontain() []DispatchedJob {
 	return append(make([]DispatchedJob, 0, len(c.items)), c.items...)
 }
 
+// InContainerPath returns a boolean representing whether or not the provided Job is in the container based on only the Path field
+func (c *DispatchedContainer) InContainerPath(item Job) bool {
+	c.Lock()
+	defer c.Unlock()
+	for _, i := range (*c).items {
+		if item.EqualPath(i.Job) {
+			return true
+		}
+	}
+	return false
+}
+
 // IsDirectory returns a bool representing whether or not the provided path is a directory
 func IsDirectory(path string) (bool, error) {
 	fileInfo, err := os.Stat(path)
