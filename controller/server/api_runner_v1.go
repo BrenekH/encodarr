@@ -15,7 +15,7 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		requestChannel := make(chan controller.Job, 1)
-		controller.JobRequestChannel <- controller.JobRequest{RunnerName: "Runner-001", ReturnChannel: &requestChannel}
+		controller.JobRequestChannel <- controller.JobRequest{RunnerName: r.Header.Get("redcedar-runner-name"), ReturnChannel: &requestChannel}
 		jobToSend, ok := <-requestChannel
 
 		if ok == false {
