@@ -46,6 +46,11 @@ func (j Job) EqualPath(check Job) bool {
 	return j.Path == check.Path
 }
 
+// EqualUUID is a custom equality check for the Job type that only checks the UUID parameter
+func (j Job) EqualUUID(check Job) bool {
+	return j.UUID == check.UUID
+}
+
 // DispatchedJob represents a dispatched job in the RedCedar ecosystem.
 type DispatchedJob struct {
 	Job         Job       `json:"job"`

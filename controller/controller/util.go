@@ -1,10 +1,16 @@
 package controller
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"sync"
 )
+
+// ErrInvalidUUID represents when a passed UUID is invalid
+var ErrInvalidUUID error = errors.New("Invalid UUID")
+
+// ErrEmptyQueue represents when the operation cannot be completed because the queue is empty
+var ErrEmptyQueue error = errors.New("Queue is empty")
 
 // Queue is a basic implementation of a FIFO Queue for the Job interface.
 type Queue struct {
@@ -24,7 +30,7 @@ func (q *Queue) Pop() (Job, error) {
 	q.Lock()
 	defer q.Unlock()
 	if len(q.items) == 0 {
-		return Job{}, fmt.Errorf("Queue is empty")
+		return Job{}, ErrEmptyQueue
 	}
 	item := q.items[0]
 	q.items[0] = Job{} // Hopefully this garbage collects properly
@@ -95,12 +101,35 @@ func (c *DispatchedContainer) Decontain() []DispatchedJob {
 func (c *DispatchedContainer) InContainerPath(item Job) bool {
 	c.Lock()
 	defer c.Unlock()
-	for _, i := range (*c).items {
-		if item.EqualPath(i.Job) {
+	for _, v := range (*c).items {
+		if item.EqualPath(v.Job) {
 			return true
 		}
 	}
 	return false
+}
+
+// UpdateStatus uses the provided UUID string to identify the Job to be updated with the new status as defined by the provided JobStatus
+func (c *DispatchedContainer) UpdateStatus(u string, js JobStatus) error {
+	c.Lock()
+	defer c.Unlock()
+	for i, v := range c.items {
+		if v.Job.EqualUUID(Job{UUID: u}) {
+			// Save before removing from container slice
+			interim := v
+
+			// Remove from container slice
+			c.items[i] = c.items[len(c.items)-1]
+			c.items[len(c.items)-1] = DispatchedJob{}
+			c.items = c.items[:len(c.items)-1]
+
+			// Add back into container slice with modifications
+			interim.Status = js
+			c.items = append(c.items, interim)
+			return nil
+		}
+	}
+	return ErrInvalidUUID
 }
 
 // IsDirectory returns a bool representing whether or not the provided path is a directory

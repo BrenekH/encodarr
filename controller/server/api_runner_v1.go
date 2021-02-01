@@ -4,12 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/BrenekH/project-redcedar-controller/controller"
 )
+
+type incomingJobStatus struct {
+	UUID   string               `json:"uuid"`
+	Status controller.JobStatus `json:"status"`
+}
 
 func getNewJob(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -60,13 +67,29 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: Complete post job status
 func postJobStatus(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case http.MethodGet:
-		w.Header().Set("Content-Type", "application/json")
+	case http.MethodPost:
+		b, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("Runner API v1: Error reading job status body: %v", err)
+		}
+
+		ijs := incomingJobStatus{}
+		err = json.Unmarshal(b, &ijs)
+		if err != nil {
+			log.Printf("Runner API v1: Error unmarshalling into struct: %v", err)
+		}
+
+		err = controller.DispatchedJobs.UpdateStatus(ijs.UUID, ijs.Status)
+		if err != nil {
+			//! Technically this is the clients fault, not the server's, so a different HTTP code should be sent
+			serverError(w, r, fmt.Sprintf("Runner API v1: Error updating status of job with uuid '%v': %v", ijs.UUID, err))
+		}
+
+		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"test": true}`))
+		w.Write([]byte("OK"))
 	default:
 		methodForbidden(w, r)
 	}
@@ -75,10 +98,10 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 // TODO: Complete post job complete
 func postJobComplete(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case http.MethodGet:
+	case http.MethodPost:
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(""))
+		w.Write([]byte("OK"))
 	default:
 		methodForbidden(w, r)
 	}
