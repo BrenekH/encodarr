@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/BrenekH/project-redcedar-controller/controller"
@@ -124,8 +125,8 @@ func postJobComplete(w http.ResponseWriter, r *http.Request) {
 			defer fileReader.Close()
 
 			// Copy to intermediate file
-			// TODO: Rename file properly
-			f, err := os.Create("test.mp4")
+			filename := fmt.Sprintf("%v.import%v", jcr.UUID, path.Ext(fileHeader.Filename))
+			f, err := os.Create(filename)
 			if err != nil {
 				serverError(w, r, fmt.Sprintf("Error opening receiving file: %v", err))
 				return
