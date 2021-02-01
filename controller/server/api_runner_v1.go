@@ -99,6 +99,43 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 func postJobComplete(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
+		h := r.Header.Get("x-rc-history-entry")
+		if h == "" {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid header 'x-rc-history-entry'"))
+			return
+		}
+
+		jcr := controller.JobCompleteRequest{}
+		err := json.Unmarshal([]byte(h), &jcr)
+		if err != nil {
+			serverError(w, r, fmt.Sprintf("Error unmarshalling history entry: %v", err))
+			return
+		}
+
+		if !jcr.Failed {
+			fileReader, fileHeader, err := r.FormFile("file")
+			_ = fileHeader // File header could be useful for naming later
+			if err != nil {
+				serverError(w, r, fmt.Sprintf("Error accessing form file: %v", err))
+				return
+			}
+			defer fileReader.Close()
+
+			// Copy to intermediate file
+			// TODO: Rename file properly
+			f, err := os.Create("test.mp4")
+			if err != nil {
+				serverError(w, r, fmt.Sprintf("Error opening receiving file: %v", err))
+				return
+			}
+			io.Copy(f, fileReader)
+			f.Close()
+		}
+
+		// TODO: Signal to Controller that the job is complete
+
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))

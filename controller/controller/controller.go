@@ -75,6 +75,21 @@ type JobRequest struct {
 	ReturnChannel *chan Job
 }
 
+// HistoryEntry represents an entry for the history collection
+type HistoryEntry struct {
+	File             string    `json:"file"`
+	DateTimeComplete time.Time `json:"datetime_completed"`
+	Warnings         []string  `json:"warnings"`
+	Errors           []string  `json:"errors"`
+}
+
+// JobCompleteRequest is a struct for representing a job complete request
+type JobCompleteRequest struct {
+	UUID    string       `json:"uuid"`
+	Failed  bool         `json:"failed"`
+	History HistoryEntry `json:"history"`
+}
+
 var controllerConfig *config.ControllerConfiguration
 
 var fileSystemLastCheck time.Time
