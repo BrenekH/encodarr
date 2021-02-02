@@ -7,6 +7,7 @@ package config
 type ControllerConfiguration struct {
 	UpdateChan              *chan string
 	SearchDir               string
+	JSONDir                 string
 	FileSystemCheckInterval int
 	HealthCheckInterval     int
 }
