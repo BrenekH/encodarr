@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -95,7 +97,26 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 }
 
 func readHistoryFile() HistoryContainer {
-	// TODO: Read/unmarshal json from JSONDir/history.json
-	// TODO: Add into HistoryContainer and return
-	return HistoryContainer{}
+	// Read/unmarshal json from JSONDir/history.json
+	f, err := os.Open(fmt.Sprintf("%v/history.json", controllerConfig.JSONDir))
+	if err != nil {
+		log.Printf("Failed to open history.json because of error: %v\n", err)
+		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
+	}
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		log.Printf("Failed to read history.json because of error: %v\n", err)
+		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
+	}
+
+	var readJSON []HistoryEntry
+	err = json.Unmarshal(b, &readJSON)
+	if err != nil {
+		log.Printf("Failed to unmarshal history.json because of error: %v\n", err)
+		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
+	}
+
+	// Add into HistoryContainer and return
+	return HistoryContainer{sync.Mutex{}, readJSON}
 }
