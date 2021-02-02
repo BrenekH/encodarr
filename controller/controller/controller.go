@@ -103,7 +103,9 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 
 	controllerConfig = inConfig
 
-	// TODO: Read JSON(Dispatched & History) and apply to containers
+	// Read JSON(Dispatched & History) and apply to containers
+	DispatchedJobs = readDispatchedFile()
+	HistoryEntries = readHistoryFile()
 
 	// Start the job request handler
 	go jobRequestHandler(&JobRequestChannel, stopChan, wg)
