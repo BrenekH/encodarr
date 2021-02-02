@@ -1,6 +1,9 @@
 package controller
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
@@ -259,7 +262,26 @@ func healthCheck() {
 }
 
 func readDispatchedFile() DispatchedContainer {
-	// TODO: Read/unmarshal json from JSONDir/dispatched_jobs.json
-	// TODO: Add into DispatchedContainer and return
-	return DispatchedContainer{}
+	// Read/unmarshal json from JSONDir/dispatched_jobs.json
+	f, err := os.Open(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.JSONDir))
+	if err != nil {
+		log.Printf("Failed to open dispatched_jobs.json because of error: %v\n", err)
+		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
+	}
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		log.Printf("Failed to read dispatched_jobs.json because of error: %v\n", err)
+		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
+	}
+
+	var readJSON []DispatchedJob
+	err = json.Unmarshal(b, &readJSON)
+	if err != nil {
+		log.Printf("Failed to unmarshal dispatched_jobs.json because of error: %v\n", err)
+		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
+	}
+
+	// Add into DispatchedContainer and return
+	return DispatchedContainer{sync.Mutex{}, readJSON}
 }

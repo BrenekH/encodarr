@@ -96,7 +96,6 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: Complete post job complete
 func postJobComplete(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
