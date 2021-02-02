@@ -28,6 +28,17 @@ type filteredJob struct {
 	Parameters controller.JobParameters `json:"parameters"`
 }
 
+type transformedHistoryEntry struct {
+	File              string   `json:"file"`
+	DateTimeCompleted string   `json:"datetime_completed"`
+	Warnings          []string `json:"warnings"`
+	Errors            []string `json:"errors"`
+}
+
+type historyJSON struct {
+	History []transformedHistoryEntry `json:"history"`
+}
+
 func makeFilteredDispatchedJobs() runningJSONResponse {
 	dispatchedJobsSlice := controller.DispatchedJobs.Decontain()
 	runningJSONResponseStruct := runningJSONResponse{DispatchedJobs: make([]filteredDispatchedJob, len(dispatchedJobsSlice))}
@@ -81,14 +92,35 @@ func getQueue(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: Complete GET history
 // getHistory is a HTTP handler that returns the current history in a JSON response.
 func getHistory(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		// Get slice of HistoryEntries (Decontain)
+		hE := controller.HistoryEntries.Decontain()
+		h := make([]transformedHistoryEntry, len(hE))
+
+		// Change datetime into human-readable format
+		for i, v := range hE {
+			dt := v.DateTimeCompleted
+			h[i] = transformedHistoryEntry{
+				File: v.File,
+				DateTimeCompleted: fmt.Sprintf("%02d-%02d-%d %02d:%02d:%02d",
+					dt.Month(), dt.Day(), dt.Year(),
+					dt.Hour(), dt.Minute(), dt.Second()),
+				Warnings: v.Warnings,
+				Errors:   v.Errors,
+			}
+		}
+
+		// Send JSON to client
+		historyJSONBytes, err := json.Marshal(historyJSON{h})
+		if err != nil {
+			serverError(w, r, fmt.Sprintf("Error marshaling Job history to json: %v", err))
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"test": true}`))
+		w.Write(historyJSONBytes)
 	default:
 		methodForbidden(w, r)
 	}

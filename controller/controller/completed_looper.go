@@ -12,10 +12,10 @@ import (
 
 // HistoryEntry represents an entry for the history collection
 type HistoryEntry struct {
-	File             string    `json:"file"`
-	DateTimeComplete time.Time `json:"datetime_completed"`
-	Warnings         []string  `json:"warnings"`
-	Errors           []string  `json:"errors"`
+	File              string    `json:"file"`
+	DateTimeCompleted time.Time `json:"datetime_completed"`
+	Warnings          []string  `json:"warnings"`
+	Errors            []string  `json:"errors"`
 }
 
 // JobCompleteRequest is a struct for representing a job complete request
@@ -33,7 +33,7 @@ var HistoryEntries HistoryContainer = HistoryContainer{sync.Mutex{}, make([]Hist
 func completedLooper(completedChan *chan JobCompleteRequest, stopChan *chan interface{}, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
-	defer log.Println("Controller: Stopped completedLooper")
+	defer log.Println("Controller: completedLooper stopped")
 
 	for {
 		select {
