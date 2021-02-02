@@ -5,7 +5,7 @@ $(document).ready(function () {
 
 	window.setInterval(function(){
 		updateCurrentTab();
-	}, 5000);
+	}, 2000);
 });
 
 $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {

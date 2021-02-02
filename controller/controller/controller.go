@@ -18,7 +18,7 @@ type Job struct {
 	UUID         string              `json:"uuid"`
 	Path         string              `json:"path"`
 	Parameters   JobParameters       `json:"parameters"`
-	RawMediaInfo mediainfo.MediaInfo `json:"raw_media_info"`
+	RawMediaInfo mediainfo.MediaInfo `json:"media_info"`
 }
 
 // JobParameters represents the actions that need to be taken against a job.
@@ -75,21 +75,6 @@ type JobRequest struct {
 	ReturnChannel *chan Job
 }
 
-// HistoryEntry represents an entry for the history collection
-type HistoryEntry struct {
-	File             string    `json:"file"`
-	DateTimeComplete time.Time `json:"datetime_completed"`
-	Warnings         []string  `json:"warnings"`
-	Errors           []string  `json:"errors"`
-}
-
-// JobCompleteRequest is a struct for representing a job complete request
-type JobCompleteRequest struct {
-	UUID    string       `json:"uuid"`
-	Failed  bool         `json:"failed"`
-	History HistoryEntry `json:"history"`
-}
-
 var controllerConfig *config.ControllerConfiguration
 
 var fileSystemLastCheck time.Time
@@ -101,8 +86,11 @@ var JobQueue Queue = Queue{sync.Mutex{}, make([]Job, 0)}
 // DispatchedJobs is a collection for all dispatched jobs
 var DispatchedJobs DispatchedContainer = DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 
-// JobRequestChannel is a channel used to send job requests to the Controller
+// JobRequestChannel is a channel used to send new job requests to the Controller
 var JobRequestChannel chan JobRequest = make(chan JobRequest)
+
+// CompletedRequestChannel is a channel used to send job completed requests to the Controller
+var CompletedRequestChannel chan JobCompleteRequest = make(chan JobCompleteRequest)
 
 // RunController is a goroutine compliant way to run the controller.
 func RunController(inConfig *config.ControllerConfiguration, stopChan *chan interface{}, wg *sync.WaitGroup) {
@@ -114,6 +102,9 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 
 	// Start the job request handler
 	go jobRequestHandler(&JobRequestChannel, stopChan, wg)
+
+	// Start the completed request handler
+	go completedLooper(&CompletedRequestChannel, stopChan, wg)
 
 	// This loop is in charge of running the controller logic until the stop signal channel "stopChan" has a value pushed to it
 	for {
@@ -131,6 +122,7 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{}, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
+	defer log.Println("Controller: jobRequestHandler stopped")
 
 	for {
 		select {
@@ -183,6 +175,8 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 						// Channel closed. Stop handler.
 						return
 					}
+				case <-*stopChan:
+					return
 				default:
 				}
 			}

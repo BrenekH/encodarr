@@ -83,7 +83,7 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = controller.DispatchedJobs.UpdateStatus(ijs.UUID, ijs.Status)
-		if err != nil {
+		if err != nil { // Since I wrote UpdateStatus, I know that if it errors at all, it's an issue with the UUID
 			//! Technically this is the clients fault, not the server's, so a different HTTP code should be sent
 			serverError(w, r, fmt.Sprintf("Runner API v1: Error updating status of job with uuid '%v': %v", ijs.UUID, err))
 		}
@@ -125,8 +125,8 @@ func postJobComplete(w http.ResponseWriter, r *http.Request) {
 			defer fileReader.Close()
 
 			// Copy to intermediate file
-			filename := fmt.Sprintf("%v.import%v", jcr.UUID, path.Ext(fileHeader.Filename))
-			f, err := os.Create(filename)
+			jcr.InFile = fmt.Sprintf("%v.import%v", jcr.UUID, path.Ext(fileHeader.Filename))
+			f, err := os.Create(jcr.InFile)
 			if err != nil {
 				serverError(w, r, fmt.Sprintf("Error opening receiving file: %v", err))
 				return
@@ -135,7 +135,7 @@ func postJobComplete(w http.ResponseWriter, r *http.Request) {
 			f.Close()
 		}
 
-		// TODO: Signal to Controller that the job is complete
+		controller.CompletedRequestChannel <- jcr
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)

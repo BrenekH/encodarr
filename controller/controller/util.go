@@ -2,6 +2,8 @@ package controller
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"sync"
 )
@@ -113,6 +115,7 @@ func (c *DispatchedContainer) InContainerPath(item Job) bool {
 func (c *DispatchedContainer) UpdateStatus(u string, js JobStatus) error {
 	c.Lock()
 	defer c.Unlock()
+
 	for i, v := range c.items {
 		if v.Job.EqualUUID(Job{UUID: u}) {
 			// Save before removing from container slice
@@ -129,7 +132,51 @@ func (c *DispatchedContainer) UpdateStatus(u string, js JobStatus) error {
 			return nil
 		}
 	}
+
 	return ErrInvalidUUID
+}
+
+// PopByUUID uses the provided UUID string to remove a Job and return it
+func (c *DispatchedContainer) PopByUUID(u string) (DispatchedJob, error) {
+	c.Lock()
+	defer c.Unlock()
+
+	for i, v := range c.items {
+		if v.Job.EqualUUID(Job{UUID: u}) {
+			// Save before removing from container slice
+			interim := v
+
+			// Remove from container slice
+			c.items[i] = c.items[len(c.items)-1]
+			c.items[len(c.items)-1] = DispatchedJob{}
+			c.items = c.items[:len(c.items)-1]
+
+			return interim, nil
+		}
+	}
+
+	return DispatchedJob{}, ErrInvalidUUID
+}
+
+// HistoryContainer is a container struct for History entries
+type HistoryContainer struct {
+	sync.Mutex
+	items []HistoryEntry
+}
+
+// Add adds the supplied HistoryEntry to the container
+func (c *HistoryContainer) Add(item HistoryEntry) {
+	c.Lock()
+	defer c.Unlock()
+
+	c.items = append(c.items, item)
+}
+
+// Decontain returns a copy of the underlying slice in the Container.
+func (c *HistoryContainer) Decontain() []HistoryEntry {
+	c.Lock()
+	defer c.Unlock()
+	return append(make([]HistoryEntry, 0, len(c.items)), c.items...)
 }
 
 // IsDirectory returns a bool representing whether or not the provided path is a directory
@@ -139,4 +186,33 @@ func IsDirectory(path string) (bool, error) {
 		return false, err
 	}
 	return fileInfo.IsDir(), err
+}
+
+// MoveFile moves the sourcePath to the destPath without tripping up on file system issues
+func MoveFile(sourcePath, destPath string) error {
+	inputFile, err := os.Open(sourcePath)
+	if err != nil {
+		return fmt.Errorf("Couldn't open source file: %s", err)
+	}
+
+	outputFile, err := os.Create(destPath)
+	if err != nil {
+		inputFile.Close()
+		return fmt.Errorf("Couldn't open dest file: %s", err)
+	}
+	defer outputFile.Close()
+
+	_, err = io.Copy(outputFile, inputFile)
+	inputFile.Close()
+	if err != nil {
+		return fmt.Errorf("Writing to output file failed: %s", err)
+	}
+
+	// The copy was successful, so now delete the original file
+	err = os.Remove(sourcePath)
+	if err != nil {
+		return fmt.Errorf("Failed removing original file: %s", err)
+	}
+
+	return nil
 }
