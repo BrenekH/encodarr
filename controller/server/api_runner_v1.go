@@ -83,6 +83,7 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = controller.DispatchedJobs.UpdateStatus(ijs.UUID, ijs.Status)
+		controller.DispatchedJobs.Save()
 		if err != nil { // Since I wrote UpdateStatus, I know that if it errors at all, it's an issue with the UUID
 			//! Technically this is the clients fault, not the server's, so a different HTTP code should be sent
 			serverError(w, r, fmt.Sprintf("Runner API v1: Error updating status of job with uuid '%v': %v", ijs.UUID, err))

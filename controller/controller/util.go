@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -158,6 +160,27 @@ func (c *DispatchedContainer) PopByUUID(u string) (DispatchedJob, error) {
 	return DispatchedJob{}, ErrInvalidUUID
 }
 
+// Save saves the DispatchedContainer to a JSON file
+func (c *DispatchedContainer) Save() error {
+	c.Lock()
+	defer c.Unlock()
+
+	b, err := json.Marshal(c.items)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Create(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.JSONDir))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	io.Copy(f, bytes.NewReader(b))
+
+	return nil
+}
+
 // HistoryContainer is a container struct for History entries
 type HistoryContainer struct {
 	sync.Mutex
@@ -177,6 +200,27 @@ func (c *HistoryContainer) Decontain() []HistoryEntry {
 	c.Lock()
 	defer c.Unlock()
 	return append(make([]HistoryEntry, 0, len(c.items)), c.items...)
+}
+
+// Save saves the HistoryContainer to a JSON file
+func (c *HistoryContainer) Save() error {
+	c.Lock()
+	defer c.Unlock()
+
+	b, err := json.Marshal(c.items)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Create(fmt.Sprintf("%v/history.json", controllerConfig.JSONDir))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	io.Copy(f, bytes.NewReader(b))
+
+	return nil
 }
 
 // IsDirectory returns a bool representing whether or not the provided path is a directory

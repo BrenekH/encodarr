@@ -107,6 +107,10 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 	DispatchedJobs = readDispatchedFile()
 	HistoryEntries = readHistoryFile()
 
+	// Save if they didn't exist before
+	DispatchedJobs.Save()
+	HistoryEntries.Save()
+
 	// Start the job request handler
 	go jobRequestHandler(&JobRequestChannel, stopChan, wg)
 
@@ -175,6 +179,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 								StageEstimatedTimeRemaining: "N/A",
 							},
 						})
+						DispatchedJobs.Save()
 
 						// Return Job struct in return channel
 						*val.ReturnChannel <- j
@@ -270,6 +275,7 @@ func readDispatchedFile() DispatchedContainer {
 		log.Printf("Failed to open dispatched_jobs.json because of error: %v\n", err)
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 	}
+	defer f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {

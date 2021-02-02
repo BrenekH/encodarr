@@ -63,6 +63,7 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 		log.Printf("Could not Pop because of invalid UUID '%v': %v\n", r.UUID, err)
 		return
 	}
+	DispatchedJobs.Save()
 
 	filename := dJob.Job.Path
 
@@ -94,6 +95,7 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 
 	// Add history entry into container
 	HistoryEntries.Add(r.History)
+	HistoryEntries.Save()
 }
 
 func readHistoryFile() HistoryContainer {
@@ -103,6 +105,7 @@ func readHistoryFile() HistoryContainer {
 		log.Printf("Failed to open history.json because of error: %v\n", err)
 		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
 	}
+	f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
