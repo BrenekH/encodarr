@@ -100,6 +100,8 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 
 	controllerConfig = inConfig
 
+	// TODO: Read JSON(Dispatched & History) and apply to containers
+
 	// Start the job request handler
 	go jobRequestHandler(&JobRequestChannel, stopChan, wg)
 
@@ -254,4 +256,10 @@ func healthCheck() {
 		healthLastCheck = time.Now()
 		// TODO: Health check
 	}
+}
+
+func readDispatchedFile() DispatchedContainer {
+	// TODO: Read/unmarshal json from JSONDir/dispatched_jobs.json
+	// TODO: Add into DispatchedContainer and return
+	return DispatchedContainer{}
 }

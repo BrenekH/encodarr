@@ -93,3 +93,9 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 	// Add history entry into container
 	HistoryEntries.Add(r.History)
 }
+
+func readHistoryFile() HistoryContainer {
+	// TODO: Read/unmarshal json from JSONDir/history.json
+	// TODO: Add into HistoryContainer and return
+	return HistoryContainer{}
+}
