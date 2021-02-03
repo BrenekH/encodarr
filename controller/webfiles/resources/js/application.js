@@ -52,7 +52,7 @@ function updateRunning() {
 			console.error("Response from /api/web/v1/running returned undefined for data.jobs");
 		}
 		jobs.sort((a, b) => {
-			if (int(a.status.percentage) > int(b.status.percentage)) {
+			if (parseFloat(a.status.percentage) > parseFloat(b.status.percentage)) {
 				return -1;
 			}
 			return 1;
