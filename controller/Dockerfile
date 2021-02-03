@@ -5,7 +5,7 @@ WORKDIR /go/src/project-redcedar/controller
 
 COPY . .
 
-RUN GOOS=linux go build -o redcedar .
+RUN CGO_ENABLED=0 GOOS=linux go build -o redcedar .
 
 
 # Run stage
