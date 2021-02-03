@@ -51,6 +51,13 @@ function updateRunning() {
 		if (jobs === undefined) {
 			console.error("Response from /api/web/v1/running returned undefined for data.jobs");
 		}
+		jobs.sort((a, b) => {
+			if (int(a.status.percentage) > int(b.status.percentage)) {
+				return -1;
+			}
+			return 1;
+		})
+
 		let HTMLString = "";
 		let looped = false;
 
