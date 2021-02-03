@@ -105,7 +105,7 @@ func readHistoryFile() HistoryContainer {
 		log.Printf("Failed to open history.json because of error: %v\n", err)
 		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
 	}
-	f.Close()
+	defer f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
