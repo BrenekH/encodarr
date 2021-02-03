@@ -21,4 +21,6 @@ COPY --from=builder /go/src/project-redcedar/controller .
 
 ADD webfiles/ ./webfiles/
 
+EXPOSE 8080
+
 CMD ["./redcedar"]
