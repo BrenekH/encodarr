@@ -29,8 +29,8 @@ func main() {
 
 	controllerConfig := config.ControllerConfiguration{
 		UpdateChan:              &updateChan,
-		SearchDir:               "I:/redcedar_test_env",
-		JSONDir:                 "I:/go-controller/config",
+		SearchDir:               "/tosearch",
+		JSONDir:                 "/config",
 		FileSystemCheckInterval: int(10 * time.Second),
 		HealthCheckInterval:     int(10 * time.Second),
 		HealthCheckTimeout:      int(30 * time.Minute),
