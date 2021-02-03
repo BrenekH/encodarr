@@ -126,6 +126,7 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 		case <-*stopChan:
 			return
 		}
+		time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 	}
 }
 
@@ -264,7 +265,15 @@ func fileSystemCheck() {
 func healthCheck() {
 	if time.Since(healthLastCheck) > time.Duration((*controllerConfig).HealthCheckInterval) {
 		healthLastCheck = time.Now()
-		// TODO: Health check
+		for _, v := range DispatchedJobs.Decontain() {
+			if time.Since(v.LastUpdated) > time.Duration((*controllerConfig).HealthCheckTimeout) {
+				d, _ := DispatchedJobs.PopByUUID(v.Job.UUID)
+				log.Printf("Depositing %v back into Job queue because of unresponsive Runner\n", d.Job.Path)
+				d.Job.UUID = uuid.New().String()
+				JobQueue.Push(d.Job)
+				//? Do we follow the python controller and add another "thread-safe" container for timedout jobs or do we return 409 for all requests where the uuid can't be found?
+			}
+		}
 	}
 }
 

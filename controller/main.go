@@ -33,6 +33,7 @@ func main() {
 		JSONDir:                 "I:/go-controller/config",
 		FileSystemCheckInterval: int(10 * time.Second),
 		HealthCheckInterval:     int(10 * time.Second),
+		HealthCheckTimeout:      int(30 * time.Minute),
 	}
 
 	// Start Controller goroutine

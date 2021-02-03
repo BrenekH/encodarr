@@ -10,6 +10,7 @@ type ControllerConfiguration struct {
 	JSONDir                 string
 	FileSystemCheckInterval int
 	HealthCheckInterval     int
+	HealthCheckTimeout      int
 }
 
 // ProcessUpdates reads the update channel and applies any configuration updates that have been sent through
