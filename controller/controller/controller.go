@@ -149,7 +149,12 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 							var err error // err must be defined using var instead of := because j won't be set properly otherwise
 							j, err = JobQueue.Pop()
 							if err != nil {
-								log.Fatal(err)
+								if err == ErrEmptyQueue {
+									time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
+									continue
+								} else {
+									log.Fatalf("Got error while popping from queue: %v", err)
+								}
 							}
 
 							// Check if the job is still valid
@@ -161,7 +166,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 								continue
 							} else {
 								// File may or may not exist. Error has more details.
-								log.Fatal(err)
+								fmt.Printf("Unexpected error while stating for file: %v", err)
 							}
 							time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 						}
@@ -219,7 +224,8 @@ func fileSystemCheck() {
 
 			mediainfo, err := mediainfo.GetMediaInfo(videoFilepath)
 			if err != nil {
-				log.Fatal(err)
+				log.Printf("Error getting mediainfo for %v: %v", videoFilepath, err)
+				continue
 			}
 
 			// Skips the file if it is not an actual media file
