@@ -8,10 +8,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/BrenekH/logange"
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/controller"
 	"github.com/BrenekH/project-redcedar-controller/server"
 )
+
+var logger logange.Logger
+
+func init() {
+	logger = logange.NewLogger("main")
+}
 
 func main() {
 	wg := &sync.WaitGroup{}
