@@ -213,6 +213,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 
 func fileSystemCheck() {
 	if time.Since(fileSystemLastCheck) > time.Duration((*controllerConfig).FileSystemCheckInterval) {
+		logger.Debug("Starting file system check")
 		fileSystemLastCheck = time.Now()
 		discoveredVideos := GetVideoFilesFromDir((*controllerConfig).SearchDir)
 		for _, videoFilepath := range discoveredVideos {
@@ -233,6 +234,7 @@ func fileSystemCheck() {
 				logger.Error(fmt.Sprintf("Error getting mediainfo for %v: %v", videoFilepath, err))
 				continue
 			}
+			logger.Trace(fmt.Sprintf("Mediainfo object for %v: %v", videoFilepath, mediainfo))
 
 			// Skips the file if it is not an actual media file
 			if !mediainfo.IsMedia() {
@@ -268,15 +270,19 @@ func fileSystemCheck() {
 				RawMediaInfo: mediainfo,
 			}
 
+			logger.Trace(fmt.Sprintf("%v isHEVC=%v stereoAudioTrackExists=%v", videoFilepath, isHEVC, stereoAudioTrackExists))
+
 			JobQueue.Push(job)
-			logger.Info(fmt.Sprintf("Controller: Added %v to the queue\n", job.Path))
+			logger.Info(fmt.Sprintf("Added %v to the queue\n", job.Path))
 		}
+		logger.Debug("File system check complete")
 	}
 }
 
 func healthCheck() {
 	if time.Since(healthLastCheck) > time.Duration((*controllerConfig).HealthCheckInterval) {
 		healthLastCheck = time.Now()
+		logger.Debug("Starting health check")
 		for _, v := range DispatchedJobs.Decontain() {
 			if time.Since(v.LastUpdated) > time.Duration((*controllerConfig).HealthCheckTimeout) {
 				d, _ := DispatchedJobs.PopByUUID(v.Job.UUID)
@@ -286,6 +292,7 @@ func healthCheck() {
 				//? Do we follow the python controller and add another "thread-safe" container for timedout jobs or do we return 409 for all requests where the uuid can't be found?
 			}
 		}
+		logger.Debug("Health check complete")
 	}
 }
 
