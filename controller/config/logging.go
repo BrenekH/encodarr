@@ -28,7 +28,7 @@ func init() {
 		return
 	}
 	fH.SetFormatter(f)
-	fH.SetLevel(logange.LevelInfo)
+	fH.SetLevel(logange.LevelTrace)
 
 	RootFileHandler = fH
 
