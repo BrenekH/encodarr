@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -73,13 +72,13 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		b, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Printf("Runner API v1: Error reading job status body: %v", err)
+			logger.Error(fmt.Sprintf("Runner API v1: Error reading job status body: %v", err))
 		}
 
 		ijs := incomingJobStatus{}
 		err = json.Unmarshal(b, &ijs)
 		if err != nil {
-			log.Printf("Runner API v1: Error unmarshalling into struct: %v", err)
+			logger.Error(fmt.Sprintf("Runner API v1: Error unmarshalling into struct: %v", err))
 		}
 
 		err = controller.DispatchedJobs.UpdateStatus(ijs.UUID, ijs.Status)

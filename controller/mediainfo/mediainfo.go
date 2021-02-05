@@ -6,7 +6,15 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+
+	"github.com/BrenekH/logange"
 )
+
+var logger logange.Logger
+
+func init() {
+	logger = logange.NewLogger("mediainfo")
+}
 
 // mediainfoBinary specifies a custom MediaInfo binary.
 var mediainfoBinary *string = platformMediaInfoBinary()
@@ -18,6 +26,7 @@ func platformMediaInfoBinary() *string {
 	} else {
 		s = "mediainfo"
 	}
+	logger.Debug(fmt.Sprintf("Identified '%v' as the MediaInfo platform binary", s))
 	return &s
 }
 

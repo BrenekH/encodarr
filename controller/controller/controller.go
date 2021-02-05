@@ -11,10 +11,17 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BrenekH/logange"
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/mediainfo"
 	"github.com/google/uuid"
 )
+
+var logger logange.Logger
+
+func init() {
+	logger = logange.NewLogger("controller")
+}
 
 // Job represents a job in the RedCedar ecosystem.
 type Job struct {

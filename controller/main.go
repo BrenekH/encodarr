@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -21,6 +21,8 @@ func init() {
 }
 
 func main() {
+	defer config.RootFileHandler.Close()
+
 	wg := &sync.WaitGroup{}
 	signals := make(chan os.Signal, 1)
 	stopChan := make(chan interface{})
@@ -30,7 +32,7 @@ func main() {
 
 	go func() {
 		sig := <-signals
-		log.Printf("Received stop signal: %v", sig)
+		logger.Info(fmt.Sprintf("Received stop signal: %v", sig))
 		stopChan <- true
 	}()
 

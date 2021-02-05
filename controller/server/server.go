@@ -3,14 +3,21 @@ package server
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/BrenekH/logange"
 )
 
+var logger logange.Logger
+
+func init() {
+	logger = logange.NewLogger("httpserver")
+}
+
 func serverError(w http.ResponseWriter, r *http.Request, reason string) {
-	fmt.Println(reason)
+	logger.Warn(fmt.Sprintf("Responding to an HTTP request with code 500 because: %v", reason))
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(500)
 	w.Write([]byte(`<html><head><title>Server Error - Project RedCedar</title></head><body>Code 500: Server Error</body></html>`))
@@ -31,18 +38,18 @@ func RunHTTPServer(stopChan *chan interface{}, wg *sync.WaitGroup) {
 	registerWebAPIv1Handlers()
 	registerRunnerAPIv1Handlers()
 
-	log.Printf("HTTP Server: Server starting")
+	logger.Debug("Server starting")
 
 	httpServerExitDone := &sync.WaitGroup{}
 
 	httpServerExitDone.Add(1)
 	srv := startHTTPServer(httpServerExitDone)
 
-	log.Printf("HTTP Server: Server started")
+	logger.Info("Server started")
 
 	<-*stopChan
 
-	log.Printf("HTTP Server: Stopping HTTP server")
+	logger.Debug("Stopping HTTP server")
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), time.Duration(10*time.Second))
 	defer ctxCancel()
@@ -52,7 +59,7 @@ func RunHTTPServer(stopChan *chan interface{}, wg *sync.WaitGroup) {
 
 	httpServerExitDone.Wait()
 
-	log.Printf("HTTP Server: Server fully stopped")
+	logger.Info("Server fully stopped")
 }
 
 func startHTTPServer(wg *sync.WaitGroup) *http.Server {
@@ -64,7 +71,7 @@ func startHTTPServer(wg *sync.WaitGroup) *http.Server {
 		// Always returns error. ErrServerClosed on graceful close
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			// Unexpected error. port in use?
-			log.Fatalf("ListenAndServe(): %v", err)
+			logger.Critical(fmt.Sprintf("ListenAndServe(): %v", err))
 		}
 	}()
 

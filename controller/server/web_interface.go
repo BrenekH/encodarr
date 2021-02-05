@@ -39,7 +39,7 @@ func resources(w http.ResponseWriter, r *http.Request) {
 		} else if svgRequest {
 			w.Header().Set("Content-Type", "image/svg+xml")
 		} else {
-			fmt.Printf("Could not identify MIME type for resources request: %v\n", r.URL.String())
+			logger.Warn(fmt.Sprintf("Could not identify MIME type for resources request: %v\n", r.URL.String()))
 			w.Header().Set("Content-Type", "text/plain")
 		}
 
