@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -106,7 +105,7 @@ var CompletedRequestChannel chan JobCompleteRequest = make(chan JobCompleteReque
 func RunController(inConfig *config.ControllerConfiguration, stopChan *chan interface{}, wg *sync.WaitGroup) {
 	wg.Add(1) // This is done in the function rather than outside so that we can easily comment out this function in main.go
 	defer wg.Done()
-	defer log.Println("Controller: Successfully stopped")
+	defer logger.Info("Controller successfully stopped")
 
 	controllerConfig = inConfig
 
@@ -141,7 +140,7 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{}, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
-	defer log.Println("Controller: jobRequestHandler stopped")
+	defer logger.Info("jobRequestHandler stopped")
 
 	for {
 		select {
@@ -160,7 +159,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 									time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 									continue
 								} else {
-									log.Fatalf("Got error while popping from queue: %v", err)
+									logger.Critical(fmt.Sprintf("Got error while popping from queue: %v", err))
 								}
 							}
 
@@ -173,7 +172,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 								continue
 							} else {
 								// File may or may not exist. Error has more details.
-								fmt.Printf("Unexpected error while stating for file: %v", err)
+								logger.Error(fmt.Sprintf("Unexpected error while stating for file: %v", err))
 							}
 							time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 						}
@@ -231,7 +230,7 @@ func fileSystemCheck() {
 
 			mediainfo, err := mediainfo.GetMediaInfo(videoFilepath)
 			if err != nil {
-				log.Printf("Error getting mediainfo for %v: %v", videoFilepath, err)
+				logger.Error(fmt.Sprintf("Error getting mediainfo for %v: %v", videoFilepath, err))
 				continue
 			}
 
@@ -270,7 +269,7 @@ func fileSystemCheck() {
 			}
 
 			JobQueue.Push(job)
-			log.Printf("Controller: Added %v to the queue\n", job.Path)
+			logger.Info(fmt.Sprintf("Controller: Added %v to the queue\n", job.Path))
 		}
 	}
 }
@@ -281,7 +280,7 @@ func healthCheck() {
 		for _, v := range DispatchedJobs.Decontain() {
 			if time.Since(v.LastUpdated) > time.Duration((*controllerConfig).HealthCheckTimeout) {
 				d, _ := DispatchedJobs.PopByUUID(v.Job.UUID)
-				log.Printf("Depositing %v back into Job queue because of unresponsive Runner\n", d.Job.Path)
+				logger.Warn(fmt.Sprintf("Depositing %v back into Job queue because of unresponsive Runner\n", d.Job.Path))
 				d.Job.UUID = uuid.New().String()
 				JobQueue.Push(d.Job)
 				//? Do we follow the python controller and add another "thread-safe" container for timedout jobs or do we return 409 for all requests where the uuid can't be found?
@@ -294,21 +293,21 @@ func readDispatchedFile() DispatchedContainer {
 	// Read/unmarshal json from JSONDir/dispatched_jobs.json
 	f, err := os.Open(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.JSONDir))
 	if err != nil {
-		log.Printf("Failed to open dispatched_jobs.json because of error: %v\n", err)
+		logger.Error(fmt.Sprintf("Failed to open dispatched_jobs.json because of error: %v\n", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 	}
 	defer f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		log.Printf("Failed to read dispatched_jobs.json because of error: %v\n", err)
+		logger.Error(fmt.Sprintf("Failed to read dispatched_jobs.json because of error: %v\n", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 	}
 
 	var readJSON []DispatchedJob
 	err = json.Unmarshal(b, &readJSON)
 	if err != nil {
-		log.Printf("Failed to unmarshal dispatched_jobs.json because of error: %v\n", err)
+		logger.Error(fmt.Sprintf("Failed to unmarshal dispatched_jobs.json because of error: %v\n", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 	}
 
