@@ -40,9 +40,9 @@ func main() {
 		UpdateChan:              &updateChan,
 		SearchDir:               "/tosearch",
 		JSONDir:                 "/config",
-		FileSystemCheckInterval: int(10 * time.Second),
-		HealthCheckInterval:     int(10 * time.Second),
-		HealthCheckTimeout:      int(30 * time.Minute),
+		FileSystemCheckInterval: int(15 * time.Minute),
+		HealthCheckInterval:     int(1 * time.Minute),
+		HealthCheckTimeout:      int(1 * time.Hour),
 	}
 
 	// Start Controller goroutine
