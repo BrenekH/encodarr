@@ -3,7 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 	"strings"
@@ -287,7 +287,7 @@ func healthCheck() {
 			if time.Since(v.LastUpdated) > time.Duration((*controllerConfig).HealthCheckTimeout) {
 				d, _ := DispatchedJobs.PopByUUID(v.Job.UUID)
 				logger.Warn(fmt.Sprintf("Depositing %v back into Job queue because of unresponsive Runner\n", d.Job.Path))
-				d.Job.UUID = uuid.New().String()
+				d.Job.UUID = uuid.NewString()
 				JobQueue.Push(d.Job)
 				//? Do we follow the python controller and add another "thread-safe" container for timedout jobs or do we return 409 for all requests where the uuid can't be found?
 			}
@@ -305,7 +305,7 @@ func readDispatchedFile() DispatchedContainer {
 	}
 	defer f.Close()
 
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Failed to read dispatched_jobs.json because of error: %v\n", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}

@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.15.7-alpine AS builder
+FROM golang:1.16-alpine AS builder
 
 WORKDIR /go/src/project-redcedar/controller
 

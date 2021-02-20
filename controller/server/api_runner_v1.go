@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -70,7 +69,7 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 func postJobStatus(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		b, err := ioutil.ReadAll(r.Body)
+		b, err := io.ReadAll(r.Body)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Runner API v1: Error reading job status body: %v", err))
 		}

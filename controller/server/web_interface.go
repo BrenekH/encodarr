@@ -2,8 +2,8 @@ package server
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -11,7 +11,7 @@ import (
 func favicon(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "image/x-icon")
 
-	icoData, err := ioutil.ReadFile("webfiles/favicon/favicon.ico")
+	icoData, err := os.ReadFile("webfiles/favicon/favicon.ico")
 	if err != nil {
 		serverError(w, r, fmt.Sprintf("Could not read %v because of error: %v", r.URL, err))
 		return
@@ -43,7 +43,7 @@ func resources(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 		}
 
-		fileData, err := ioutil.ReadFile("webfiles/" + strings.Replace(r.URL.String(), "/", "", 1))
+		fileData, err := os.ReadFile("webfiles/" + strings.Replace(r.URL.String(), "/", "", 1))
 		if err != nil {
 			serverError(w, r, fmt.Sprintf("Could not read %v because of error: %v", r.URL, err))
 			return
@@ -56,7 +56,7 @@ func resources(w http.ResponseWriter, r *http.Request) {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	indexFileData, err := ioutil.ReadFile("webfiles/html/index.html")
+	indexFileData, err := os.ReadFile("webfiles/html/index.html")
 	if err != nil {
 		serverError(w, r, fmt.Sprintf("Could not read 'webfiles/html/index.html' because of error: %v", err))
 		return

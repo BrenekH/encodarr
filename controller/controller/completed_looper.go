@@ -3,7 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -107,7 +107,7 @@ func readHistoryFile() HistoryContainer {
 	}
 	defer f.Close()
 
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		log.Printf("Failed to read history.json because of error: %v\n", err)
 		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
