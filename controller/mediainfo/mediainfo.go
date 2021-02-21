@@ -50,10 +50,8 @@ func (b *yesNoBoolean) UnmarshalXML(d *xml.Decoder, start xml.StartElement) erro
 	switch s {
 	case "Yes":
 		*b = true
-	case "No":
-		*b = false
 	default:
-		return fmt.Errorf("Yes or No Boolean unmarshal error: invalid input %s", s)
+		*b = false
 	}
 
 	return nil
