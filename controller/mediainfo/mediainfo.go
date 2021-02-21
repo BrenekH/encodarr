@@ -211,6 +211,8 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 		return info, err
 	}
 
+	alreadyParsedVideoStream := false
+
 	for _, v := range minfo.File.Tracks {
 		if v.Type == "General" {
 			mGeneral.Duration = getOrDefault(v.Duration, 0)
@@ -227,7 +229,7 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 			mGeneral.StreamSize = getOrDefault(v.StreamSize, 0)
 			mGeneral.WritingApplication = v.WritingApplication
 		} else if v.Type == "Video" {
-			if !v.Default {
+			if alreadyParsedVideoStream && !bool(v.Default) { // Make sure if Default isn't set, we parse at least one track
 				// This may not be the most complete way to find parse out video tracks, but we only care about the default video stream for now
 				continue
 			}
@@ -246,6 +248,8 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 			mVideo.FormatSettingsCABAC = getOrDefault(v.FormatSettingsCABAC, 0)
 			mVideo.FormatSettingsReFrames = getOrDefault(v.FormatSettingsReFrames, 0)
 			mVideo.ColorPrimaries = getOrDefault(v.ColorPrimaries, 0)
+
+			alreadyParsedVideoStream = true
 		} else if v.Type == "Audio" {
 			audioTrack, inMap := mAudio[v.UniqueID]
 			if !inMap {
