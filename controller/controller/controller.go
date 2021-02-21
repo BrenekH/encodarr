@@ -273,7 +273,7 @@ func fileSystemCheck() {
 			logger.Trace(fmt.Sprintf("%v isHEVC=%v stereoAudioTrackExists=%v", videoFilepath, isHEVC, stereoAudioTrackExists))
 
 			JobQueue.Push(job)
-			logger.Info(fmt.Sprintf("Added %v to the queue\n", job.Path))
+			logger.Info(fmt.Sprintf("Added %v to the queue", job.Path))
 		}
 		logger.Debug("File system check complete")
 	}
@@ -286,7 +286,7 @@ func healthCheck() {
 		for _, v := range DispatchedJobs.Decontain() {
 			if time.Since(v.LastUpdated) > time.Duration((*controllerConfig).HealthCheckTimeout) {
 				d, _ := DispatchedJobs.PopByUUID(v.Job.UUID)
-				logger.Warn(fmt.Sprintf("Depositing %v back into Job queue because of unresponsive Runner\n", d.Job.Path))
+				logger.Warn(fmt.Sprintf("Depositing %v back into Job queue because of unresponsive Runner", d.Job.Path))
 				d.Job.UUID = uuid.NewString()
 				JobQueue.Push(d.Job)
 				//? Do we follow the python controller and add another "thread-safe" container for timedout jobs or do we return 409 for all requests where the uuid can't be found?
@@ -300,21 +300,21 @@ func readDispatchedFile() DispatchedContainer {
 	// Read/unmarshal json from JSONDir/dispatched_jobs.json
 	f, err := os.Open(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.JSONDir))
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to open dispatched_jobs.json because of error: %v\n", err))
+		logger.Error(fmt.Sprintf("Failed to open dispatched_jobs.json because of error: %v", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 	}
 	defer f.Close()
 
 	b, err := io.ReadAll(f)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to read dispatched_jobs.json because of error: %v\n", err))
+		logger.Error(fmt.Sprintf("Failed to read dispatched_jobs.json because of error: %v", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 	}
 
 	var readJSON []DispatchedJob
 	err = json.Unmarshal(b, &readJSON)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to unmarshal dispatched_jobs.json because of error: %v\n", err))
+		logger.Error(fmt.Sprintf("Failed to unmarshal dispatched_jobs.json because of error: %v", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 	}
 
