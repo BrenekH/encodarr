@@ -41,46 +41,65 @@ func SetMediaInfoBinary(s string) error {
 	return nil
 }
 
+type yesNoBoolean bool
+
+func (b *yesNoBoolean) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	s := ""
+	d.DecodeElement(&s, &start)
+
+	switch s {
+	case "Yes":
+		*b = true
+	case "No":
+		*b = false
+	default:
+		return fmt.Errorf("Yes or No Boolean unmarshal error: invalid input %s", s)
+	}
+
+	return nil
+}
+
 type mediainfo struct {
 	XMLName xml.Name `xml:"Mediainfo"`
 	File    file     `xml:"File"`
 }
 
 type track struct {
-	XMLName                xml.Name `xml:"track"`
-	Type                   string   `xml:"type,attr"`
-	FileName               string   `xml:"File_name"`
-	UniqueID               string   `xml:"Unique_ID"`
-	FormatInfo             string   `xml:"Format_Info"`
-	ColorSpace             string   `xml:"Color_space"`
-	CompleteName           string   `xml:"Complete_name"`
-	FormatProfile          string   `xml:"Format_profile"`
-	FileExtension          string   `xml:"File_extension"`
-	ChromaSubsampling      string   `xml:"Chroma_subsampling"`
-	WritingApplication     string   `xml:"Writing_application"`
-	ProportionOfThisStream string   `xml:"Proportion_of_this_stream"`
-	Width                  []string `xml:"Width"`
-	Height                 []string `xml:"Height"`
-	Format                 []string `xml:"Format"`
-	Duration               []string `xml:"Duration"`
-	BitRate                []string `xml:"Bit_rate"`
-	BitDepth               []string `xml:"Bit_depth"`
-	ScanType               []string `xml:"Scan_type"`
-	FileSize               []string `xml:"File_size"`
-	FrameRate              []string `xml:"Frame_rate"`
-	Channels               []string `xml:"Channel_s_"`
-	StreamSize             []string `xml:"Stream_size"`
-	Interlacement          []string `xml:"Interlacement"`
-	BitRateMode            []string `xml:"Bit_rate_mode"`
-	SamplingRate           []string `xml:"Sampling_rate"`
-	WritingLibrary         []string `xml:"Writing_library"`
-	FrameRateMode          []string `xml:"Frame_rate_mode"`
-	OverallBitRate         []string `xml:"Overall_bit_rate"`
-	DisplayAspectRatio     []string `xml:"Display_aspect_ratio"`
-	OverallBitRateMode     []string `xml:"Overall_bit_rate_mode"`
-	FormatSettingsCABAC    []string `xml:"Format_settings__CABAC"`
-	FormatSettingsReFrames []string `xml:"Format_settings__ReFrames"`
-	ColorPrimaries         []string `xml:"Color_primaries"`
+	XMLName                xml.Name     `xml:"track"`
+	Type                   string       `xml:"type,attr"`
+	Default                yesNoBoolean `xml:"Default"`
+	FileName               string       `xml:"File_name"`
+	UniqueID               string       `xml:"Unique_ID"`
+	FormatInfo             string       `xml:"Format_Info"`
+	ColorSpace             string       `xml:"Color_space"`
+	CompleteName           string       `xml:"Complete_name"`
+	FormatProfile          string       `xml:"Format_profile"`
+	FileExtension          string       `xml:"File_extension"`
+	ChromaSubsampling      string       `xml:"Chroma_subsampling"`
+	WritingApplication     string       `xml:"Writing_application"`
+	ProportionOfThisStream string       `xml:"Proportion_of_this_stream"`
+	Width                  []string     `xml:"Width"`
+	Height                 []string     `xml:"Height"`
+	Format                 []string     `xml:"Format"`
+	Duration               []string     `xml:"Duration"`
+	BitRate                []string     `xml:"Bit_rate"`
+	BitDepth               []string     `xml:"Bit_depth"`
+	ScanType               []string     `xml:"Scan_type"`
+	FileSize               []string     `xml:"File_size"`
+	FrameRate              []string     `xml:"Frame_rate"`
+	Channels               []string     `xml:"Channel_s_"`
+	StreamSize             []string     `xml:"Stream_size"`
+	Interlacement          []string     `xml:"Interlacement"`
+	BitRateMode            []string     `xml:"Bit_rate_mode"`
+	SamplingRate           []string     `xml:"Sampling_rate"`
+	WritingLibrary         []string     `xml:"Writing_library"`
+	FrameRateMode          []string     `xml:"Frame_rate_mode"`
+	OverallBitRate         []string     `xml:"Overall_bit_rate"`
+	DisplayAspectRatio     []string     `xml:"Display_aspect_ratio"`
+	OverallBitRateMode     []string     `xml:"Overall_bit_rate_mode"`
+	FormatSettingsCABAC    []string     `xml:"Format_settings__CABAC"`
+	FormatSettingsReFrames []string     `xml:"Format_settings__ReFrames"`
+	ColorPrimaries         []string     `xml:"Color_primaries"`
 }
 
 type file struct {
@@ -210,6 +229,10 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 			mGeneral.StreamSize = getOrDefault(v.StreamSize, 0)
 			mGeneral.WritingApplication = v.WritingApplication
 		} else if v.Type == "Video" {
+			if !v.Default {
+				// This may not be the most complete way to find parse out video tracks, but we only care about the default video stream for now
+				continue
+			}
 			mVideo.Width = getOrDefault(v.Width, 0)
 			mVideo.Height = getOrDefault(v.Height, 0)
 			mVideo.Format = getOrDefault(v.Format, 0)
