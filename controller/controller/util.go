@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 )
 
 // ErrInvalidUUID represents when a passed UUID is invalid
@@ -130,6 +131,7 @@ func (c *DispatchedContainer) UpdateStatus(u string, js JobStatus) error {
 
 			// Add back into container slice with modifications
 			interim.Status = js
+			interim.LastUpdated = time.Now()
 			c.items = append(c.items, interim)
 			return nil
 		}
