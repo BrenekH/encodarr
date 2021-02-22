@@ -76,6 +76,7 @@ type track struct {
 	ChromaSubsampling      string       `xml:"Chroma_subsampling"`
 	WritingApplication     string       `xml:"Writing_application"`
 	ProportionOfThisStream string       `xml:"Proportion_of_this_stream"`
+	ID                     []string     `xml:"ID"`
 	Width                  []string     `xml:"Width"`
 	Height                 []string     `xml:"Height"`
 	Format                 []string     `xml:"Format"`
@@ -128,6 +129,7 @@ type general struct {
 }
 
 type video struct {
+	ID                     string `json:"id"`
 	Width                  string `json:"width"`
 	Height                 string `json:"height"`
 	Format                 string `json:"format"`
@@ -146,6 +148,7 @@ type video struct {
 }
 
 type audio struct {
+	ID            string `json:"id"`
 	Format        string `json:"format"`
 	Duration      string `json:"duration"`
 	BitRate       string `json:"bitrate"`
@@ -233,6 +236,7 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 				// This may not be the most complete way to find parse out video tracks, but we only care about the default video stream for now
 				continue
 			}
+			mVideo.ID = getOrDefault(v.ID, 0)
 			mVideo.Width = getOrDefault(v.Width, 0)
 			mVideo.Height = getOrDefault(v.Height, 0)
 			mVideo.Format = getOrDefault(v.Format, 0)
@@ -251,11 +255,14 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 
 			alreadyParsedVideoStream = true
 		} else if v.Type == "Audio" {
-			audioTrack, inMap := mAudio[v.UniqueID]
+			mapKey := v.UniqueID + getOrDefault(v.Channels, 0) + getOrDefault(v.Format, 0)
+
+			audioTrack, inMap := mAudio[mapKey]
 			if !inMap {
-				mAudio[v.UniqueID] = &audio{}
-				audioTrack = mAudio[v.UniqueID]
+				mAudio[mapKey] = &audio{}
+				audioTrack = mAudio[mapKey]
 			}
+			audioTrack.ID = getOrDefault(v.ID, 0)
 			audioTrack.Format = getOrDefault(v.Format, 0)
 			audioTrack.Channels = getOrDefault(v.Channels, 0)
 			audioTrack.Duration = getOrDefault(v.Duration, 0)
