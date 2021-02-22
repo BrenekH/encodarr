@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o redcedar .
 # Run stage
 FROM ubuntu:20.04
 
-ENV TZ=America/Boise
+ENV TZ=Etc/GMT
 
 RUN apt-get update -qq && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata mediainfo
 
