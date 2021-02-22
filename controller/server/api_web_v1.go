@@ -98,12 +98,13 @@ func getHistory(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		// Get slice of HistoryEntries (Decontain)
 		hE := controller.HistoryEntries.Decontain()
-		h := make([]transformedHistoryEntry, len(hE))
+		hELen := len(hE)
+		h := make([]transformedHistoryEntry, hELen)
 
 		// Change datetime into human-readable format
 		for i, v := range hE {
 			dt := v.DateTimeCompleted
-			h[i] = transformedHistoryEntry{
+			h[hELen-i] = transformedHistoryEntry{
 				File: v.File,
 				DateTimeCompleted: fmt.Sprintf("%02d-%02d-%d %02d:%02d:%02d",
 					dt.Month(), dt.Day(), dt.Year(),
