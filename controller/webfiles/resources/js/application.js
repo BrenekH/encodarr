@@ -98,6 +98,7 @@ function updateQueue() {
 		for (let i = 1; i <= queue.length; i++) {
 			finalHTMLString += renderQueueEntry(i, queue[i-1].path, queue[i-1].parameters.hevc, queue[i-1].parameters.stereo);
 		}
+		finalHTMLString += `\n<div class="smol-spacer"></div>`
 		$("#queue-content").html(finalHTMLString);
 		enableTooltips();
 	}).catch(function (error) {
@@ -130,6 +131,7 @@ function updateHistory() {
 			let obj = history[history.length-i];
 			finalHTMLString += renderHistoryEntry(obj.datetime_completed, obj.file);
 		}
+		finalHTMLString += `\n<div class="smol-spacer"></div>`
 		$("#history-content").html(finalHTMLString);
 	}).catch(function (error) {
 		console.error(`Request to /api/web/v1/history failed with error: ${error}`);
