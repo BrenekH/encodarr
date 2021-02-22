@@ -207,7 +207,6 @@ func GetMediaInfo(fname string) (MediaInfo, error) {
 	out, err := exec.Command(*mediainfoBinary, "--Output=OLDXML", "-f", fname).Output()
 
 	if err != nil {
-		logger.Warn(fmt.Sprintf("MediaInfo binary errored on %v and sent: %v", fname, string(out)))
 		return info, err
 	}
 
