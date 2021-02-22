@@ -126,8 +126,8 @@ function updateHistory() {
 			return
 		}
 		let finalHTMLString = "";
-		for (let i = 0; i < history.length; i++) {
-			let obj = history[i];
+		for (let i = 1; i <= history.length; i++) {
+			let obj = history[history.length-i];
 			finalHTMLString += renderHistoryEntry(obj.datetime_completed, obj.file);
 		}
 		$("#history-content").html(finalHTMLString);
