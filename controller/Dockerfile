@@ -19,7 +19,7 @@ RUN apt-get update -qq && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -
 
 WORKDIR /usr/src/app
 
-COPY --from=builder /go/src/project-redcedar/controller .
+COPY --from=builder /go/src/project-redcedar/controller/redcedar ./redcedar
 
 ADD webfiles/ ./webfiles/
 
