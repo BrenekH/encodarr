@@ -64,7 +64,6 @@ function updateRunning() {
 		for (let i = 0; i < jobs.length; i++) {
 			looped = true;
 			let cJob = jobs[i];
-			console.log(cJob);
 			HTMLString += renderRunningJobCard(
 				cJob.job.uuid,
 				cJob.job.path,
