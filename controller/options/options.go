@@ -36,7 +36,7 @@ func init() {
 
 // parseInputs parses the command line and environment variables into Golang variables
 func parseInputs() {
-	if !inputsParsed {
+	if inputsParsed {
 		return
 	}
 
