@@ -46,7 +46,6 @@ func main() {
 		HealthCheckTimeout:      int(1 * time.Hour),
 	}
 
-	logger.Info(fmt.Sprintf("Starting Controller with config: %v", controllerConfig))
 	// Start Controller goroutine
 	go controller.RunController(&controllerConfig, &stopChan, wg)
 
