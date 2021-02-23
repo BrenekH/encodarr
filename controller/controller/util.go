@@ -172,7 +172,7 @@ func (c *DispatchedContainer) Save() error {
 		return err
 	}
 
-	f, err := os.Create(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.JSONDir))
+	f, err := os.Create(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.ConfigDir))
 	if err != nil {
 		return err
 	}
@@ -214,7 +214,7 @@ func (c *HistoryContainer) Save() error {
 		return err
 	}
 
-	f, err := os.Create(fmt.Sprintf("%v/history.json", controllerConfig.JSONDir))
+	f, err := os.Create(fmt.Sprintf("%v/history.json", controllerConfig.ConfigDir))
 	if err != nil {
 		return err
 	}

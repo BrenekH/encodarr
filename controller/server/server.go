@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/BrenekH/logange"
+	"github.com/BrenekH/project-redcedar-controller/options"
 )
 
 var logger logange.Logger
@@ -63,7 +64,7 @@ func RunHTTPServer(stopChan *chan interface{}, wg *sync.WaitGroup) {
 }
 
 func startHTTPServer(wg *sync.WaitGroup) *http.Server {
-	srv := &http.Server{Addr: ":8080"}
+	srv := &http.Server{Addr: fmt.Sprintf(":%v", options.Port())}
 
 	go func() {
 		defer wg.Done()

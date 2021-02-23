@@ -100,7 +100,7 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 
 func readHistoryFile() HistoryContainer {
 	// Read/unmarshal json from JSONDir/history.json
-	f, err := os.Open(fmt.Sprintf("%v/history.json", controllerConfig.JSONDir))
+	f, err := os.Open(fmt.Sprintf("%v/history.json", controllerConfig.ConfigDir))
 	if err != nil {
 		log.Printf("Failed to open history.json because of error: %v\n", err)
 		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}

@@ -298,7 +298,7 @@ func healthCheck() {
 
 func readDispatchedFile() DispatchedContainer {
 	// Read/unmarshal json from JSONDir/dispatched_jobs.json
-	f, err := os.Open(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.JSONDir))
+	f, err := os.Open(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.ConfigDir))
 	if err != nil {
 		logger.Error(fmt.Sprintf("Failed to open dispatched_jobs.json because of error: %v", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}

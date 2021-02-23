@@ -11,6 +11,7 @@ import (
 	"github.com/BrenekH/logange"
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/controller"
+	"github.com/BrenekH/project-redcedar-controller/options"
 	"github.com/BrenekH/project-redcedar-controller/server"
 )
 
@@ -38,8 +39,8 @@ func main() {
 
 	controllerConfig := config.ControllerConfiguration{
 		UpdateChan:              &updateChan,
-		SearchDir:               "/tosearch",
-		JSONDir:                 "/config",
+		SearchDir:               options.SearchDir(),
+		ConfigDir:               options.ConfigDir(),
 		FileSystemCheckInterval: int(15 * time.Minute),
 		HealthCheckInterval:     int(1 * time.Minute),
 		HealthCheckTimeout:      int(1 * time.Hour),
