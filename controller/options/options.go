@@ -3,7 +3,10 @@ package options
 
 import (
 	"flag"
+	"fmt"
 	"os"
+
+	"github.com/BrenekH/logange"
 )
 
 type optionConst struct {
@@ -22,9 +25,13 @@ var searchDir string = ""
 
 var inputsParsed bool = false
 
+var logger logange.Logger
+
 func init() {
 	cwd, _ := os.Getwd()
 	searchDir = cwd
+
+	logger = logange.NewLogger("options")
 }
 
 // parseInputs parses the command line and environment variables into Golang variables
@@ -54,6 +61,7 @@ func parseInputs() {
 // but only if the returned value is not an empty string
 func stringVarFromEnv(s *string, key string) {
 	v := os.Getenv(key)
+	logger.Debug(fmt.Sprintf("Got `%v` from `%v`", v, key))
 	if v != "" {
 		*s = v
 	}
