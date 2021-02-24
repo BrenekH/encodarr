@@ -1,6 +1,6 @@
 import requests, signal, time
 from _thread import start_new_thread
-from datetime import timedelta
+from datetime import datetime, timedelta
 from json import dumps, loads
 from logging import getLogger, WARNING, StreamHandler, Formatter
 from pathlib import Path
@@ -66,7 +66,7 @@ class JobRunner:
 		for i in range(100):
 			if self.__running:
 				try:
-					r = requests.get(f"http://{self.controller_ip}/api/v1/job/request", headers={"redcedar-runner-name": self.runner_name}, stream=True)
+					r = requests.get(f"http://{self.controller_ip}/api/runner/v1/job/request", headers={"redcedar-runner-name": self.runner_name}, stream=True)
 				except requests.exceptions.ConnectionError as e:
 					logger.error(f"Received ConnectionError. Retrying in {i} seconds")
 					logger.debug(f"ConnectionError info: ", exc_info=True)
@@ -83,7 +83,7 @@ class JobRunner:
 					continue
 
 				job_info = loads(r.headers.get("x-rc-job-info"))
-				input_file = Path.cwd() / f"input{Path(job_info['file']).suffix}" # Creates an input file with the same suffix as the input
+				input_file = Path.cwd() / f"input{Path(job_info['path']).suffix}" # Creates an input file with the same suffix as the input
 
 				if input_file.exists():
 					input_file.unlink()
@@ -161,11 +161,10 @@ class JobRunner:
 
 	def _run_job(self, job_info: Dict):
 		input_file = Path(job_info["in_file"])
-		is_hevc = job_info["is_hevc"]
-		has_stereo = job_info["has_stereo"]
-		is_interlaced = job_info["is_interlaced"]
+		is_hevc = not job_info["parameters"]["hevc"]
+		has_stereo = not job_info["parameters"]["stereo"]
 
-		logger.info(f"Running job {job_info['file']} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}, is_interlaced: {is_interlaced}]")
+		logger.info(f"Running job {job_info['path']} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}]")
 
 		current_job_warnings, current_job_errors = ([], [])
 		critical_failure = False
@@ -257,8 +256,8 @@ class JobRunner:
 			return
 
 		history_entry = {
-			"file": job_info["file"],
-			"datetime_completed": time.time(),
+			"file": job_info["path"],
+			"datetime_completed": datetime.now().astimezone().isoformat(),
 			"warnings": current_job_warnings,
 			"errors": current_job_errors
 		}
@@ -290,7 +289,7 @@ class JobRunner:
 			self.send_current_job_status()
 			return
 
-		total_length = str([track for track in job_info["media_info"]["tracks"] if track["kind_of_stream"] == "General"][0]["duration"])
+		total_length = str(job_info["media_info"]["general"]["duration"])
 		total_length = float(f"{total_length[:-3]}.{total_length[-3:]}")
 
 		reversed_times = [float(x) for x in current_file_time_str.split(":")[::-1]] # Now in format [seconds, minutes, hours, etc]
@@ -320,7 +319,7 @@ class JobRunner:
 			if self.__current_uuid == None:
 				logger.warning(f"Current job status failed to send because self.__current_uuid is None")
 				return
-			r = requests.post(f"http://{self.controller_ip}/api/v1/job/status", json={
+			r = requests.post(f"http://{self.controller_ip}/api/runner/v1/job/status", json={
 												"uuid": self.__current_uuid,
 												"status": {"percentage": str(self.__current_job_status["percentage"]),
 													"job_elapsed_time": str(self.__current_job_status["job_elapsed_time"]),
@@ -347,14 +346,14 @@ class JobRunner:
 			if output_file_path != None:
 				with output_file_path.open("rb") as f:
 					m = MultipartEncoder(fields={"file": (output_file_path.name, f)})
-					r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete",
+					r = requests.post(f"http://{self.controller_ip}/api/runner/v1/job/complete",
 						data=m,
 						headers={
 							"Content-Type": m.content_type,
 							"x-rc-history-entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": False})
 						})
 			else:
-				r = requests.post(f"http://{self.controller_ip}/api/v1/job/complete", headers={
+				r = requests.post(f"http://{self.controller_ip}/api/runner/v1/job/complete", headers={
 					"x-rc-history-entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": True})
 				})
 

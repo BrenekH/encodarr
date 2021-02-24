@@ -1,54 +1,42 @@
-$(document).ready(function() {
-	// Connect to the socket server.
-	var socket = io.connect(`http://${document.domain}:${location.port}/updates`);
+var currentTab = "running";
 
-	socket.on("current_job_status_update", function(json_obj) {
-		$("#current-stage").html(`Stage: ${json_obj.stage}`);
+$(document).ready(function () {
+	updateCurrentTab();
 
-		setProgressBar(json_obj.percentage);
-		$("#job-elapsed-time").html(json_obj.job_elapsed_time);
-		$("#stage-estimated-time-remaining").html(json_obj.stage_estimated_time_remaining);
-		$("#fps").html(json_obj.fps);
-		$("#stage-elapsed-time").html(json_obj.stage_elapsed_time);
-	});
-
-	socket.on("current_job_update", function(json_obj) {
-		$("#current-file").html(json_obj.file);
-	});
-
-	socket.on("current_jobs_update", function(json_obj) {
-		let HTMLString = "";
-		let looped = false; // This var is used to tell if the no running jobs message should be displayed or not
-
-		for (const uuid in json_obj) {
-			looped = true;
-			HTMLString += renderRunningJobCard(uuid,
-				json_obj[uuid].file,
-				json_obj[uuid].runner_name,
-				json_obj[uuid].status.stage,
-				json_obj[uuid].status.percentage,
-				json_obj[uuid].status.job_elapsed_time,
-				json_obj[uuid].status.fps,
-				json_obj[uuid].status.stage_elapsed_time,
-				json_obj[uuid].status.stage_estimated_time_remaining);
-		}
-
-		if (!looped) {
-			HTMLString = `<h5 style="text-align: center;">No running jobs</h5>`
-		}
-
-		$("#running-jobs").html(HTMLString)
-	});
+	window.setInterval(function(){
+		updateCurrentTab();
+	}, 2000);
 });
 
 $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
 	var target = $(e.target).attr("href");
 	if (target == "#queue") {
 		updateQueue();
+		currentTab = "queue";
 	} else if (target == "#history") {
 		updateHistory();
+		currentTab = "history";
+	} else if (target == "#running-jobs") {
+		updateRunning();
+		currentTab = "running";
 	}
 });
+
+function updateCurrentTab() {
+	switch (currentTab) {
+		case "running":
+			updateRunning();
+			break;
+		case "queue":
+			updateQueue();
+			break;
+		case "history":
+			updateHistory();
+			break;
+		default:
+			break;
+	}
+}
 
 function setProgressBar(progress) {
 	let progressBar = document.getElementById("progress-bar");
@@ -57,52 +45,95 @@ function setProgressBar(progress) {
 	progressBar.style.width = `${progress}%`;
 }
 
+function updateRunning() {
+	axios.get("/api/web/v1/running").then(function (response) {
+		let jobs = response.data.jobs;
+		if (jobs === undefined) {
+			console.error("Response from /api/web/v1/running returned undefined for data.jobs");
+		}
+		jobs.sort((a, b) => {
+			if (parseFloat(a.status.percentage) > parseFloat(b.status.percentage)) {
+				return -1;
+			}
+			return 1;
+		})
+
+		let HTMLString = "";
+		let looped = false;
+
+		for (let i = 0; i < jobs.length; i++) {
+			looped = true;
+			let cJob = jobs[i];
+			HTMLString += renderRunningJobCard(
+				cJob.job.uuid,
+				cJob.job.path,
+				cJob.runner_name,
+				cJob.status.stage,
+				cJob.status.percentage,
+				cJob.status.job_elapsed_time,
+				cJob.status.fps,
+				cJob.status.stage_elapsed_time,
+				cJob.status.stage_estimated_time_remaining);
+		}
+
+		if (!looped) {
+			HTMLString = `<h5 style="text-align: center;">No running jobs</h5>`
+		}
+
+		$("#running-jobs").html(HTMLString)
+	}).catch(function (error) {
+		console.error(`Request to /api/web/v1/running failed with error: ${error}`);
+	});
+}
+
 function updateQueue() {
-	axios.get("/api/v1/queue").then(function (response) {
+	axios.get("/api/web/v1/queue").then(function (response) {
 		let queue = response.data.queue; // List of files in queue order
 		if (queue === undefined) {
-			console.error("Response from /api/v1/queue returned undefined for data.queue")
-			return
+			console.error("Response from /api/web/v1/queue returned undefined for data.queue");
+			return;
 		}
 		let finalHTMLString = "";
 		for (let i = 1; i <= queue.length; i++) {
-			finalHTMLString += renderQueueEntry(i, queue[i-1].filename, queue[i-1].video_op, queue[i-1].audio_op);
+			finalHTMLString += renderQueueEntry(i, queue[i-1].path, queue[i-1].parameters.hevc, queue[i-1].parameters.stereo);
 		}
+		finalHTMLString += `\n<div class="smol-spacer"></div>`
 		$("#queue-content").html(finalHTMLString);
 		enableTooltips();
 	}).catch(function (error) {
-		console.log(`Request to /api/v1/queue failed with error: ${error}`);
+		console.error(`Request to /api/web/v1/queue failed with error: ${error}`);
 	});
 }
 
 function renderQueueEntry(entryNumber, filePath, videoOp, audioOp) {
 	let videoHTML = "";
 	if (videoOp) {
-		videoHTML = `<img class="playButtonImage queue-icon" src="/static/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`
+		videoHTML = `<img class="playButtonImage queue-icon" src="/resources/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`
 	}
 
 	let audioHTML = "";
 	if (audioOp) {
-		audioHTML = `<img class="queue-icon" src="/static/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`
+		audioHTML = `<img class="queue-icon" src="/resources/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`
 	}
 	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td><td><div class="queue-icon-container">${videoHTML}${audioHTML}</div></td></tr>\n`;
 }
 
 function updateHistory() {
-	axios.get("/api/v1/history").then(function (response) {
+	axios.get("/api/web/v1/history").then(function (response) {
 		let history = response.data.history;
 		if (history === undefined) {
-			console.error("Response from /api/v1/history returned undefined for data.history")
+			console.error("Response from /api/web/v1/history returned undefined for data.history")
 			return
 		}
 		let finalHTMLString = "";
-		for (let i = 0; i < history.length; i++) {
-			let obj = history[i];
+		for (let i = 1; i <= history.length; i++) {
+			let obj = history[history.length-i];
 			finalHTMLString += renderHistoryEntry(obj.datetime_completed, obj.file);
 		}
+		finalHTMLString += `\n<div class="smol-spacer"></div>`
 		$("#history-content").html(finalHTMLString);
 	}).catch(function (error) {
-		console.log(`Request to /api/v1/history failed with error: ${error}`);
+		console.error(`Request to /api/web/v1/history failed with error: ${error}`);
 	});
 }
 

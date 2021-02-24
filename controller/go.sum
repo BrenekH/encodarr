@@ -1,0 +1,6 @@
+github.com/BrenekH/logange v0.2.0 h1:ITxMusfjidNsDEPvQ+t8ZfGUuVvBajBJ75pJiFzXvOk=
+github.com/BrenekH/logange v0.2.0/go.mod h1:Z4Fr1opkOpGE78Q6zqYvnMHQrHsIzHNNi/1bfnypPzE=
+github.com/google/uuid v1.1.5 h1:kxhtnfFVi+rYdOALN0B3k9UT86zVJKfBimRaciULW4I=
+github.com/google/uuid v1.1.5/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
+github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=

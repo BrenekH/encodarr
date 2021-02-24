@@ -1,17 +1,28 @@
-FROM ubuntu:20.04
+# Build stage
+FROM golang:1.16-alpine AS builder
 
-ENV TZ=America/Boise
-
-RUN apt-get update -qq && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata mediainfo python3-pip
-
-WORKDIR /usr/src/app
-
-COPY requirements.txt ./
-
-RUN python3 -m pip install --no-cache-dir -r requirements.txt
+WORKDIR /go/src/project-redcedar/controller
 
 COPY . .
 
-EXPOSE 5000
+RUN CGO_ENABLED=0 GOOS=linux go build -o redcedar .
 
-CMD ["python3", "main.py"]
+
+# Run stage
+FROM ubuntu:20.04
+
+ENV TZ=Etc/GMT \
+    REDCEDAR_SEARCH_DIR="/tosearch" \
+    REDCEDAR_CONFIG_DIR="/config"
+
+RUN apt-get update -qq && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata mediainfo
+
+WORKDIR /usr/src/app
+
+COPY --from=builder /go/src/project-redcedar/controller/redcedar ./redcedar
+
+ADD webfiles/ ./webfiles/
+
+EXPOSE 8080
+
+CMD ["./redcedar"]
