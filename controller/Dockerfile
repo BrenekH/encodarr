@@ -21,6 +21,6 @@ WORKDIR /usr/src/app
 
 COPY --from=builder /go/src/project-redcedar/controller/redcedar ./redcedar
 
-EXPOSE 8080
+EXPOSE 8123
 
 CMD ["./redcedar"]
