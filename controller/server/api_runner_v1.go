@@ -82,7 +82,10 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = controller.DispatchedJobs.UpdateStatus(ijs.UUID, ijs.Status)
-		controller.DispatchedJobs.Save()
+		saveErr := controller.DispatchedJobs.Save()
+		if saveErr != nil {
+			logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", saveErr.Error()))
+		}
 		if err != nil { // Since I wrote UpdateStatus, I know that if it errors at all, it's an issue with the UUID
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusConflict) // Sends the 409 code to signal runners to abandon the job

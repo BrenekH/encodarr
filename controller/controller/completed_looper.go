@@ -63,7 +63,11 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 		log.Printf("Could not Pop because of invalid UUID '%v': %v\n", r.UUID, err)
 		return
 	}
-	DispatchedJobs.Save()
+
+	err = DispatchedJobs.Save()
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
+	}
 
 	filename := dJob.Job.Path
 
@@ -95,7 +99,11 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 
 	// Add history entry into container
 	HistoryEntries.Add(r.History)
-	HistoryEntries.Save()
+
+	err = HistoryEntries.Save()
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error saving history: %v", err.Error()))
+	}
 }
 
 func readHistoryFile() HistoryContainer {
