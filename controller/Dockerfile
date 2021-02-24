@@ -21,8 +21,6 @@ WORKDIR /usr/src/app
 
 COPY --from=builder /go/src/project-redcedar/controller/redcedar ./redcedar
 
-ADD webfiles/ ./webfiles/
-
 EXPOSE 8080
 
 CMD ["./redcedar"]

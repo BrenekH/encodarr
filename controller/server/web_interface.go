@@ -1,17 +1,20 @@
 package server
 
 import (
+	"embed"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 )
+
+//go:embed webfiles/*
+var webfiles embed.FS
 
 // favicon is a HTTP handler for the favicon.ico file
 func favicon(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "image/x-icon")
 
-	icoData, err := os.ReadFile("webfiles/favicon/favicon.ico")
+	icoData, err := webfiles.ReadFile("webfiles/favicon/favicon.ico")
 	if err != nil {
 		serverError(w, r, fmt.Sprintf("Could not read %v because of error: %v", r.URL, err))
 		return
@@ -43,7 +46,7 @@ func resources(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 		}
 
-		fileData, err := os.ReadFile("webfiles/" + strings.Replace(r.URL.String(), "/", "", 1))
+		fileData, err := webfiles.ReadFile("webfiles/" + strings.Replace(r.URL.String(), "/", "", 1))
 		if err != nil {
 			serverError(w, r, fmt.Sprintf("Could not read %v because of error: %v", r.URL, err))
 			return
@@ -56,7 +59,7 @@ func resources(w http.ResponseWriter, r *http.Request) {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	indexFileData, err := os.ReadFile("webfiles/html/index.html")
+	indexFileData, err := webfiles.ReadFile("webfiles/html/index.html")
 	if err != nil {
 		serverError(w, r, fmt.Sprintf("Could not read 'webfiles/html/index.html' because of error: %v", err))
 		return
