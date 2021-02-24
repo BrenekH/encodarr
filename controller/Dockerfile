@@ -17,11 +17,13 @@ ENV TZ=Etc/GMT \
 
 WORKDIR /usr/src/app
 
-RUN chmod 666 /usr/src/app \
+RUN chmod 777 /usr/src/app \
  && apt-get update -qq \
  && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata mediainfo
 
 COPY --from=builder /go/src/project-redcedar/controller/redcedar ./redcedar
+
+RUN chmod 777 ./redcedar
 
 EXPOSE 8123
 
