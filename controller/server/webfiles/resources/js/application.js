@@ -19,6 +19,8 @@ $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
 	} else if (target == "#running-jobs") {
 		updateRunning();
 		currentTab = "running";
+	} else if (target == "#settings") {
+		currentTab = "settings";
 	}
 });
 

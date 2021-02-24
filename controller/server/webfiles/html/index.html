@@ -33,6 +33,10 @@
 					<a class="nav-link" id="history-tab" data-toggle="tab" href="#history" role="tab"
 						aria-controls="history" aria-selected="false">History</a>
 				</li>
+				<li class="nav-item" role="presentation">
+					<a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab"
+						aria-controls="settings" aria-selected="false">Settings</a>
+				</li>
 			</ul>
 
 			<div class="spacer"></div>
@@ -80,6 +84,53 @@
 							</tbody>
 						</table>
 					</div>
+				</div>
+				<div class="tab-pane" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+					<h5>File System</h5>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">File System Check Interval</span>
+						</div>
+						<input type="text" class="form-control dark-text-input" placeholder="HH:MM:SS" aria-label="fs-check-interval" aria-describedby="basic-addon1">
+					</div>
+
+					<div class="spacer"></div>
+
+					<h5>Runner Health</h5>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Runner Health Check Interval</span>
+						</div>
+						<input type="text" class="form-control dark-text-input" placeholder="HH:MM:SS" aria-label="health-check-interval" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Unresponsive Runner Timeout</span>
+						</div>
+						<input type="text" class="form-control dark-text-input" placeholder="HH:MM:SS" aria-label="unresponsive-runner-timeout" aria-describedby="basic-addon1">
+					</div>
+
+					<div class="spacer"></div>
+
+					<h5>Logging</h5>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Log Verbosity</span>
+						</div>
+						<select class="custom-select dark-text-input no-box-shadow" id="log-verbosity-select">
+							<option selected>Choose...</option>
+							<option value="trace">Trace</option>
+							<option value="debug">Debug</option>
+							<option value="info">Info</option>
+							<option value="warn">Warning</option>
+							<option value="error">Error</option>
+							<option value="critical">Critical</option>
+						</select>
+					</div>
+
+					<div class="smol-spacer"></div>
+
+					<button type="button" class="btn btn-light">Save</button>
 				</div>
 			</div>
 		</div>
