@@ -114,8 +114,15 @@ func RunController(inConfig *config.ControllerConfiguration, stopChan *chan inte
 	HistoryEntries = readHistoryFile()
 
 	// Save if they didn't exist before
-	DispatchedJobs.Save()
-	HistoryEntries.Save()
+	err := DispatchedJobs.Save()
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
+	}
+
+	err = HistoryEntries.Save()
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error saving history: %v", err.Error()))
+	}
 
 	// Start the job request handler
 	go jobRequestHandler(&JobRequestChannel, stopChan, wg)
@@ -191,7 +198,10 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 								StageEstimatedTimeRemaining: "N/A",
 							},
 						})
-						DispatchedJobs.Save()
+						err := DispatchedJobs.Save()
+						if err != nil {
+							logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
+						}
 
 						// Return Job struct in return channel
 						*val.ReturnChannel <- j
@@ -300,7 +310,7 @@ func readDispatchedFile() DispatchedContainer {
 	// Read/unmarshal json from JSONDir/dispatched_jobs.json
 	f, err := os.Open(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.ConfigDir))
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to open dispatched_jobs.json because of error: %v", err))
+		logger.Warn(fmt.Sprintf("Failed to open dispatched_jobs.json because of error: %v", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 	}
 	defer f.Close()
