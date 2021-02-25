@@ -199,10 +199,7 @@ function renderRunningJobCard(uuid, filename, runnerName, stageValue, progress, 
 function updateSettings() {
 	lockSettings();
 
-	// Request current settings from server
 	axios.get("/api/web/v1/settings").then(function(response) {
-		console.log(response);
-		// Set inputs' current values to those returned from the server
 		document.getElementById("fs-check-interval").value = response.data.FileSystemCheckInterval;
 		document.getElementById("health-check-interval").value = response.data.HealthCheckInterval;
 		document.getElementById("unresponsive-runner-timeout").value = response.data.HealthCheckTimeout;
@@ -212,19 +209,21 @@ function updateSettings() {
 	});
 }
 
-document.getElementById("save-settings-btn").onclick = function(){
-	// TODO: Verify inputs are good
-	// TODO: Serialize inputs into format for server
-	// TODO: Send settings to server
+document.getElementById("save-settings-btn").onclick = function() {
 	axios.put("/api/web/v1/settings", {
-		"FileSystemCheckInterval": "10m",
-		"HealthCheckInterval": "30s",
-		"HealthCheckTimeout": "20m",
-		"LogVerbosity": "TRACE"
+		"FileSystemCheckInterval": document.getElementById("fs-check-interval").value,
+		"HealthCheckInterval": document.getElementById("health-check-interval").value,
+		"HealthCheckTimeout": document.getElementById("unresponsive-runner-timeout").value,
+		"LogVerbosity": document.getElementById("log-verbosity-select").value
 	}).then(function(response) {
-		console.log(response);
+		if (response.status >= 200 && response.status <= 299) {
+			document.getElementById("saved-container").innerHTML = `<p class="pop-in-out" style="display:inline;">Saved!</p>`;
+		} else {
+			console.error(response);
+		}
+
+		updateSettings(); // Update settings is used to correct malicious users by resetting invalid values in the UI
 	});
-	// TODO: Add disappearing saved text next to button
 };
 
 function lockSettings() {

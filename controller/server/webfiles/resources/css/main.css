@@ -23,6 +23,27 @@ hr {
 	display: inline;
 }
 
+.pop-in-out {
+	margin-left: 1em;
+	opacity: 0%;
+	animation: pulse 5s;
+	animation-timing-function: cubic-bezier(0.61, 1, 0.88, 1);
+}
+
+@keyframes pulse {
+	0% {
+		opacity: 0%;
+	}
+
+	3% {
+		opacity: 100%;
+	}
+
+	100% {
+		opacity: 0%;
+	}
+}
+
 /* Override Bootstrap CSS */
 .dark-text-input {
 	/* I know !important isn't great practice,
