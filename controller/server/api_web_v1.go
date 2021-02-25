@@ -47,6 +47,7 @@ type settingsJSON struct {
 	HealthCheckInterval     string
 	HealthCheckTimeout      string
 	LogVerbosity            string
+	SmallerFiles            bool
 }
 
 func makeFilteredDispatchedJobs() runningJSONResponse {
@@ -144,6 +145,7 @@ func settings(w http.ResponseWriter, r *http.Request) {
 			HealthCheckInterval:     time.Duration(config.Global.HealthCheckInterval).String(),
 			HealthCheckTimeout:      time.Duration(config.Global.HealthCheckTimeout).String(),
 			LogVerbosity:            config.RootFileHandler.LevelString(),
+			SmallerFiles:            config.Global.SmallerFiles,
 		}
 		b, err := json.Marshal(rS)
 		if err != nil {
@@ -165,6 +167,7 @@ func settings(w http.ResponseWriter, r *http.Request) {
 			HealthCheckInterval:     time.Duration(config.Global.HealthCheckInterval).String(),
 			HealthCheckTimeout:      time.Duration(config.Global.HealthCheckTimeout).String(),
 			LogVerbosity:            config.RootFileHandler.LevelString(),
+			SmallerFiles:            config.Global.SmallerFiles,
 		}
 		err = json.Unmarshal(b, &rS)
 		if err != nil {
@@ -200,6 +203,8 @@ func settings(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logger.Error(err.Error())
 		}
+
+		config.Global.SmallerFiles = rS.SmallerFiles
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(""))

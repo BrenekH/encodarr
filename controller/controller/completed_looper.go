@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/options"
 )
 
@@ -71,6 +72,26 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 	}
 
 	filename := dJob.Job.Path
+
+	if config.Global.SmallerFiles {
+		ogi, err := os.Stat(filename)
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+
+		newI, err := os.Stat(r.InFile)
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+
+		if newI.Size() > ogi.Size() {
+			logger.Info(fmt.Sprintf("'%v' does not adhere to Smaller Files setting", filename))
+			// TODO: Blacklist file in options.ConfigDir()/size_blacklist.json
+			return
+		}
+	}
 
 	// Delete old file from file system
 	err = os.Remove(dJob.Job.Path)

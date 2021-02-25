@@ -18,6 +18,7 @@ type Settings struct {
 	HealthCheckInterval     int
 	HealthCheckTimeout      int
 	LogVerbosity            string
+	SmallerFiles            bool
 }
 
 // Global is an instance of ControllerConfiguration that can be accessed anywhere in the program
@@ -66,5 +67,6 @@ func DefaultSettings() Settings {
 		HealthCheckInterval:     int(1 * time.Minute),
 		HealthCheckTimeout:      int(1 * time.Hour),
 		LogVerbosity:            "INFO",
+		SmallerFiles:            false,
 	}
 }

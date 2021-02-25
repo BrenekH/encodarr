@@ -226,6 +226,7 @@ function updateSettings() {
 		document.getElementById("health-check-interval").value = response.data.HealthCheckInterval;
 		document.getElementById("unresponsive-runner-timeout").value = response.data.HealthCheckTimeout;
 		document.getElementById("log-verbosity-select").value = response.data.LogVerbosity;
+		document.getElementById("smaller-files-check").checked = response.data.SmallerFiles;
 
 		unlockSettings();
 	});
@@ -236,7 +237,8 @@ document.getElementById("save-settings-btn").onclick = function() {
 		"FileSystemCheckInterval": document.getElementById("fs-check-interval").value,
 		"HealthCheckInterval": document.getElementById("health-check-interval").value,
 		"HealthCheckTimeout": document.getElementById("unresponsive-runner-timeout").value,
-		"LogVerbosity": document.getElementById("log-verbosity-select").value
+		"LogVerbosity": document.getElementById("log-verbosity-select").value,
+		"SmallerFiles": document.getElementById("smaller-files-check").checked,
 	}).then(function(response) {
 		if (response.status >= 200 && response.status <= 299) {
 			document.getElementById("saved-container").innerHTML = `<p class="pop-in-out" style="display:inline;">Saved!</p>`;
@@ -250,6 +252,7 @@ document.getElementById("save-settings-btn").onclick = function() {
 
 function lockSettings() {
 	document.getElementById("fs-check-interval").disabled = true;
+	document.getElementById("smaller-files-check").disabled = true;
 	document.getElementById("health-check-interval").disabled = true;
 	document.getElementById("unresponsive-runner-timeout").disabled = true;
 
@@ -258,6 +261,7 @@ function lockSettings() {
 
 function unlockSettings() {
 	document.getElementById("fs-check-interval").disabled = false;
+	document.getElementById("smaller-files-check").disabled = false;
 	document.getElementById("health-check-interval").disabled = false;
 	document.getElementById("unresponsive-runner-timeout").disabled = false;
 
