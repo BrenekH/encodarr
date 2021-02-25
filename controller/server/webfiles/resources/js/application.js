@@ -20,6 +20,7 @@ $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
 		updateRunning();
 		currentTab = "running";
 	} else if (target == "#settings") {
+		updateSettings();
 		currentTab = "settings";
 	}
 });
@@ -144,9 +145,9 @@ function renderHistoryEntry(dateTimeString, filePath) {
 }
 
 function enableTooltips() {
-	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
 	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-		return new bootstrap.Tooltip(tooltipTriggerEl)
+		return new bootstrap.Tooltip(tooltipTriggerEl);
 	})
 }
 
@@ -193,3 +194,24 @@ function renderRunningJobCard(uuid, filename, runnerName, stageValue, progress, 
 <div class="smol-spacer"></div>
 `;
 }
+
+// Settings tab functions
+function updateSettings() {
+	// TODO: Lock inputs
+	// TODO: Request current settings from server
+	axios.get("/api/web/v1/settings").then(function(response) {
+		console.log(response);
+	});
+	// TODO: Set inputs' current values to those returned from the server
+	// TODO: Unlock inputs
+}
+
+document.getElementById("save-settings-btn").onclick = function(){
+	// TODO: Verify inputs are good
+	// TODO: Serialize inputs into format for server
+	// TODO: Send settings to server
+	axios.put("/api/web/v1/settings").then(function(response) {
+		console.log(response);
+	});
+	// TODO: Add disappearing save text next to button
+};

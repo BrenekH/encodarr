@@ -126,10 +126,24 @@ func getHistory(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func settings(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte("Get"))
+	case http.MethodPut:
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte("Put"))
+	default:
+		methodForbidden(w, r)
+	}
+}
+
 func registerWebAPIv1Handlers() {
 	r := newSubRouter("/api/web/v1")
 
 	r.HandleFunc("/running", getRunning)
 	r.HandleFunc("/queue", getQueue)
 	r.HandleFunc("/history", getHistory)
+	r.HandleFunc("/settings", settings)
 }
