@@ -23,6 +23,21 @@ hr {
 	display: inline;
 }
 
+.file-image-container {
+	display: flex;
+	justify-content: space-evenly;
+}
+
+.svg-flex-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+}
+
+.running-stereo-icon {
+	margin-top: 5px;
+}
+
 .pop-in-out {
 	margin-left: 1em;
 	opacity: 0%;
