@@ -197,21 +197,48 @@ function renderRunningJobCard(uuid, filename, runnerName, stageValue, progress, 
 
 // Settings tab functions
 function updateSettings() {
-	// TODO: Lock inputs
-	// TODO: Request current settings from server
+	lockSettings();
+
+	// Request current settings from server
 	axios.get("/api/web/v1/settings").then(function(response) {
 		console.log(response);
+		// Set inputs' current values to those returned from the server
+		document.getElementById("fs-check-interval").value = response.data.FileSystemCheckInterval;
+		document.getElementById("health-check-interval").value = response.data.HealthCheckInterval;
+		document.getElementById("unresponsive-runner-timeout").value = response.data.HealthCheckTimeout;
+		document.getElementById("log-verbosity-select").value = response.data.LogVerbosity;
+
+		unlockSettings();
 	});
-	// TODO: Set inputs' current values to those returned from the server
-	// TODO: Unlock inputs
 }
 
 document.getElementById("save-settings-btn").onclick = function(){
 	// TODO: Verify inputs are good
 	// TODO: Serialize inputs into format for server
 	// TODO: Send settings to server
-	axios.put("/api/web/v1/settings").then(function(response) {
+	axios.put("/api/web/v1/settings", {
+		"FileSystemCheckInterval": "10m",
+		"HealthCheckInterval": "30s",
+		"HealthCheckTimeout": "20m",
+		"LogVerbosity": "TRACE"
+	}).then(function(response) {
 		console.log(response);
 	});
-	// TODO: Add disappearing save text next to button
+	// TODO: Add disappearing saved text next to button
 };
+
+function lockSettings() {
+	document.getElementById("fs-check-interval").disabled = true;
+	document.getElementById("health-check-interval").disabled = true;
+	document.getElementById("unresponsive-runner-timeout").disabled = true;
+
+	document.getElementById("log-verbosity-select").hidden = true;
+}
+
+function unlockSettings() {
+	document.getElementById("fs-check-interval").disabled = false;
+	document.getElementById("health-check-interval").disabled = false;
+	document.getElementById("unresponsive-runner-timeout").disabled = false;
+
+	document.getElementById("log-verbosity-select").hidden = false;
+}
