@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -10,7 +9,7 @@ import (
 func GetVideoFilesFromDir(dirToSearch string) []string {
 	allFiles, err := getFilesFromDir(dirToSearch)
 	if err != nil {
-		log.Fatal(err)
+		logger.Critical(err.Error())
 	}
 	return filterNonVideoExts(allFiles)
 }

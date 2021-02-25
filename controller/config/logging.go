@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/BrenekH/logange"
+	"github.com/BrenekH/project-redcedar-controller/options"
 )
 
 var (
@@ -21,7 +22,7 @@ func init() {
 	RootStdoutHandler.SetFormatter(f)
 	RootStdoutHandler.SetLevel(logange.LevelWarn)
 
-	fH, err := logange.NewFileHandler("/config/controller.log")
+	fH, err := logange.NewFileHandler(fmt.Sprintf("%v/controller.log", options.ConfigDir()))
 	if err != nil {
 		fmt.Printf("Error creating RootFileHandler: %v", err)
 		os.Exit(10)
@@ -34,4 +35,25 @@ func init() {
 
 	logange.RootLogger.AddHandler(&RootStdoutHandler)
 	logange.RootLogger.AddHandler(&RootFileHandler)
+}
+
+// SetRootFHVerbosity converts a string into the appropriate logging level and applies it to the root file handler
+func SetRootFHVerbosity(v string) error {
+	switch v {
+	case "TRACE":
+		RootFileHandler.SetLevel(logange.LevelTrace)
+	case "DEBUG":
+		RootFileHandler.SetLevel(logange.LevelDebug)
+	case "INFO":
+		RootFileHandler.SetLevel(logange.LevelInfo)
+	case "WARNING":
+		RootFileHandler.SetLevel(logange.LevelWarn)
+	case "ERROR":
+		RootFileHandler.SetLevel(logange.LevelError)
+	case "CRITICAL":
+		RootFileHandler.SetLevel(logange.LevelCritical)
+	default:
+		return fmt.Errorf("invalid logging verbosity '%v'", v)
+	}
+	return nil
 }
