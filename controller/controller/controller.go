@@ -163,7 +163,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 									time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 									continue
 								} else {
-									logger.Critical(fmt.Sprintf("Got error while popping from queue: %v", err))
+									logger.Critical(fmt.Sprintf("Got unexpected error while popping from queue: %v", err))
 								}
 							}
 
@@ -176,7 +176,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 								continue
 							} else {
 								// File may or may not exist. Error has more details.
-								logger.Error(fmt.Sprintf("Unexpected error while stating for file: %v", err))
+								logger.Error(fmt.Sprintf("Unexpected error while stating file '%v': %v", j.Path, err))
 							}
 							time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 						}
@@ -187,8 +187,8 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 							RunnerName:  val.RunnerName,
 							LastUpdated: time.Now(),
 							Status: JobStatus{
-								Stage:                       "Waiting to start",
-								Percentage:                  "N/A",
+								Stage:                       "Copying to Runner",
+								Percentage:                  "0",
 								JobElapsedTime:              "N/A",
 								FPS:                         "N/A",
 								StageElapsedTime:            "N/A",

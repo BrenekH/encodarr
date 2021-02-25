@@ -33,11 +33,11 @@ class JobRunner:
 		self.runner_name = runner_name
 
 		self.__current_job_status = {
-			"percentage": None,
-			"job_elapsed_time": None,
-			"stage_estimated_time_remaining": None,
-			"fps": None,
-			"stage_elapsed_time": None,
+			"percentage": "0",
+			"job_elapsed_time": "N/A",
+			"stage_estimated_time_remaining": "N/A",
+			"fps": "N/A",
+			"stage_elapsed_time": "N/A",
 			"stage": None
 		}
 		self.__running = True
@@ -263,7 +263,18 @@ class JobRunner:
 		}
 
 		if not critical_failure:
+			self.__current_job_status = {
+				"percentage": "100",
+				"job_elapsed_time": "N/A",
+				"stage_estimated_time_remaining": "N/A",
+				"fps": "N/A",
+				"stage_elapsed_time": "N/A",
+				"stage": "Copying to Controller"
+			}
+			self.send_current_job_status()
+
 			self.send_job_complete(history_entry, output_file)
+
 			if input_file.exists():
 				input_file.unlink()
 			if output_file.exists():
