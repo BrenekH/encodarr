@@ -9,6 +9,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"github.com/BrenekH/project-redcedar-controller/options"
 )
 
 // ErrInvalidUUID represents when a passed UUID is invalid
@@ -172,7 +174,7 @@ func (c *DispatchedContainer) Save() error {
 		return err
 	}
 
-	f, err := os.Create(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.ConfigDir))
+	f, err := os.Create(fmt.Sprintf("%v/dispatched_jobs.json", options.ConfigDir()))
 	if err != nil {
 		return err
 	}
@@ -214,7 +216,7 @@ func (c *HistoryContainer) Save() error {
 		return err
 	}
 
-	f, err := os.Create(fmt.Sprintf("%v/history.json", controllerConfig.ConfigDir))
+	f, err := os.Create(fmt.Sprintf("%v/history.json", options.ConfigDir()))
 	if err != nil {
 		return err
 	}

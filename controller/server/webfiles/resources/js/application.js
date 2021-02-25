@@ -19,6 +19,9 @@ $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
 	} else if (target == "#running-jobs") {
 		updateRunning();
 		currentTab = "running";
+	} else if (target == "#settings") {
+		updateSettings();
+		currentTab = "settings";
 	}
 });
 
@@ -142,9 +145,9 @@ function renderHistoryEntry(dateTimeString, filePath) {
 }
 
 function enableTooltips() {
-	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
 	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-		return new bootstrap.Tooltip(tooltipTriggerEl)
+		return new bootstrap.Tooltip(tooltipTriggerEl);
 	})
 }
 
@@ -190,4 +193,51 @@ function renderRunningJobCard(uuid, filename, runnerName, stageValue, progress, 
 </div>
 <div class="smol-spacer"></div>
 `;
+}
+
+// Settings tab functions
+function updateSettings() {
+	lockSettings();
+
+	axios.get("/api/web/v1/settings").then(function(response) {
+		document.getElementById("fs-check-interval").value = response.data.FileSystemCheckInterval;
+		document.getElementById("health-check-interval").value = response.data.HealthCheckInterval;
+		document.getElementById("unresponsive-runner-timeout").value = response.data.HealthCheckTimeout;
+		document.getElementById("log-verbosity-select").value = response.data.LogVerbosity;
+
+		unlockSettings();
+	});
+}
+
+document.getElementById("save-settings-btn").onclick = function() {
+	axios.put("/api/web/v1/settings", {
+		"FileSystemCheckInterval": document.getElementById("fs-check-interval").value,
+		"HealthCheckInterval": document.getElementById("health-check-interval").value,
+		"HealthCheckTimeout": document.getElementById("unresponsive-runner-timeout").value,
+		"LogVerbosity": document.getElementById("log-verbosity-select").value
+	}).then(function(response) {
+		if (response.status >= 200 && response.status <= 299) {
+			document.getElementById("saved-container").innerHTML = `<p class="pop-in-out" style="display:inline;">Saved!</p>`;
+		} else {
+			console.error(response);
+		}
+
+		updateSettings(); // Update settings is used to correct malicious users by resetting invalid values in the UI
+	});
+};
+
+function lockSettings() {
+	document.getElementById("fs-check-interval").disabled = true;
+	document.getElementById("health-check-interval").disabled = true;
+	document.getElementById("unresponsive-runner-timeout").disabled = true;
+
+	document.getElementById("log-verbosity-select").hidden = true;
+}
+
+function unlockSettings() {
+	document.getElementById("fs-check-interval").disabled = false;
+	document.getElementById("health-check-interval").disabled = false;
+	document.getElementById("unresponsive-runner-timeout").disabled = false;
+
+	document.getElementById("log-verbosity-select").hidden = false;
 }
