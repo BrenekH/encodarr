@@ -1,6 +1,8 @@
 var currentTab = "running";
 
 $(document).ready(function () {
+	setTabToPathname(window.location.pathname);
+
 	updateCurrentTab();
 
 	window.setInterval(function(){
@@ -8,17 +10,44 @@ $(document).ready(function () {
 	}, 2000);
 });
 
+function setTabToPathname(p) {
+	switch (p) {
+		case "/queue":
+			$("#queue-tab").trigger("click");
+			break;
+		case "/history":
+			$("#history-tab").trigger("click");
+			break;
+		case "/settings":
+			$("#settings-tab").trigger("click");
+			break;
+		default:
+			break;
+	}
+}
+
 $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
 	var target = $(e.target).attr("href");
 	if (target == "#queue") {
 		updateQueue();
 		currentTab = "queue";
+		window.history.replaceState(undefined, "", "/queue");
+		document.title = "Queue - Project RedCedar";
 	} else if (target == "#history") {
 		updateHistory();
 		currentTab = "history";
+		window.history.replaceState(undefined, "", "/history");
+		document.title = "History - Project RedCedar";
 	} else if (target == "#running-jobs") {
 		updateRunning();
 		currentTab = "running";
+		window.history.replaceState(undefined, "", "/");
+		document.title = "Project RedCedar";
+	} else if (target == "#settings") {
+		updateSettings();
+		currentTab = "settings";
+		window.history.replaceState(undefined, "", "/settings");
+		document.title = "Settings - Project RedCedar";
 	}
 });
 
@@ -73,14 +102,18 @@ function updateRunning() {
 				cJob.status.job_elapsed_time,
 				cJob.status.fps,
 				cJob.status.stage_elapsed_time,
-				cJob.status.stage_estimated_time_remaining);
+				cJob.status.stage_estimated_time_remaining,
+				cJob.job.parameters.hevc,
+				cJob.job.parameters.stereo);
 		}
 
 		if (!looped) {
-			HTMLString = `<h5 style="text-align: center;">No running jobs</h5>`
+			HTMLString = `<h5 style="text-align: center;">No running jobs</h5>`;
 		}
 
+		disableTooltips();
 		$("#running-jobs").html(HTMLString)
+		enableTooltips();
 	}).catch(function (error) {
 		console.error(`Request to /api/web/v1/running failed with error: ${error}`);
 	});
@@ -97,7 +130,8 @@ function updateQueue() {
 		for (let i = 1; i <= queue.length; i++) {
 			finalHTMLString += renderQueueEntry(i, queue[i-1].path, queue[i-1].parameters.hevc, queue[i-1].parameters.stereo);
 		}
-		finalHTMLString += `\n<div class="smol-spacer"></div>`
+		finalHTMLString += `\n<div class="smol-spacer"></div>`;
+		disableTooltips();
 		$("#queue-content").html(finalHTMLString);
 		enableTooltips();
 	}).catch(function (error) {
@@ -108,12 +142,12 @@ function updateQueue() {
 function renderQueueEntry(entryNumber, filePath, videoOp, audioOp) {
 	let videoHTML = "";
 	if (videoOp) {
-		videoHTML = `<img class="playButtonImage queue-icon" src="/resources/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`
+		videoHTML = `<img class="playButtonImage queue-icon" src="/resources/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`;
 	}
 
 	let audioHTML = "";
 	if (audioOp) {
-		audioHTML = `<img class="queue-icon" src="/resources/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`
+		audioHTML = `<img class="queue-icon" src="/resources/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`;
 	}
 	return `<tr><th scope="row">${entryNumber}</th><td>${filePath}</td><td><div class="queue-icon-container">${videoHTML}${audioHTML}</div></td></tr>\n`;
 }
@@ -122,15 +156,15 @@ function updateHistory() {
 	axios.get("/api/web/v1/history").then(function (response) {
 		let history = response.data.history;
 		if (history === undefined) {
-			console.error("Response from /api/web/v1/history returned undefined for data.history")
-			return
+			console.error("Response from /api/web/v1/history returned undefined for data.history");
+			return;
 		}
 		let finalHTMLString = "";
 		for (let i = 1; i <= history.length; i++) {
 			let obj = history[history.length-i];
 			finalHTMLString += renderHistoryEntry(obj.datetime_completed, obj.file);
 		}
-		finalHTMLString += `\n<div class="smol-spacer"></div>`
+		finalHTMLString += `\n<div class="smol-spacer"></div>`;
 		$("#history-content").html(finalHTMLString);
 	}).catch(function (error) {
 		console.error(`Request to /api/web/v1/history failed with error: ${error}`);
@@ -142,17 +176,34 @@ function renderHistoryEntry(dateTimeString, filePath) {
 }
 
 function enableTooltips() {
-	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-		return new bootstrap.Tooltip(tooltipTriggerEl)
-	})
+	$('[data-bs-toggle="tooltip"]').tooltip();
 }
 
-function renderRunningJobCard(uuid, filename, runnerName, stageValue, progress, jobElapsedTime, fps, stageElapsedTime, stageEstimatedTimeRemaining) {
+function disableTooltips() {
+	$('[data-bs-toggle="tooltip"]').tooltip("dispose");
+}
+
+function renderRunningJobCard(uuid, filename, runnerName, stageValue, progress, jobElapsedTime, fps, stageElapsedTime, stageEstimatedTimeRemaining, videoOp, audioOp) {
+	let videoHTML = "";
+	if (videoOp) {
+		videoHTML = `<img class="queue-icon" src="/resources/svg/play_button.svg" alt="Play Button" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="File will be encoded to HEVC">`
+	}
+
+	let audioHTML = "";
+	if (audioOp) {
+		audioHTML = `<img class="running-stereo-icon queue-icon" src="/resources/svg/headphones.svg" alt="Headphones" height="20px" data-bs-toggle="tooltip" data-bs-placement="top" title="An additional stereo audio track will be created">`
+	}
+
 	return `
 <div class="card" id="${uuid}-job-card" style="padding: 1rem;">
 	<div class="card-header text-center" style="padding-bottom: .25rem;">
-		<h5 id="${uuid}-current-file">${filename}</h5>
+		<div class="file-image-container">
+			<h5 id="${uuid}-current-file">${filename}</h5>
+			<div class="svg-flex-container">
+				${videoHTML}
+				${audioHTML}
+			</div>
+		</div>
 		<h6 id="${uuid}-current-stage">Stage: ${stageValue}</h6>
 		<h6 id="${uuid}-runner-name">Runner: ${runnerName}</h6>
 	</div>
@@ -190,4 +241,55 @@ function renderRunningJobCard(uuid, filename, runnerName, stageValue, progress, 
 </div>
 <div class="smol-spacer"></div>
 `;
+}
+
+// Settings tab functions
+function updateSettings() {
+	lockSettings();
+
+	axios.get("/api/web/v1/settings").then(function(response) {
+		document.getElementById("fs-check-interval").value = response.data.FileSystemCheckInterval;
+		document.getElementById("health-check-interval").value = response.data.HealthCheckInterval;
+		document.getElementById("unresponsive-runner-timeout").value = response.data.HealthCheckTimeout;
+		document.getElementById("log-verbosity-select").value = response.data.LogVerbosity;
+		document.getElementById("smaller-files-check").checked = response.data.SmallerFiles;
+
+		unlockSettings();
+	});
+}
+
+document.getElementById("save-settings-btn").onclick = function() {
+	axios.put("/api/web/v1/settings", {
+		"FileSystemCheckInterval": document.getElementById("fs-check-interval").value,
+		"HealthCheckInterval": document.getElementById("health-check-interval").value,
+		"HealthCheckTimeout": document.getElementById("unresponsive-runner-timeout").value,
+		"LogVerbosity": document.getElementById("log-verbosity-select").value,
+		"SmallerFiles": document.getElementById("smaller-files-check").checked,
+	}).then(function(response) {
+		if (response.status >= 200 && response.status <= 299) {
+			document.getElementById("saved-container").innerHTML = `<p class="pop-in-out" style="display:inline;">Saved!</p>`;
+		} else {
+			console.error(response);
+		}
+
+		updateSettings(); // Update settings is used to correct malicious users by resetting invalid values in the UI
+	});
+};
+
+function lockSettings() {
+	document.getElementById("fs-check-interval").disabled = true;
+	document.getElementById("smaller-files-check").disabled = true;
+	document.getElementById("health-check-interval").disabled = true;
+	document.getElementById("unresponsive-runner-timeout").disabled = true;
+
+	document.getElementById("log-verbosity-select").hidden = true;
+}
+
+function unlockSettings() {
+	document.getElementById("fs-check-interval").disabled = false;
+	document.getElementById("smaller-files-check").disabled = false;
+	document.getElementById("health-check-interval").disabled = false;
+	document.getElementById("unresponsive-runner-timeout").disabled = false;
+
+	document.getElementById("log-verbosity-select").hidden = false;
 }

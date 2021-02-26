@@ -36,8 +36,7 @@ func RunHTTPServer(stopChan *chan interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	registerWebInterfaceHandlers()
-	registerWebAPIv1Handlers()
-	registerRunnerAPIv1Handlers()
+	registerAPIHandlers()
 
 	logger.Debug("Server starting")
 

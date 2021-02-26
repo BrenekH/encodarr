@@ -15,14 +15,16 @@ ENV TZ=Etc/GMT \
     REDCEDAR_SEARCH_DIR="/tosearch" \
     REDCEDAR_CONFIG_DIR="/config"
 
-RUN apt-get update -qq && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata mediainfo
-
 WORKDIR /usr/src/app
+
+RUN chmod 777 /usr/src/app \
+ && apt-get update -qq \
+ && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata mediainfo
 
 COPY --from=builder /go/src/project-redcedar/controller/redcedar ./redcedar
 
-ADD webfiles/ ./webfiles/
+RUN chmod 777 ./redcedar
 
-EXPOSE 8080
+EXPOSE 8123
 
 CMD ["./redcedar"]

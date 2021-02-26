@@ -13,6 +13,7 @@ import (
 	"github.com/BrenekH/logange"
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/mediainfo"
+	"github.com/BrenekH/project-redcedar-controller/options"
 	"github.com/google/uuid"
 )
 
@@ -84,8 +85,6 @@ type JobRequest struct {
 	ReturnChannel *chan Job
 }
 
-var controllerConfig *config.ControllerConfiguration
-
 var fileSystemLastCheck time.Time
 var healthLastCheck time.Time
 
@@ -102,12 +101,10 @@ var JobRequestChannel chan JobRequest = make(chan JobRequest)
 var CompletedRequestChannel chan JobCompleteRequest = make(chan JobCompleteRequest)
 
 // RunController is a goroutine compliant way to run the controller.
-func RunController(inConfig *config.ControllerConfiguration, stopChan *chan interface{}, wg *sync.WaitGroup) {
+func RunController(stopChan *chan interface{}, wg *sync.WaitGroup) {
 	wg.Add(1) // This is done in the function rather than outside so that we can easily comment out this function in main.go
 	defer wg.Done()
 	defer logger.Info("Controller successfully stopped")
-
-	controllerConfig = inConfig
 
 	// Read JSON(Dispatched & History) and apply to containers
 	DispatchedJobs = readDispatchedFile()
@@ -166,7 +163,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 									time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 									continue
 								} else {
-									logger.Critical(fmt.Sprintf("Got error while popping from queue: %v", err))
+									logger.Critical(fmt.Sprintf("Got unexpected error while popping from queue: %v", err))
 								}
 							}
 
@@ -179,7 +176,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 								continue
 							} else {
 								// File may or may not exist. Error has more details.
-								logger.Error(fmt.Sprintf("Unexpected error while stating for file: %v", err))
+								logger.Error(fmt.Sprintf("Unexpected error while stating file '%v': %v", j.Path, err))
 							}
 							time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 						}
@@ -190,8 +187,8 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 							RunnerName:  val.RunnerName,
 							LastUpdated: time.Now(),
 							Status: JobStatus{
-								Stage:                       "Waiting to start",
-								Percentage:                  "N/A",
+								Stage:                       "Copying to Runner",
+								Percentage:                  "0",
 								JobElapsedTime:              "N/A",
 								FPS:                         "N/A",
 								StageElapsedTime:            "N/A",
@@ -222,10 +219,10 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 }
 
 func fileSystemCheck() {
-	if time.Since(fileSystemLastCheck) > time.Duration((*controllerConfig).FileSystemCheckInterval) {
+	if time.Since(fileSystemLastCheck) > time.Duration(config.Global.FileSystemCheckInterval) {
 		logger.Debug("Starting file system check")
 		fileSystemLastCheck = time.Now()
-		discoveredVideos := GetVideoFilesFromDir((*controllerConfig).SearchDir)
+		discoveredVideos := GetVideoFilesFromDir(options.SearchDir())
 		for _, videoFilepath := range discoveredVideos {
 			pathJob := Job{UUID: "", Path: videoFilepath, Parameters: JobParameters{}}
 
@@ -290,11 +287,11 @@ func fileSystemCheck() {
 }
 
 func healthCheck() {
-	if time.Since(healthLastCheck) > time.Duration((*controllerConfig).HealthCheckInterval) {
+	if time.Since(healthLastCheck) > time.Duration(config.Global.HealthCheckInterval) {
 		healthLastCheck = time.Now()
 		logger.Debug("Starting health check")
 		for _, v := range DispatchedJobs.Decontain() {
-			if time.Since(v.LastUpdated) > time.Duration((*controllerConfig).HealthCheckTimeout) {
+			if time.Since(v.LastUpdated) > time.Duration(config.Global.HealthCheckTimeout) {
 				d, _ := DispatchedJobs.PopByUUID(v.Job.UUID)
 				logger.Warn(fmt.Sprintf("Depositing %v back into Job queue because of unresponsive Runner", d.Job.Path))
 				d.Job.UUID = uuid.NewString()
@@ -308,7 +305,7 @@ func healthCheck() {
 
 func readDispatchedFile() DispatchedContainer {
 	// Read/unmarshal json from JSONDir/dispatched_jobs.json
-	f, err := os.Open(fmt.Sprintf("%v/dispatched_jobs.json", controllerConfig.ConfigDir))
+	f, err := os.Open(fmt.Sprintf("%v/dispatched_jobs.json", options.ConfigDir()))
 	if err != nil {
 		logger.Warn(fmt.Sprintf("Failed to open dispatched_jobs.json because of error: %v", err))
 		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}

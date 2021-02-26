@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/BrenekH/project-redcedar-controller/config"
+	"github.com/BrenekH/project-redcedar-controller/options"
 )
 
 // HistoryEntry represents an entry for the history collection
@@ -35,7 +37,7 @@ var HistoryEntries HistoryContainer = HistoryContainer{sync.Mutex{}, make([]Hist
 func completedLooper(completedChan *chan JobCompleteRequest, stopChan *chan interface{}, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
-	defer log.Println("Controller: completedLooper stopped")
+	defer logger.Info("completedLooper stopped")
 
 	for {
 		select {
@@ -60,7 +62,7 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 	// Look up Job information from DispatchedJobs and remove from DispatchedJobs
 	dJob, err := DispatchedJobs.PopByUUID(r.UUID)
 	if err != nil {
-		log.Printf("Could not Pop because of invalid UUID '%v': %v\n", r.UUID, err)
+		logger.Error(fmt.Sprintf("Could not Pop because of invalid UUID '%v': %v", r.UUID, err))
 		return
 	}
 
@@ -71,11 +73,31 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 
 	filename := dJob.Job.Path
 
+	if config.Global.SmallerFiles {
+		ogi, err := os.Stat(filename)
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+
+		newI, err := os.Stat(r.InFile)
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+
+		if newI.Size() > ogi.Size() {
+			logger.Info(fmt.Sprintf("'%v' does not adhere to Smaller Files setting", filename))
+			// TODO: Blacklist file in options.ConfigDir()/size_blacklist.json
+			return
+		}
+	}
+
 	// Delete old file from file system
 	err = os.Remove(dJob.Job.Path)
 	if err != nil {
 		failMessage := fmt.Sprintf("Failed to remove file '%v' because of error: %v", dJob.Job.Path, err)
-		log.Printf("%v\n", failMessage)
+		logger.Error(failMessage)
 
 		// Set filename to a string with an extra redcedar extension
 		fnExt := path.Ext(filename)
@@ -92,7 +114,7 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 	err = MoveFile(r.InFile, filename)
 	if err != nil {
 		failMessage := fmt.Sprintf("Failed to move file '%v' because of error: %v", dJob.Job.Path, err)
-		log.Printf("%v\n", failMessage)
+		logger.Error(failMessage)
 
 		r.History.Errors = append(r.History.Errors, failMessage)
 	}
@@ -108,23 +130,23 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 
 func readHistoryFile() HistoryContainer {
 	// Read/unmarshal json from JSONDir/history.json
-	f, err := os.Open(fmt.Sprintf("%v/history.json", controllerConfig.ConfigDir))
+	f, err := os.Open(fmt.Sprintf("%v/history.json", options.ConfigDir()))
 	if err != nil {
-		log.Printf("Failed to open history.json because of error: %v\n", err)
+		logger.Warn(fmt.Sprintf("Failed to open history.json because of error: %v\n", err))
 		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
 	}
 	defer f.Close()
 
 	b, err := io.ReadAll(f)
 	if err != nil {
-		log.Printf("Failed to read history.json because of error: %v\n", err)
+		logger.Warn(fmt.Sprintf("Failed to read history.json because of error: %v\n", err))
 		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
 	}
 
 	var readJSON []HistoryEntry
 	err = json.Unmarshal(b, &readJSON)
 	if err != nil {
-		log.Printf("Failed to unmarshal history.json because of error: %v\n", err)
+		logger.Warn(fmt.Sprintf("Failed to unmarshal history.json because of error: %v\n", err))
 		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
 	}
 

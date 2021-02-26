@@ -6,12 +6,10 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/BrenekH/logange"
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/controller"
-	"github.com/BrenekH/project-redcedar-controller/options"
 	"github.com/BrenekH/project-redcedar-controller/server"
 )
 
@@ -37,17 +35,25 @@ func main() {
 		stopChan <- true
 	}()
 
-	controllerConfig := config.ControllerConfiguration{
-		UpdateChan:              &updateChan,
-		SearchDir:               options.SearchDir(),
-		ConfigDir:               options.ConfigDir(),
-		FileSystemCheckInterval: int(15 * time.Minute),
-		HealthCheckInterval:     int(1 * time.Minute),
-		HealthCheckTimeout:      int(1 * time.Hour),
+	var err error
+	config.Global, err = config.LoadSettings()
+	if err != nil {
+		logger.Warn(err.Error())
+		config.Global = config.DefaultSettings()
+	}
+
+	err = config.SetRootFHVerbosity(config.Global.LogVerbosity)
+	if err != nil {
+		logger.Warn(err.Error())
+	}
+
+	err = config.SaveGlobal()
+	if err != nil {
+		logger.Error(err.Error())
 	}
 
 	// Start Controller goroutine
-	go controller.RunController(&controllerConfig, &stopChan, wg)
+	go controller.RunController(&stopChan, wg)
 
 	// Start HTTP Server goroutine
 	go server.RunHTTPServer(&stopChan, wg)

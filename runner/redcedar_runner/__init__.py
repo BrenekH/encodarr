@@ -33,11 +33,11 @@ class JobRunner:
 		self.runner_name = runner_name
 
 		self.__current_job_status = {
-			"percentage": None,
-			"job_elapsed_time": None,
-			"stage_estimated_time_remaining": None,
-			"fps": None,
-			"stage_elapsed_time": None,
+			"percentage": "0",
+			"job_elapsed_time": "N/A",
+			"stage_estimated_time_remaining": "N/A",
+			"fps": "N/A",
+			"stage_elapsed_time": "N/A",
 			"stage": None
 		}
 		self.__running = True
@@ -66,7 +66,7 @@ class JobRunner:
 		for i in range(100):
 			if self.__running:
 				try:
-					r = requests.get(f"http://{self.controller_ip}/api/runner/v1/job/request", headers={"redcedar-runner-name": self.runner_name}, stream=True)
+					r = requests.get(f"http://{self.controller_ip}/api/runner/v1/job/request", headers={"X-RedCedar-Runner-Name": self.runner_name}, stream=True)
 				except requests.exceptions.ConnectionError as e:
 					logger.error(f"Received ConnectionError. Retrying in {i} seconds")
 					logger.debug(f"ConnectionError info: ", exc_info=True)
@@ -82,7 +82,7 @@ class JobRunner:
 					time.sleep(i)
 					continue
 
-				job_info = loads(r.headers.get("x-rc-job-info"))
+				job_info = loads(r.headers.get("X-RedCedar-Job-Info"))
 				input_file = Path.cwd() / f"input{Path(job_info['path']).suffix}" # Creates an input file with the same suffix as the input
 
 				if input_file.exists():
@@ -263,7 +263,18 @@ class JobRunner:
 		}
 
 		if not critical_failure:
+			self.__current_job_status = {
+				"percentage": "100",
+				"job_elapsed_time": "N/A",
+				"stage_estimated_time_remaining": "N/A",
+				"fps": "N/A",
+				"stage_elapsed_time": "N/A",
+				"stage": "Copying to Controller"
+			}
+			self.send_current_job_status()
+
 			self.send_job_complete(history_entry, output_file)
+
 			if input_file.exists():
 				input_file.unlink()
 			if output_file.exists():
@@ -350,11 +361,11 @@ class JobRunner:
 						data=m,
 						headers={
 							"Content-Type": m.content_type,
-							"x-rc-history-entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": False})
+							"X-RedCedar-History-Entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": False})
 						})
 			else:
 				r = requests.post(f"http://{self.controller_ip}/api/runner/v1/job/complete", headers={
-					"x-rc-history-entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": True})
+					"X-RedCedar-History-Entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": True})
 				})
 
 			if r.status_code != 200:

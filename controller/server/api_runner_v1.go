@@ -22,7 +22,7 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		logger.Info(fmt.Sprintf("Received new job request from %v", r.RemoteAddr))
 		requestChannel := make(chan controller.Job, 1)
-		controller.JobRequestChannel <- controller.JobRequest{RunnerName: r.Header.Get("redcedar-runner-name"), ReturnChannel: &requestChannel}
+		controller.JobRequestChannel <- controller.JobRequest{RunnerName: r.Header.Get("X-RedCedar-Runner-Name"), ReturnChannel: &requestChannel}
 		jobToSend, ok := <-requestChannel
 
 		if ok == false {
@@ -37,7 +37,7 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			serverError(w, r, fmt.Sprintf("Runner API v1: Error marshaling Job to json: %v", err))
 		}
-		w.Header().Set("x-rc-job-info", string(jobJSONBytes))
+		w.Header().Set("X-RedCedar-Job-Info", string(jobJSONBytes))
 
 		// Send file to Runner
 		file, err := os.Open(jobToSend.Path)
@@ -103,11 +103,11 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 func postJobComplete(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		h := r.Header.Get("x-rc-history-entry")
+		h := r.Header.Get("X-RedCedar-History-Entry")
 		if h == "" {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid header 'x-rc-history-entry'"))
+			w.Write([]byte("Invalid header 'X-RedCedar-History-Entry'"))
 			return
 		}
 
