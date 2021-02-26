@@ -59,14 +59,13 @@ func resources(w http.ResponseWriter, r *http.Request) {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	indexFileData, err := webfiles.ReadFile("webfiles/html/index.html")
-	if err != nil {
-		serverError(w, r, fmt.Sprintf("Could not read 'webfiles/html/index.html' because of error: %v", err))
-		return
-	}
-
 	switch r.Method {
 	case "GET":
+		indexFileData, err := webfiles.ReadFile("webfiles/html/index.html")
+		if err != nil {
+			serverError(w, r, fmt.Sprintf("Could not read 'webfiles/html/index.html' because of error: %v", err))
+			return
+		}
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
 		w.Write(indexFileData)

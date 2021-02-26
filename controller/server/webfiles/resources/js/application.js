@@ -1,6 +1,8 @@
 var currentTab = "running";
 
 $(document).ready(function () {
+	setTabToPathname(window.location.pathname);
+
 	updateCurrentTab();
 
 	window.setInterval(function(){
@@ -8,20 +10,44 @@ $(document).ready(function () {
 	}, 2000);
 });
 
+function setTabToPathname(p) {
+	switch (p) {
+		case "/queue":
+			$("#queue-tab").trigger("click");
+			break;
+		case "/history":
+			$("#history-tab").trigger("click");
+			break;
+		case "/settings":
+			$("#settings-tab").trigger("click");
+			break;
+		default:
+			break;
+	}
+}
+
 $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
 	var target = $(e.target).attr("href");
 	if (target == "#queue") {
 		updateQueue();
 		currentTab = "queue";
+		window.history.replaceState(undefined, "", "/queue");
+		document.title = "Queue - Project RedCedar";
 	} else if (target == "#history") {
 		updateHistory();
 		currentTab = "history";
+		window.history.replaceState(undefined, "", "/history");
+		document.title = "History - Project RedCedar";
 	} else if (target == "#running-jobs") {
 		updateRunning();
 		currentTab = "running";
+		window.history.replaceState(undefined, "", "/");
+		document.title = "Project RedCedar";
 	} else if (target == "#settings") {
 		updateSettings();
 		currentTab = "settings";
+		window.history.replaceState(undefined, "", "/settings");
+		document.title = "Settings - Project RedCedar";
 	}
 });
 
