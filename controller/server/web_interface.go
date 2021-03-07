@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-//go:embed webfiles/*
+//go:embed webfiles
 var webfiles embed.FS
 
 func nonRootIndexHandler(w http.ResponseWriter, r *http.Request) {
