@@ -3,67 +3,19 @@ package server
 import (
 	"embed"
 	"fmt"
+	"io/fs"
 	"net/http"
-	"strings"
 )
 
 //go:embed webfiles/*
 var webfiles embed.FS
 
-// favicon is a HTTP handler for the favicon.ico file
-func favicon(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "image/x-icon")
-
-	icoData, err := webfiles.ReadFile("webfiles/favicon/favicon.ico")
-	if err != nil {
-		serverError(w, r, fmt.Sprintf("Could not read %v because of error: %v", r.URL, err))
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(icoData)
-}
-
-// resources is a HTTP handler for resource(css, js, svg) requests to the server.
-func resources(w http.ResponseWriter, r *http.Request) {
+func nonRootIndexHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "GET":
-		cssRequest := strings.Contains(r.URL.String(), "css")
-		jsRequest := strings.Contains(r.URL.String(), "js")
-		jpgRequest := strings.Contains(r.URL.String(), "jpg") || strings.Contains(r.URL.String(), "jpeg")
-		svgRequest := strings.Contains(r.URL.String(), "svg")
-
-		if cssRequest {
-			w.Header().Set("Content-Type", "text/css")
-		} else if jsRequest {
-			w.Header().Set("Content-Type", "text/javascript")
-		} else if jpgRequest {
-			w.Header().Set("Content-Type", "image/jpeg")
-		} else if svgRequest {
-			w.Header().Set("Content-Type", "image/svg+xml")
-		} else {
-			logger.Warn(fmt.Sprintf("Could not identify MIME type for resources request: %v\n", r.URL.String()))
-			w.Header().Set("Content-Type", "text/plain")
-		}
-
-		fileData, err := webfiles.ReadFile("webfiles/" + strings.Replace(r.URL.String(), "/", "", 1))
+	case http.MethodGet:
+		indexFileData, err := webfiles.ReadFile("webfiles/index.html")
 		if err != nil {
-			serverError(w, r, fmt.Sprintf("Could not read %v because of error: %v", r.URL, err))
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write(fileData)
-	default:
-		methodForbidden(w, r)
-	}
-}
-
-func index(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		indexFileData, err := webfiles.ReadFile("webfiles/html/index.html")
-		if err != nil {
-			serverError(w, r, fmt.Sprintf("Could not read 'webfiles/html/index.html' because of error: %v", err))
+			serverError(w, r, fmt.Sprintf("Could not read 'webfiles/index.html' because of error: %v", err))
 			return
 		}
 		w.Header().Set("Content-Type", "text/html")
@@ -75,7 +27,15 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func registerWebInterfaceHandlers() {
-	http.HandleFunc("/", index)
-	http.HandleFunc("/resources/", resources)
-	http.HandleFunc("/favicon.ico", favicon)
+	fSys, err := fs.Sub(webfiles, "webfiles")
+	if err != nil {
+		panic(err)
+	}
+	http.Handle("/", http.FileServer(http.FS(fSys)))
+
+	// Non-root handlers (/running, /queue, /history, and /settings should all send index.html, but by default they don't)
+	http.HandleFunc("/running", nonRootIndexHandler)
+	http.HandleFunc("/queue", nonRootIndexHandler)
+	http.HandleFunc("/history", nonRootIndexHandler)
+	http.HandleFunc("/settings", nonRootIndexHandler)
 }
