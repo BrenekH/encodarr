@@ -199,12 +199,12 @@ func settings(w http.ResponseWriter, r *http.Request) {
 			config.Global.LogVerbosity = rS.LogVerbosity
 		}
 
+		config.Global.SmallerFiles = rS.SmallerFiles
+
 		err = config.SaveGlobal()
 		if err != nil {
 			logger.Error(err.Error())
 		}
-
-		config.Global.SmallerFiles = rS.SmallerFiles
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(""))
