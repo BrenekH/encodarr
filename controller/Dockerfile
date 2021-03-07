@@ -12,8 +12,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o redcedar .
 FROM ubuntu:20.04
 
 ENV TZ=Etc/GMT \
-    REDCEDAR_SEARCH_DIR="/tosearch" \
-    REDCEDAR_CONFIG_DIR="/config"
+REDCEDAR_SEARCH_DIR="/tosearch" \
+REDCEDAR_CONFIG_DIR="/config"
 
 WORKDIR /usr/src/app
 
