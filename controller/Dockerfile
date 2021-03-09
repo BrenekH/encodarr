@@ -1,11 +1,11 @@
 # Build stage
-FROM golang:1.16-alpine AS builder
+FROM golang:1.16-buster AS builder
 
 WORKDIR /go/src/project-redcedar/controller
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o redcedar .
+RUN CGO_ENABLED=0 GOOS=linux go build -installsuffix cgo -o redcedar .
 
 
 # Run stage
