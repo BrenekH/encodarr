@@ -1,8 +1,6 @@
-github.com/BrenekH/logange v0.2.0 h1:ITxMusfjidNsDEPvQ+t8ZfGUuVvBajBJ75pJiFzXvOk=
-github.com/BrenekH/logange v0.2.0/go.mod h1:Z4Fr1opkOpGE78Q6zqYvnMHQrHsIzHNNi/1bfnypPzE=
 github.com/BrenekH/logange v0.3.0 h1:dZmQ7Kf6KjUwj4E+FmFU9ELx+bQxp7h7m0+stVfNQkw=
 github.com/BrenekH/logange v0.3.0/go.mod h1:Z4Fr1opkOpGE78Q6zqYvnMHQrHsIzHNNi/1bfnypPzE=
-github.com/google/uuid v1.1.5 h1:kxhtnfFVi+rYdOALN0B3k9UT86zVJKfBimRaciULW4I=
-github.com/google/uuid v1.1.5/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/mattn/go-sqlite3 v1.14.6 h1:dNPt6NO46WmLVt2DLNpwczCmdV5boIZ6g/tlDrlRUbg=
+github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
