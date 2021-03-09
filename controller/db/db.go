@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS history (
 );
 
 CREATE TABLE IF NOT EXISTS dispatched_jobs (
+	uuid text NOT NULL UNIQUE,
 	job binary,
 	status binary,
 	runner text,
@@ -61,6 +62,11 @@ func init() {
 		logger.Critical(err.Error())
 	}
 	defer stmt.Close()
-	stmt.Exec()
+
+	_, err = stmt.Exec()
+	if err != nil {
+		logger.Critical(err.Error())
+	}
+
 	logger.Debug("Database setup and ready")
 }
