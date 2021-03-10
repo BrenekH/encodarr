@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"strings"
@@ -11,7 +9,7 @@ import (
 	"time"
 
 	"github.com/BrenekH/project-redcedar-controller/config"
-	"github.com/BrenekH/project-redcedar-controller/options"
+	"github.com/BrenekH/project-redcedar-controller/db/history"
 )
 
 // HistoryEntry represents an entry for the history collection
@@ -24,14 +22,11 @@ type HistoryEntry struct {
 
 // JobCompleteRequest is a struct for representing a job complete request
 type JobCompleteRequest struct {
-	UUID    string       `json:"uuid"`
-	Failed  bool         `json:"failed"`
-	History HistoryEntry `json:"history"`
-	InFile  string       `json:"-"`
+	UUID    string          `json:"uuid"`
+	Failed  bool            `json:"failed"`
+	History history.History `json:"history"`
+	InFile  string          `json:"-"`
 }
-
-// HistoryEntries is an instantiated variable of the HistoryContainer type
-var HistoryEntries HistoryContainer = HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
 
 // completedLooper is a constant loop that spawns goroutines to handle completed files
 func completedLooper(completedChan *chan JobCompleteRequest, stopChan *chan interface{}, wg *sync.WaitGroup) {
@@ -119,37 +114,8 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 		r.History.Errors = append(r.History.Errors, failMessage)
 	}
 
-	// Add history entry into container
-	HistoryEntries.Add(r.History)
-
-	err = HistoryEntries.Save()
+	err = r.History.Save()
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error saving history: %v", err.Error()))
 	}
-}
-
-func readHistoryFile() HistoryContainer {
-	// Read/unmarshal json from JSONDir/history.json
-	f, err := os.Open(fmt.Sprintf("%v/history.json", options.ConfigDir()))
-	if err != nil {
-		logger.Warn(fmt.Sprintf("Failed to open history.json because of error: %v\n", err))
-		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
-	}
-	defer f.Close()
-
-	b, err := io.ReadAll(f)
-	if err != nil {
-		logger.Warn(fmt.Sprintf("Failed to read history.json because of error: %v\n", err))
-		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
-	}
-
-	var readJSON []HistoryEntry
-	err = json.Unmarshal(b, &readJSON)
-	if err != nil {
-		logger.Warn(fmt.Sprintf("Failed to unmarshal history.json because of error: %v\n", err))
-		return HistoryContainer{sync.Mutex{}, make([]HistoryEntry, 0)}
-	}
-
-	// Add into HistoryContainer and return
-	return HistoryContainer{sync.Mutex{}, readJSON}
 }

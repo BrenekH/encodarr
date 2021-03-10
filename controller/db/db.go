@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS files (
 CREATE TABLE IF NOT EXISTS history (
 	time_completed timestamp,
 	filename text,
-	messages binary
+	warnings binary,
+	errors binary
 );
 
 CREATE TABLE IF NOT EXISTS dispatched_jobs (
@@ -51,19 +52,12 @@ func init() {
 
 	// Setup SQLite database
 	var err error
-	Client, err = sql.Open("sqlite3", options.ConfigDir()+"data.db")
+	Client, err = sql.Open("sqlite3", options.ConfigDir()+"/data.db")
 	if err != nil {
 		logger.Critical(err.Error())
 	}
 
-	var stmt *sql.Stmt
-	stmt, err = Client.Prepare(schemaStmt)
-	if err != nil {
-		logger.Critical(err.Error())
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec()
+	_, err = Client.Exec(schemaStmt)
 	if err != nil {
 		logger.Critical(err.Error())
 	}

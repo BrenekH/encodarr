@@ -108,17 +108,11 @@ func RunController(stopChan *chan interface{}, wg *sync.WaitGroup) {
 
 	// Read JSON(Dispatched & History) and apply to containers
 	DispatchedJobs = readDispatchedFile()
-	HistoryEntries = readHistoryFile()
 
 	// Save if they didn't exist before
 	err := DispatchedJobs.Save()
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
-	}
-
-	err = HistoryEntries.Save()
-	if err != nil {
-		logger.Error(fmt.Sprintf("Error saving history: %v", err.Error()))
 	}
 
 	// Start the job request handler
