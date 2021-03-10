@@ -9,6 +9,7 @@ import (
 
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/controller"
+	"github.com/BrenekH/project-redcedar-controller/db/history"
 )
 
 type queueJSONResponse struct {
@@ -108,14 +109,20 @@ func getHistory(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		// Get slice of HistoryEntries (Decontain)
-		hE := controller.HistoryEntries.Decontain()
+		hE, err := history.All()
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
 		h := make([]transformedHistoryEntry, len(hE))
 
 		// Change datetime into human-readable format
 		for i, v := range hE {
 			dt := v.DateTimeCompleted
 			h[i] = transformedHistoryEntry{
-				File: v.File,
+				File: v.Filename,
 				DateTimeCompleted: fmt.Sprintf("%02d-%02d-%d %02d:%02d:%02d",
 					dt.Month(), dt.Day(), dt.Year(),
 					dt.Hour(), dt.Minute(), dt.Second()),

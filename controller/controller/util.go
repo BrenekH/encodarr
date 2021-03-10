@@ -185,48 +185,6 @@ func (c *DispatchedContainer) Save() error {
 	return nil
 }
 
-// HistoryContainer is a container struct for History entries
-type HistoryContainer struct {
-	sync.Mutex
-	items []HistoryEntry
-}
-
-// Add adds the supplied HistoryEntry to the container
-func (c *HistoryContainer) Add(item HistoryEntry) {
-	c.Lock()
-	defer c.Unlock()
-
-	c.items = append(c.items, item)
-}
-
-// Decontain returns a copy of the underlying slice in the Container.
-func (c *HistoryContainer) Decontain() []HistoryEntry {
-	c.Lock()
-	defer c.Unlock()
-	return append(make([]HistoryEntry, 0, len(c.items)), c.items...)
-}
-
-// Save saves the HistoryContainer to a JSON file
-func (c *HistoryContainer) Save() error {
-	c.Lock()
-	defer c.Unlock()
-
-	b, err := json.Marshal(c.items)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Create(fmt.Sprintf("%v/history.json", options.ConfigDir()))
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	io.Copy(f, bytes.NewReader(b))
-
-	return nil
-}
-
 // IsDirectory returns a bool representing whether or not the provided path is a directory
 func IsDirectory(path string) (bool, error) {
 	fileInfo, err := os.Stat(path)
