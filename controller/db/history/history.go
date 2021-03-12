@@ -22,7 +22,7 @@ func init() {
 	logger = logange.NewLogger("db/history")
 }
 
-// All returns a slice of History's that represent row in the database
+// All returns a slice of Histories that represent the rows in the database
 func All() ([]History, error) {
 	rows, err := db.Client.Query("SELECT filename, time_completed, warnings, errors FROM history;")
 	if err != nil {
@@ -31,12 +31,11 @@ func All() ([]History, error) {
 
 	returnSlice := make([]History, 0)
 
-	// Variables to scan into while looping through the rows
-	h := History{Warnings: make([]string, 0), Errors: make([]string, 0)}
-	bW := []byte("")
-	bE := []byte("")
-
 	for rows.Next() {
+		// Variables to scan into
+		h := History{Warnings: make([]string, 0), Errors: make([]string, 0)}
+		bW := []byte("")
+		bE := []byte("")
 
 		err = rows.Scan(&h.Filename, &h.DateTimeCompleted, &bW, &bE)
 		if err != nil {
@@ -78,12 +77,16 @@ func (h *History) Save() error {
 		return err
 	}
 
-	res, err := db.Client.Exec("INSERT INTO history (time_completed, filename, warnings, errors) VALUES ($1, $2, $3, $4);", h.DateTimeCompleted, h.Filename, bW, bE)
+	_, err = db.Client.Exec("INSERT INTO history (time_completed, filename, warnings, errors) VALUES ($1, $2, $3, $4);",
+		h.DateTimeCompleted,
+		h.Filename,
+		bW,
+		bE,
+	)
 	if err != nil {
 		logger.Error(err.Error())
 		return err
 	}
-	_ = res
 
 	return nil
 }

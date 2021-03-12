@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/BrenekH/project-redcedar-controller/config"
+	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
 	"github.com/BrenekH/project-redcedar-controller/db/history"
 )
 
@@ -55,15 +56,17 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	// Look up Job information from DispatchedJobs and remove from DispatchedJobs
-	dJob, err := DispatchedJobs.PopByUUID(r.UUID)
+	dJob := dispatched.DJob{UUID: r.UUID}
+	err := dJob.Get()
 	if err != nil {
-		logger.Error(fmt.Sprintf("Could not Pop because of invalid UUID '%v': %v", r.UUID, err))
+		logger.Error(err.Error())
 		return
 	}
 
-	err = DispatchedJobs.Save()
+	err = dJob.Delete()
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
+		logger.Error(err.Error())
+		return
 	}
 
 	filename := dJob.Job.Path
