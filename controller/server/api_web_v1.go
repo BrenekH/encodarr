@@ -9,11 +9,12 @@ import (
 
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/controller"
+	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
 	"github.com/BrenekH/project-redcedar-controller/db/history"
 )
 
 type queueJSONResponse struct {
-	JobQueue []controller.Job `json:"queue"`
+	JobQueue []dispatched.Job `json:"queue"`
 }
 
 type runningJSONResponse struct {
@@ -23,13 +24,13 @@ type runningJSONResponse struct {
 type filteredDispatchedJob struct {
 	Job        filteredJob          `json:"job"`
 	RunnerName string               `json:"runner_name"`
-	Status     controller.JobStatus `json:"status"`
+	Status     dispatched.JobStatus `json:"status"`
 }
 
 type filteredJob struct {
 	UUID       string                   `json:"uuid"`
 	Path       string                   `json:"path"`
-	Parameters controller.JobParameters `json:"parameters"`
+	Parameters dispatched.JobParameters `json:"parameters"`
 }
 
 type transformedHistoryEntry struct {
@@ -52,7 +53,7 @@ type settingsJSON struct {
 }
 
 func makeFilteredDispatchedJobs() runningJSONResponse {
-	dispatchedJobsSlice := controller.DispatchedJobs.Decontain()
+	dispatchedJobsSlice, _ := dispatched.All()
 	runningJSONResponseStruct := runningJSONResponse{DispatchedJobs: make([]filteredDispatchedJob, len(dispatchedJobsSlice))}
 
 	for i, dJob := range dispatchedJobsSlice {
@@ -62,7 +63,7 @@ func makeFilteredDispatchedJobs() runningJSONResponse {
 				Path:       dJob.Job.Path,
 				Parameters: dJob.Job.Parameters,
 			},
-			RunnerName: dJob.RunnerName,
+			RunnerName: dJob.Runner,
 			Status:     dJob.Status,
 		}
 	}

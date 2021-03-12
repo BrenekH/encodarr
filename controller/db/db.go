@@ -57,6 +57,8 @@ func init() {
 		logger.Critical(err.Error())
 	}
 
+	Client.SetMaxOpenConns(1) // We set the max connections to 1, to prevent any "database is locked" errors
+
 	_, err = Client.Exec(schemaStmt)
 	if err != nil {
 		logger.Critical(err.Error())
