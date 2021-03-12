@@ -24,6 +24,8 @@ console_handler.setFormatter(console_format)
 # Add handlers to the logger
 logger.addHandler(console_handler)
 
+base_ffmpeg_command = ["ffmpeg", "-hide_banner", "-loglevel", "warning", "-stats"]
+
 class JobRunner:
 	def __init__(self, controller_ip: str="localhost:5000", runner_name=None):
 		self.controller_ip = controller_ip
@@ -183,7 +185,7 @@ class JobRunner:
 			extracted_audio = Path.cwd() / f"{job_info['uuid']}-extracted-audio.mka"
 			if extracted_audio.exists():
 				extracted_audio.unlink()
-			extract_audio_command = ["ffmpeg", "-i", str(input_file), "-map", "-0:v?", "-map", "0:a:0", "-map", "-0:s?", "-c", "copy", str(extracted_audio)]
+			extract_audio_command = base_ffmpeg_command + ["-i", str(input_file), "-map", "-0:v?", "-map", "0:a:0", "-map", "-0:s?", "-c", "copy", str(extracted_audio)]
 			self.__current_job_status["stage"] = "Extract Audio"
 			self.send_current_job_status()
 			logger.info("Starting extraction of audio")
@@ -192,7 +194,7 @@ class JobRunner:
 
 			# Downmix audio
 			downmixed_audio = Path.cwd() / f"{job_info['uuid']}-downmixed-audio.mka"
-			downmix_audio_command = ["ffmpeg", "-i", str(extracted_audio), "-map", "0:a", "-c", "aac", "-af", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", str(downmixed_audio)]
+			downmix_audio_command = base_ffmpeg_command + ["-i", str(extracted_audio), "-map", "0:a", "-c", "aac", "-af", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", str(downmixed_audio)]
 			self.__current_job_status["stage"] = "Downmix Audio"
 			self.send_current_job_status()
 			logger.info("Starting downmixing of audio")
@@ -218,7 +220,7 @@ class JobRunner:
 		else:
 			encoding_commands = ["-map", "0:v", "-vcodec", "hevc"]
 
-		final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + ["-c", "copy"] + encoding_commands + [str(output_file)]
+		final_ffmpeg_command = base_ffmpeg_command + encode_inputs + tracks_to_copy + ["-c", "copy"] + encoding_commands + [str(output_file)]
 		self.__current_job_status["stage"] = "Final encode"
 		self.send_current_job_status()
 		logger.info("Starting final encode")
@@ -238,7 +240,7 @@ class JobRunner:
 				current_job_warnings.append("Final encode failed because of suspected unsupported subtitle codec, retrying without subtitles")
 				logger.warning("Final encode failed because of suspected unsupported subtitle codec, retrying without subtitles")
 				tracks_to_copy = tracks_to_copy[2:]
-				final_ffmpeg_command = ["ffmpeg"] + encode_inputs + tracks_to_copy + ["-c", "copy"] + encoding_commands + [str(output_file)]
+				final_ffmpeg_command = base_ffmpeg_command + encode_inputs + tracks_to_copy + ["-c", "copy"] + encoding_commands + [str(output_file)]
 				ffmpeg_exit_code = self._run_ffmpeg(final_ffmpeg_command, self.update_job_status, stage_start_time, job_start_time, job_info)
 
 		if ffmpeg_exit_code != 0 and self.__running and not critical_failure:
@@ -346,7 +348,7 @@ class JobRunner:
 					return
 				logger.warning(f"Current job status failed to send because of error: {r.content}")
 
-		start_new_thread(x, ()) # This is threaded because sending the status takes approx. 2 seconds which significantly reduces the speed of the runner
+		x() # This is threaded because sending the status takes approx. 2 seconds which significantly reduces the speed of the runner
 
 	def send_job_complete(self, history_entry, output_file_path: Path):
 		for i in range(100):
