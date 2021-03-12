@@ -27,7 +27,7 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 		controller.JobRequestChannel <- controller.JobRequest{RunnerName: r.Header.Get("X-RedCedar-Runner-Name"), ReturnChannel: &requestChannel}
 		jobToSend, ok := <-requestChannel
 
-		if ok == false {
+		if !ok {
 			serverError(w, r, "Server shutdown")
 			return
 		}
@@ -84,19 +84,20 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 		}
 
 		dJob := dispatched.DJob{UUID: ijs.UUID}
-		getErr := dJob.Get()
-		dJob.Status = ijs.Status
-		dJob.LastUpdated = time.Now()
-		saveErr := dJob.Update()
-		if saveErr != nil {
-			logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", saveErr.Error()))
-		}
-		if getErr != nil {
-			logger.Error(getErr.Error())
+		err = dJob.Get()
+		if err != nil {
+			logger.Error(err.Error())
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusConflict) // Sends the 409 code to signal runners to abandon the job
 			w.Write([]byte(""))
 			return
+		}
+
+		dJob.Status = ijs.Status
+		dJob.LastUpdated = time.Now()
+		err = dJob.Update()
+		if err != nil {
+			logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
 		}
 
 		w.Header().Set("Content-Type", "text/plain")

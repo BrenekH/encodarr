@@ -55,7 +55,7 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
 
-	// Look up Job information from DispatchedJobs and remove from DispatchedJobs
+	// Look up Job information from the database and remove it
 	dJob := dispatched.DJob{UUID: r.UUID}
 	err := dJob.Get()
 	if err != nil {
