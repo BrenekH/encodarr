@@ -9,10 +9,12 @@ import (
 
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/controller"
+	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
+	"github.com/BrenekH/project-redcedar-controller/db/history"
 )
 
 type queueJSONResponse struct {
-	JobQueue []controller.Job `json:"queue"`
+	JobQueue []dispatched.Job `json:"queue"`
 }
 
 type runningJSONResponse struct {
@@ -22,13 +24,13 @@ type runningJSONResponse struct {
 type filteredDispatchedJob struct {
 	Job        filteredJob          `json:"job"`
 	RunnerName string               `json:"runner_name"`
-	Status     controller.JobStatus `json:"status"`
+	Status     dispatched.JobStatus `json:"status"`
 }
 
 type filteredJob struct {
 	UUID       string                   `json:"uuid"`
 	Path       string                   `json:"path"`
-	Parameters controller.JobParameters `json:"parameters"`
+	Parameters dispatched.JobParameters `json:"parameters"`
 }
 
 type transformedHistoryEntry struct {
@@ -51,7 +53,7 @@ type settingsJSON struct {
 }
 
 func makeFilteredDispatchedJobs() runningJSONResponse {
-	dispatchedJobsSlice := controller.DispatchedJobs.Decontain()
+	dispatchedJobsSlice, _ := dispatched.All()
 	runningJSONResponseStruct := runningJSONResponse{DispatchedJobs: make([]filteredDispatchedJob, len(dispatchedJobsSlice))}
 
 	for i, dJob := range dispatchedJobsSlice {
@@ -61,7 +63,7 @@ func makeFilteredDispatchedJobs() runningJSONResponse {
 				Path:       dJob.Job.Path,
 				Parameters: dJob.Job.Parameters,
 			},
-			RunnerName: dJob.RunnerName,
+			RunnerName: dJob.Runner,
 			Status:     dJob.Status,
 		}
 	}
@@ -108,14 +110,20 @@ func getHistory(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		// Get slice of HistoryEntries (Decontain)
-		hE := controller.HistoryEntries.Decontain()
+		hE, err := history.All()
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
 		h := make([]transformedHistoryEntry, len(hE))
 
 		// Change datetime into human-readable format
 		for i, v := range hE {
 			dt := v.DateTimeCompleted
 			h[i] = transformedHistoryEntry{
-				File: v.File,
+				File: v.Filename,
 				DateTimeCompleted: fmt.Sprintf("%02d-%02d-%d %02d:%02d:%02d",
 					dt.Month(), dt.Day(), dt.Year(),
 					dt.Hour(), dt.Minute(), dt.Second()),

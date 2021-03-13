@@ -8,24 +8,26 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	"github.com/BrenekH/project-redcedar-controller/controller"
+	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
 )
 
 type incomingJobStatus struct {
 	UUID   string               `json:"uuid"`
-	Status controller.JobStatus `json:"status"`
+	Status dispatched.JobStatus `json:"status"`
 }
 
 func getNewJob(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		logger.Info(fmt.Sprintf("Received new job request from %v", r.RemoteAddr))
-		requestChannel := make(chan controller.Job, 1)
+		requestChannel := make(chan dispatched.Job, 1)
 		controller.JobRequestChannel <- controller.JobRequest{RunnerName: r.Header.Get("X-RedCedar-Runner-Name"), ReturnChannel: &requestChannel}
 		jobToSend, ok := <-requestChannel
 
-		if ok == false {
+		if !ok {
 			serverError(w, r, "Server shutdown")
 			return
 		}
@@ -81,15 +83,21 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 			logger.Error(fmt.Sprintf("Runner API v1: Error unmarshalling into struct: %v", err))
 		}
 
-		err = controller.DispatchedJobs.UpdateStatus(ijs.UUID, ijs.Status)
-		saveErr := controller.DispatchedJobs.Save()
-		if saveErr != nil {
-			logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", saveErr.Error()))
-		}
-		if err != nil { // Since I wrote UpdateStatus, I know that if it errors at all, it's an issue with the UUID
+		dJob := dispatched.DJob{UUID: ijs.UUID}
+		err = dJob.Get()
+		if err != nil {
+			logger.Error(err.Error())
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusConflict) // Sends the 409 code to signal runners to abandon the job
-			w.Write([]byte("Invalid UUID. If you are certain that it was at one point valid, please start a new job."))
+			w.Write([]byte(""))
+			return
+		}
+
+		dJob.Status = ijs.Status
+		dJob.LastUpdated = time.Now()
+		err = dJob.Update()
+		if err != nil {
+			logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
 		}
 
 		w.Header().Set("Content-Type", "text/plain")
