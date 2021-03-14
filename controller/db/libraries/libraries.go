@@ -219,7 +219,7 @@ func (l *Library) Update() error {
 		return err
 	}
 
-	_, err = db.Client.Exec("UPDATE dispatched_jobs SET id=$1, folder=$2, fs_check_interval=$3, pipeline=$4, queue=$5, file_cache=$6, path_masks=$7 WHERE id=$1;",
+	_, err = db.Client.Exec("UPDATE libraries SET id=$1, folder=$2, fs_check_interval=$3, pipeline=$4, queue=$5, file_cache=$6, path_masks=$7 WHERE id=$1;",
 		l.ID,
 		l.Folder,
 		fsCI,
