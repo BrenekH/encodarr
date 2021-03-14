@@ -12,6 +12,7 @@ import (
 type Library struct {
 	ID              int
 	Folder          string
+	Priority        int
 	FsCheckInterval time.Duration
 	Pipeline        pluginPipeline
 	Queue           queue
@@ -44,7 +45,7 @@ func init() {
 
 // All returns a slice of Libraries that represent the rows in the database.
 func All() ([]Library, error) {
-	rows, err := db.Client.Query("SELECT id, folder, fs_check_interval, pipeline, queue, file_cache, path_masks FROM libraries;")
+	rows, err := db.Client.Query("SELECT id, folder, priority, fs_check_interval, pipeline, queue, file_cache, path_masks FROM libraries;")
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +56,7 @@ func All() ([]Library, error) {
 		l := Library{}
 		d := dBLibrary{}
 
-		if err = rows.Scan(&l.ID, &l.Folder, &d.FsCheckInterval, &d.Pipeline, &d.Queue, &d.FileCache, &d.PathMasks); err != nil {
+		if err = rows.Scan(&l.ID, &l.Folder, &l.Priority, &d.FsCheckInterval, &d.Pipeline, &d.Queue, &d.FileCache, &d.PathMasks); err != nil {
 			logger.Error(err.Error())
 			continue
 		}
@@ -78,8 +79,9 @@ func All() ([]Library, error) {
 func (l *Library) Get() error {
 	d := dBLibrary{}
 
-	err := db.Client.QueryRow("SELECT folder, fs_check_interval, pipeline, queue, file_cache, path_masks FROM libraries WHERE id = $1;", l.ID).Scan(
+	err := db.Client.QueryRow("SELECT folder, priority, fs_check_interval, pipeline, queue, file_cache, path_masks FROM libraries WHERE id = $1;", l.ID).Scan(
 		&l.Folder,
+		&l.Priority,
 		&d.FsCheckInterval,
 		&d.Pipeline,
 		&d.Queue,
@@ -108,9 +110,10 @@ func (l *Library) Insert() error {
 		return err
 	}
 
-	_, err = db.Client.Exec("INSERT INTO libraries (id, folder, fs_check_interval, pipeline, queue, file_cache, path_masks) VALUES ($1, $2, $3, $4, $5, $6, $7);",
+	_, err = db.Client.Exec("INSERT INTO libraries (id, folder, priority, fs_check_interval, pipeline, queue, file_cache, path_masks) VALUES ($1, $2, $3, $4, $5, $6, $7);",
 		l.ID,
 		l.Folder,
+		l.Priority,
 		d.FsCheckInterval,
 		d.Pipeline,
 		d.Queue,
@@ -134,9 +137,10 @@ func (l *Library) Update() error {
 		return err
 	}
 
-	_, err = db.Client.Exec("UPDATE libraries SET id=$1, folder=$2, fs_check_interval=$3, pipeline=$4, queue=$5, file_cache=$6, path_masks=$7 WHERE id=$1;",
+	_, err = db.Client.Exec("UPDATE libraries SET id=$1, folder=$2, priority=$3, fs_check_interval=$4, pipeline=$5, queue=$6, file_cache=$7, path_masks=$8 WHERE id=$1;",
 		l.ID,
 		l.Folder,
+		l.Priority,
 		dbLib.FsCheckInterval,
 		dbLib.Pipeline,
 		dbLib.Queue,

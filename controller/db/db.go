@@ -19,7 +19,8 @@ var schemaStmt string = `
 CREATE TABLE IF NOT EXISTS libraries (
 	ID integer,
 	folder text,
-	fs_check_interval integer,
+	priority integer
+	fs_check_interval text,
 	pipeline binary,
 	queue binary,
 	file_cache binary,
