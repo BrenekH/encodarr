@@ -16,6 +16,7 @@ type Library struct {
 	Pipeline        pluginPipeline
 	Queue           queue
 	FileCache       fileCache
+	PathMasks       pathMasks
 }
 
 type pluginPipeline struct{} // TODO: Implement
@@ -23,6 +24,8 @@ type pluginPipeline struct{} // TODO: Implement
 type queue struct{} // TODO: Complete
 
 type fileCache struct{} // TODO: Complete
+
+type pathMasks struct{} // TODO: Complete
 
 var logger logange.Logger
 
@@ -32,7 +35,7 @@ func init() {
 
 // All returns a slice of Libraries that represent the rows in the database
 func All() ([]Library, error) {
-	rows, err := db.Client.Query("SELECT id, folder, fs_check_interval, pipeline, queue, file_cache FROM libraries;")
+	rows, err := db.Client.Query("SELECT id, folder, fs_check_interval, pipeline, queue, file_cache, path_masks FROM libraries;")
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +48,9 @@ func All() ([]Library, error) {
 		bP := []byte("")  // bytesPipeline. For intermediate loading into when scanning the rows
 		bQ := []byte("")  // bytesQueue.
 		bFC := []byte("") // bytesFileCache.
+		bPM := []byte("") // bytesPathMasks.
 
-		err = rows.Scan(&l.ID, &l.Folder, &fsCI, &bP, &bQ, &bFC)
+		err = rows.Scan(&l.ID, &l.Folder, &fsCI, &bP, &bQ, &bFC, &bPM)
 		if err != nil {
 			logger.Error(err.Error())
 			continue
@@ -76,6 +80,12 @@ func All() ([]Library, error) {
 			continue
 		}
 
+		err = json.Unmarshal(bPM, &l.PathMasks)
+		if err != nil {
+			logger.Error(err.Error())
+			continue
+		}
+
 		returnSlice = append(returnSlice, l)
 	}
 	rows.Close()
@@ -91,13 +101,15 @@ func (l *Library) Get() error {
 	bP := []byte("")
 	bQ := []byte("")
 	bFC := []byte("")
+	bPM := []byte("")
 
-	err := db.Client.QueryRow("SELECT folder, fs_check_interval, pipeline, queue, file_cache FROM libraries WHERE id = $1;", l.ID).Scan(
+	err := db.Client.QueryRow("SELECT folder, fs_check_interval, pipeline, queue, file_cache, path_masks FROM libraries WHERE id = $1;", l.ID).Scan(
 		&l.Folder,
 		&fsCI,
 		&bP,
 		&bQ,
 		&bFC,
+		&bPM,
 	)
 
 	if err != nil {
@@ -118,6 +130,12 @@ func (l *Library) Get() error {
 	}
 
 	err = json.Unmarshal(bQ, &l.Queue)
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
+	err = json.Unmarshal(bPM, &l.PathMasks)
 	if err != nil {
 		logger.Error(err.Error())
 		return err
@@ -149,13 +167,20 @@ func (l *Library) Insert() error {
 		return err
 	}
 
-	_, err = db.Client.Exec("INSERT INTO libraries (id, folder, fs_check_interval, pipeline, queue, file_cache) VALUES ($1, $2, $3, $4, $5, $6);",
+	bPM, err := json.Marshal(l.PathMasks)
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
+	_, err = db.Client.Exec("INSERT INTO libraries (id, folder, fs_check_interval, pipeline, queue, file_cache, path_masks) VALUES ($1, $2, $3, $4, $5, $6, $7);",
 		l.ID,
 		l.Folder,
 		fsCI,
 		bP,
 		bQ,
 		bFC,
+		bPM,
 	)
 	if err != nil {
 		logger.Error(err.Error())
@@ -188,13 +213,20 @@ func (l *Library) Update() error {
 		return err
 	}
 
-	_, err = db.Client.Exec("UPDATE dispatched_jobs SET id=$1, folder=$2, fs_check_interval=$3, pipeline=$4, queue=$5, file_cache=$6 WHERE id=$1;",
+	bPM, err := json.Marshal(l.PathMasks)
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
+	_, err = db.Client.Exec("UPDATE dispatched_jobs SET id=$1, folder=$2, fs_check_interval=$3, pipeline=$4, queue=$5, file_cache=$6, path_masks=$7 WHERE id=$1;",
 		l.ID,
 		l.Folder,
 		fsCI,
 		bP,
 		bQ,
 		bFC,
+		bPM,
 	)
 	if err != nil {
 		logger.Error(err.Error())

@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS libraries (
 	fs_check_interval integer,
 	pipeline binary,
 	queue binary,
-	file_cache binary
+	file_cache binary,
+	path_masks binary
 );
 
 CREATE TABLE IF NOT EXISTS files (
