@@ -17,7 +17,7 @@ type Library struct {
 	Pipeline        pluginPipeline
 	Queue           queue
 	FileCache       fileCache
-	PathMasks       pathMasks
+	PathMasks       []string
 }
 
 type pluginPipeline struct{} // TODO: Implement
@@ -25,8 +25,6 @@ type pluginPipeline struct{} // TODO: Implement
 type queue struct{} // TODO: Complete
 
 type fileCache struct{} // TODO: Complete
-
-type pathMasks struct{} // TODO: Complete
 
 // dBLibrary is an interim struct for converting to and from the data types in memory and in the database.
 type dBLibrary struct {
@@ -195,10 +193,12 @@ func (l Library) toDBLibrary() (d dBLibrary, err error) {
 // fromDBLibrary sets the instantiated variables according to the decoded information from the provided dBLibrary.
 func (l *Library) fromDBLibrary(d dBLibrary) error {
 	var err error
-	l.FsCheckInterval, err = time.ParseDuration(d.FsCheckInterval)
-	if err != nil {
-		logger.Error(err.Error())
-		return err
+	if d.FsCheckInterval != "" { // This allows FsCheckInterval to not be set in d, while everything still parses correctly.
+		l.FsCheckInterval, err = time.ParseDuration(d.FsCheckInterval)
+		if err != nil {
+			logger.Error(err.Error())
+			return err
+		}
 	}
 
 	if err = json.Unmarshal(d.Pipeline, &l.Pipeline); err != nil {
