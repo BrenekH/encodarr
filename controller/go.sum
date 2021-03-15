@@ -1,5 +1,7 @@
 github.com/BrenekH/logange v0.3.0 h1:dZmQ7Kf6KjUwj4E+FmFU9ELx+bQxp7h7m0+stVfNQkw=
 github.com/BrenekH/logange v0.3.0/go.mod h1:Z4Fr1opkOpGE78Q6zqYvnMHQrHsIzHNNi/1bfnypPzE=
+github.com/BrenekH/logange v0.4.0 h1:Mg7Dx204QXEo63BSKwxroQl4Te+thg6PzO6m1pSJIi4=
+github.com/BrenekH/logange v0.4.0/go.mod h1:688zEc1nhUoKOa0z+2c3whFyrQRB9yX68AGQS627fao=
 github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/mattn/go-sqlite3 v1.14.6 h1:dNPt6NO46WmLVt2DLNpwczCmdV5boIZ6g/tlDrlRUbg=
