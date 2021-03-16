@@ -108,7 +108,7 @@ func (l *Library) Insert() error {
 		return err
 	}
 
-	_, err = db.Client.Exec("INSERT INTO libraries (id, folder, priority, fs_check_interval, pipeline, queue, file_cache, path_masks) VALUES ($1, $2, $3, $4, $5, $6, $7);",
+	_, err = db.Client.Exec("INSERT INTO libraries (id, folder, priority, fs_check_interval, pipeline, queue, file_cache, path_masks) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);",
 		l.ID,
 		l.Folder,
 		l.Priority,
