@@ -11,10 +11,10 @@ import (
 )
 
 // ErrInvalidUUID represents when a passed UUID is invalid
-var ErrInvalidUUID error = errors.New("Invalid UUID")
+var ErrInvalidUUID error = errors.New("invalid UUID")
 
 // ErrEmptyQueue represents when the operation cannot be completed because the queue is empty
-var ErrEmptyQueue error = errors.New("Queue is empty")
+var ErrEmptyQueue error = errors.New("queue is empty")
 
 // Queue is a basic implementation of a FIFO Queue for the Job interface.
 type Queue struct {
@@ -93,26 +93,26 @@ func IsDirectory(path string) (bool, error) {
 func MoveFile(sourcePath, destPath string) error {
 	inputFile, err := os.Open(sourcePath)
 	if err != nil {
-		return fmt.Errorf("Couldn't open source file: %s", err)
+		return fmt.Errorf("couldn't open source file: %s", err)
 	}
 
 	outputFile, err := os.Create(destPath)
 	if err != nil {
 		inputFile.Close()
-		return fmt.Errorf("Couldn't open dest file: %s", err)
+		return fmt.Errorf("couldn't open dest file: %s", err)
 	}
 	defer outputFile.Close()
 
 	_, err = io.Copy(outputFile, inputFile)
 	inputFile.Close()
 	if err != nil {
-		return fmt.Errorf("Writing to output file failed: %s", err)
+		return fmt.Errorf("writing to output file failed: %s", err)
 	}
 
 	// The copy was successful, so now delete the original file
 	err = os.Remove(sourcePath)
 	if err != nil {
-		return fmt.Errorf("Failed removing original file: %s", err)
+		return fmt.Errorf("failed removing original file: %s", err)
 	}
 
 	return nil
