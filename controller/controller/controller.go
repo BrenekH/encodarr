@@ -3,16 +3,13 @@ package controller
 import (
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/BrenekH/logange"
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
-	"github.com/BrenekH/project-redcedar-controller/mediainfo"
-	"github.com/BrenekH/project-redcedar-controller/options"
-	"github.com/google/uuid"
+	"github.com/BrenekH/project-redcedar-controller/db/libraries"
 )
 
 var logger logange.Logger
@@ -35,11 +32,14 @@ type JobRequest struct {
 	ReturnChannel *chan dispatched.Job
 }
 
-var fileSystemLastCheck time.Time
+// fsCheckTimes is a map of Library ids and the last time that they were checked.
+var fsCheckTimes map[int]time.Time = make(map[int]time.Time)
+
+// healthLastCheck holds the last time a health check was performed.
 var healthLastCheck time.Time
 
 // JobQueue is the queue of the jobs
-var JobQueue Queue = Queue{sync.Mutex{}, make([]dispatched.Job, 0)}
+var JobQueue libraries.Queue = libraries.Queue{Items: make([]dispatched.Job, 0)}
 
 // JobRequestChannel is a channel used to send new job requests to the Controller
 var JobRequestChannel chan JobRequest = make(chan JobRequest)
@@ -91,7 +91,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 							var err error // err must be defined using var instead of := because j won't be set properly otherwise
 							j, err = JobQueue.Pop()
 							if err != nil {
-								if err == ErrEmptyQueue {
+								if err == libraries.ErrEmptyQueue {
 									time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
 									continue
 								} else {
@@ -152,76 +152,24 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 }
 
 func fileSystemCheck() {
-	if time.Since(fileSystemLastCheck) > time.Duration(config.Global.FileSystemCheckInterval) {
-		logger.Debug("Starting file system check")
-		fileSystemLastCheck = time.Now()
-		discoveredVideos := GetVideoFilesFromDir(options.SearchDir())
-		for _, videoFilepath := range discoveredVideos {
-			pathJob := dispatched.Job{UUID: "", Path: videoFilepath, Parameters: dispatched.JobParameters{}}
+	allLibraries, err := libraries.All()
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
 
-			// Is the file already in the queue or dispatched?
-			alreadyInDB, err := dispatched.PathInDB(pathJob.Path)
-			if err != nil {
-				logger.Error(err.Error())
-				continue
-			}
-
-			if JobQueue.InQueuePath(pathJob) || alreadyInDB {
-				continue
-			}
-
-			// Is the file 'optimized' by Plex?
-			if strings.Contains(videoFilepath, "Plex Versions") {
-				continue
-			}
-
-			mediainfo, err := mediainfo.GetMediaInfo(videoFilepath)
-			if err != nil {
-				logger.Error(fmt.Sprintf("Error getting mediainfo for %v: %v", videoFilepath, err))
-				continue
-			}
-			logger.Trace(fmt.Sprintf("Mediainfo object for %v: %v", videoFilepath, mediainfo))
-
-			// Skips the file if it is not an actual media file
-			if !mediainfo.IsMedia() {
-				continue
-			}
-
-			// Is the file HDR?
-			if mediainfo.Video.ColorPrimaries == "BT.2020" {
-				continue
-			}
-
-			stereoAudioTrackExists := false
-			for _, v := range mediainfo.Audio {
-				if v.Channels == "2" {
-					stereoAudioTrackExists = true
-				}
-			}
-
-			isHEVC := mediainfo.Video.Format == "HEVC"
-
-			if isHEVC && stereoAudioTrackExists {
-				continue
-			}
-
-			u := uuid.New()
-			job := dispatched.Job{
-				UUID: u.String(),
-				Path: videoFilepath,
-				Parameters: dispatched.JobParameters{
-					HEVC:   !isHEVC,
-					Stereo: !stereoAudioTrackExists,
-				},
-				RawMediaInfo: mediainfo,
-			}
-
-			logger.Trace(fmt.Sprintf("%v isHEVC=%v stereoAudioTrackExists=%v", videoFilepath, isHEVC, stereoAudioTrackExists))
-
-			JobQueue.Push(job)
-			logger.Info(fmt.Sprintf("Added %v to the queue", job.Path))
+	for _, l := range allLibraries {
+		t, ok := fsCheckTimes[l.ID]
+		if !ok {
+			fsCheckTimes[l.ID] = time.Unix(0, 0)
+			t = fsCheckTimes[l.ID]
 		}
-		logger.Debug("File system check complete")
+
+		if time.Since(t) > l.FsCheckInterval {
+			logger.Debug(fmt.Sprintf("Initiating library (ID: %v) update", l.ID))
+			fsCheckTimes[l.ID] = time.Now()
+			go updateLibraryQueue(l)
+		}
 	}
 }
 

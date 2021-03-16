@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/BrenekH/project-redcedar-controller/config"
-	"github.com/BrenekH/project-redcedar-controller/controller"
 	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
 	"github.com/BrenekH/project-redcedar-controller/db/history"
 )
@@ -92,7 +91,7 @@ func getRunning(w http.ResponseWriter, r *http.Request) {
 func getQueue(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		jsonResponseStruct := queueJSONResponse{controller.JobQueue.Dequeue()}
+		jsonResponseStruct := queueJSONResponse{}
 		queueJSONBytes, err := json.Marshal(jsonResponseStruct)
 		if err != nil {
 			serverError(w, r, fmt.Sprintf("Error marshaling Job queue to json: %v", err))

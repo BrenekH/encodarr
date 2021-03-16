@@ -15,14 +15,12 @@ type Library struct {
 	Priority        int
 	FsCheckInterval time.Duration
 	Pipeline        pluginPipeline
-	Queue           queue
+	Queue           Queue
 	FileCache       fileCache
 	PathMasks       []string
 }
 
 type pluginPipeline struct{} // TODO: Implement
-
-type queue struct{} // TODO: Complete
 
 type fileCache struct{} // TODO: Complete
 

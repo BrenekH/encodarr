@@ -228,7 +228,7 @@ func (d *DJob) Delete() error {
 	return err
 }
 
-// Structs stolen from controller.go
+// Structs stolen from controller.go to avoid cyclic import errors
 
 // Job represents a job in the RedCedar ecosystem.
 type Job struct {
