@@ -1,10 +1,14 @@
 package controller
 
 import (
+	"database/sql"
 	"fmt"
+	"os"
 	"strings"
+	"sync"
 
 	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
+	"github.com/BrenekH/project-redcedar-controller/db/files"
 	"github.com/BrenekH/project-redcedar-controller/db/libraries"
 	"github.com/BrenekH/project-redcedar-controller/mediainfo"
 	"github.com/google/uuid"
@@ -13,27 +17,64 @@ import (
 // The purpose of this file is to hold all code relating to the "bussiness code" of libraries.
 // It is not meant to hold any data storage logic, that should all be located in the db/libraries package.
 
-func updateLibraryQueue(l libraries.Library) {
+func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup) {
+	wg.Add(1)
+	defer wg.Done()
+
 	discoveredVideos := GetVideoFilesFromDir(l.Folder)
 	for _, videoFilepath := range discoveredVideos {
-		// TODO: Check modtime against file_cache table
+		filesEntry := files.File{Path: videoFilepath}
+		if err := filesEntry.Get(); err != nil {
+			if err != sql.ErrNoRows {
+				logger.Warn(err.Error())
+				continue
+			}
+			// File is not in the database yet
+			if err = filesEntry.Insert(); err != nil {
+				logger.Warn(err.Error())
+				continue
+			}
+		}
+
+		fInfo, err := os.Stat(videoFilepath)
+		if err != nil {
+			logger.Warn(err.Error())
+			continue
+		}
+
+		// We have to set the mod times to UTC because the db returns a different time zone format than os.Stat()
+		if fInfo.ModTime().UTC() == filesEntry.ModTime.UTC() {
+			logger.Debug(fmt.Sprintf("Skipping %v because the modtime is the same as the cached version", videoFilepath))
+			continue
+		} else {
+			logger.Debug(fmt.Sprintf("Adding %v to files table", videoFilepath))
+			filesEntry.ModTime = fInfo.ModTime()
+			if err = filesEntry.Update(); err != nil {
+				logger.Warn(err.Error())
+			}
+		}
 
 		pathJob := dispatched.Job{UUID: "", Path: videoFilepath, Parameters: dispatched.JobParameters{}}
 
-		// TODO: Change to checking the file_cache table and dispatched jobs
-		// Is the file already in the queue or dispatched?
-		alreadyInDB, err := dispatched.PathInDB(pathJob.Path)
+		// Has the file already been queued or dispatched?
+		alreadyDispatched, err := dispatched.PathInDB(pathJob.Path)
 		if err != nil {
 			logger.Error(err.Error())
 			continue
 		}
-		if l.Queue.InQueuePath(pathJob) || alreadyInDB {
+		if filesEntry.Queued || alreadyDispatched {
 			continue
 		}
 
-		// TODO: Change to path mask
-		// Is the file 'optimized' by Plex?
-		if strings.Contains(videoFilepath, "Plex Versions") {
+		maskedOut := false
+		for _, v := range l.PathMasks {
+			if strings.Contains(videoFilepath, v) {
+				logger.Debug(fmt.Sprintf("%v skipped because of a mask (%v)", videoFilepath, v))
+				maskedOut = true
+				break
+			}
+		}
+		if maskedOut {
 			continue
 		}
 
@@ -82,6 +123,16 @@ func updateLibraryQueue(l libraries.Library) {
 		logger.Trace(fmt.Sprintf("%v isHEVC=%v stereoAudioTrackExists=%v", videoFilepath, isHEVC, stereoAudioTrackExists))
 
 		l.Queue.Push(job)
+		filesEntry.Queued = true
 		logger.Info(fmt.Sprintf("Added %v to the queue", job.Path))
+
+		if err = l.Update(); err != nil {
+			logger.Error(err.Error())
+		}
+
+		if err = filesEntry.Update(); err != nil {
+			logger.Error(err.Error())
+		}
 	}
+	logger.Debug(fmt.Sprintf("Finished updating Library %v", l.ID))
 }

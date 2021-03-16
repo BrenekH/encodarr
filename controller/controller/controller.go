@@ -63,7 +63,7 @@ func RunController(stopChan *chan interface{}, wg *sync.WaitGroup) {
 	for {
 		select {
 		default:
-			fileSystemCheck()
+			fileSystemCheck(wg)
 			healthCheck()
 		case <-*stopChan:
 			return
@@ -151,7 +151,7 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 	}
 }
 
-func fileSystemCheck() {
+func fileSystemCheck(wg *sync.WaitGroup) {
 	allLibraries, err := libraries.All()
 	if err != nil {
 		logger.Error(err.Error())
@@ -168,7 +168,7 @@ func fileSystemCheck() {
 		if time.Since(t) > l.FsCheckInterval {
 			logger.Debug(fmt.Sprintf("Initiating library (ID: %v) update", l.ID))
 			fsCheckTimes[l.ID] = time.Now()
-			go updateLibraryQueue(l)
+			go updateLibraryQueue(l, wg)
 		}
 	}
 }
