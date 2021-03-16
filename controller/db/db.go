@@ -28,8 +28,9 @@ CREATE TABLE IF NOT EXISTS libraries (
 );
 
 CREATE TABLE IF NOT EXISTS files (
-	filename text,
-	modtime timestamp
+	path text,
+	modtime timestamp,
+	queued integer
 );
 
 CREATE TABLE IF NOT EXISTS history (
