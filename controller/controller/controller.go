@@ -47,6 +47,9 @@ var JobRequestChannel chan JobRequest = make(chan JobRequest)
 // CompletedRequestChannel is a channel used to send job completed requests to the Controller
 var CompletedRequestChannel chan JobCompleteRequest = make(chan JobCompleteRequest)
 
+// jobRequests holds all of the requests until they can be resolved
+var jobRequests []JobRequest = make([]JobRequest, 0)
+
 // RunController is a goroutine compliant way to run the controller.
 func RunController(stopChan *chan interface{}, wg *sync.WaitGroup) {
 	wg.Add(1) // This is done in the function rather than outside so that we can easily comment out this function in main.go
@@ -81,67 +84,70 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 	for {
 		select {
 		default:
-			if !JobQueue.Empty() {
-				select {
-				case val, ok := <-*requestChan:
-					if ok {
-						var j dispatched.Job
-						for {
-							// Pop a job off the Queue
-							var err error // err must be defined using var instead of := because j won't be set properly otherwise
-							j, err = JobQueue.Pop()
-							if err != nil {
-								if err == libraries.ErrEmptyQueue {
-									time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
-									continue
-								} else {
-									logger.Critical(fmt.Sprintf("Got unexpected error while popping from queue: %v", err))
-								}
-							}
+			select {
+			case c := <-*requestChan:
+				jobRequests = append(jobRequests, c)
+			default:
+			}
 
-							// Check if the job is still valid
-							if _, err := os.Stat(j.Path); err == nil {
-								// TODO: Do more than just check if it exists (verify hevc and stereo attributes)
-								break
-							} else if os.IsNotExist(err) {
-								// File does not exist. Do not add back into queue
-								continue
-							} else {
-								// File may or may not exist. Error has more details.
-								logger.Error(fmt.Sprintf("Unexpected error while stating file '%v': %v", j.Path, err))
-							}
-							time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
-						}
-
-						// Add to dispatched jobs
-						dJob := dispatched.DJob{
-							UUID:        j.UUID,
-							Job:         j,
-							Runner:      val.RunnerName,
-							LastUpdated: time.Now(),
-							Status: dispatched.JobStatus{
-								Stage:                       "Copying to Runner",
-								Percentage:                  "0",
-								JobElapsedTime:              "N/A",
-								FPS:                         "N/A",
-								StageElapsedTime:            "N/A",
-								StageEstimatedTimeRemaining: "N/A",
-							},
-						}
-						err := dJob.Insert()
-						if err != nil {
-							logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
-						}
-
-						// Return Job struct in return channel
-						*val.ReturnChannel <- j
-					} else {
-						// Channel closed. Stop handler.
-						return
+			if len(jobRequests) != 0 {
+				if isJobAvailable() {
+					jR, err := popJobRequest()
+					if err != nil {
+						logger.Warn(err.Error())
+						continue
 					}
-				case <-*stopChan:
-					return
-				default:
+
+					var j dispatched.Job
+					doNotUseJob := false
+					for {
+						// Pop a job off the Queue
+						var err error // err must be defined using var instead of := because j won't be set properly otherwise
+						j, err = popQueuedJob()
+						if err != nil {
+							logger.Error(err.Error())
+							doNotUseJob = true
+						}
+
+						// Check if the job is still valid
+						if _, err := os.Stat(j.Path); err == nil {
+							// TODO: Do more than just check if it exists (verify hevc and stereo attributes)
+							break
+						} else if os.IsNotExist(err) {
+							// File does not exist. Do not add back into queue
+							continue
+						} else {
+							// File may or may not exist. Error has more details.
+							logger.Error(fmt.Sprintf("Unexpected error while stating file '%v': %v", j.Path, err))
+						}
+						time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
+					}
+					if doNotUseJob {
+						continue
+					}
+
+					// Add to dispatched jobs
+					dJob := dispatched.DJob{
+						UUID:        j.UUID,
+						Job:         j,
+						Runner:      jR.RunnerName,
+						LastUpdated: time.Now(),
+						Status: dispatched.JobStatus{
+							Stage:                       "Copying to Runner",
+							Percentage:                  "0",
+							JobElapsedTime:              "N/A",
+							FPS:                         "N/A",
+							StageElapsedTime:            "N/A",
+							StageEstimatedTimeRemaining: "N/A",
+						},
+					}
+					err = dJob.Insert()
+					if err != nil {
+						logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
+					}
+
+					// Return Job struct in return channel
+					*jR.ReturnChannel <- j
 				}
 			}
 		case <-*stopChan:
@@ -202,4 +208,16 @@ func healthCheck() {
 		}
 		logger.Debug("Health check complete")
 	}
+}
+
+// popJobRequest returns the first element of the jobRequests slice
+// and shifts the remaining items up one slot.
+func popJobRequest() (JobRequest, error) {
+	if len(jobRequests) == 0 {
+		return JobRequest{}, fmt.Errorf("jobRequests is empty")
+	}
+	item := jobRequests[0]
+	jobRequests[0] = JobRequest{} // Hopefully this garbage collects properly
+	jobRequests = jobRequests[1:]
+	return item, nil
 }

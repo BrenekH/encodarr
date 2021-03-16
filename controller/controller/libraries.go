@@ -136,3 +136,44 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup) {
 	}
 	logger.Debug(fmt.Sprintf("Finished updating Library %v", l.ID))
 }
+
+// isJobAvailable loops through the libraries to identify if any have queued jobs ready
+// to be dispatched to Runners.
+func isJobAvailable() bool {
+	allLibraries, err := libraries.All()
+	if err != nil {
+		logger.Error(err.Error())
+		return false
+	}
+
+	for _, v := range allLibraries {
+		if len(v.Queue.Items) > 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
+// popQueuedJob returns a queued job while also removing it from the queue it was pulled from
+func popQueuedJob() (dispatched.Job, error) {
+	allLibraries, err := libraries.All()
+	if err != nil {
+		logger.Error(err.Error())
+		return dispatched.Job{}, err
+	}
+
+	for _, v := range allLibraries {
+		if len(v.Queue.Items) > 0 {
+			item := v.Queue.Items[0]
+			v.Queue.Items[0] = dispatched.Job{} // Hopefully this garbage collects properly
+			v.Queue.Items = v.Queue.Items[1:]
+			if err = v.Update(); err != nil {
+				logger.Error(err.Error())
+			}
+			return item, nil
+		}
+	}
+
+	return dispatched.Job{}, fmt.Errorf("no queued jobs were found")
+}
