@@ -166,12 +166,16 @@ func popQueuedJob() (dispatched.Job, error) {
 
 	for _, v := range allLibraries {
 		if len(v.Queue.Items) > 0 {
-			item := v.Queue.Items[0]
-			v.Queue.Items[0] = dispatched.Job{} // Hopefully this garbage collects properly
-			v.Queue.Items = v.Queue.Items[1:]
+			item, err := v.Queue.Pop()
+			if err != nil {
+				logger.Error(err.Error())
+				return item, err
+			}
+
 			if err = v.Update(); err != nil {
 				logger.Error(err.Error())
 			}
+			// TODO: Update files table to indicate that the job is no longer queued
 			return item, nil
 		}
 	}
