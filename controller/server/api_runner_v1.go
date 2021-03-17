@@ -146,7 +146,7 @@ func postJobComplete(w http.ResponseWriter, r *http.Request) {
 			f.Close()
 		}
 
-		controller.CompletedRequestChannel <- jcr
+		controller.JobCompleteRequestChan <- jcr
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)

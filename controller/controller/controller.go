@@ -38,14 +38,11 @@ var fsCheckTimes map[int]time.Time = make(map[int]time.Time)
 // healthLastCheck holds the last time a health check was performed.
 var healthLastCheck time.Time
 
-// JobQueue is the queue of the jobs
-var JobQueue libraries.Queue = libraries.Queue{Items: make([]dispatched.Job, 0)}
-
 // JobRequestChannel is a channel used to send new job requests to the Controller
 var JobRequestChannel chan JobRequest = make(chan JobRequest)
 
-// CompletedRequestChannel is a channel used to send job completed requests to the Controller
-var CompletedRequestChannel chan JobCompleteRequest = make(chan JobCompleteRequest)
+// JobCompleteRequestChan is a channel used to send job completed requests to the Controller
+var JobCompleteRequestChan chan JobCompleteRequest = make(chan JobCompleteRequest)
 
 // jobRequests holds all of the requests until they can be resolved
 var jobRequests []JobRequest = make([]JobRequest, 0)
@@ -60,7 +57,7 @@ func RunController(stopChan *chan interface{}, wg *sync.WaitGroup) {
 	go jobRequestHandler(&JobRequestChannel, stopChan, wg)
 
 	// Start the completed request handler
-	go completedLooper(&CompletedRequestChannel, stopChan, wg)
+	go completedLooper(&JobCompleteRequestChan, stopChan, wg)
 
 	// This loop is in charge of running the controller logic until the stop signal channel "stopChan" has a value pushed to it
 	for {

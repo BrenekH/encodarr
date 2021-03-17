@@ -14,7 +14,7 @@ var ErrInvalidUUID error = errors.New("invalid UUID")
 // ErrEmptyQueue represents when the operation cannot be completed because the queue is empty
 var ErrEmptyQueue error = errors.New("queue is empty")
 
-// Queue is a basic implementation of a FIFO Queue for the Job interface.
+// Queue is a basic implementation of a FIFO Queue for the dispatched.Job type.
 type Queue struct {
 	Items []dispatched.Job
 }
