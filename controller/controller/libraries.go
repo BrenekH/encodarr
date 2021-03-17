@@ -56,13 +56,14 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup) {
 
 		pathJob := dispatched.Job{UUID: "", Path: videoFilepath, Parameters: dispatched.JobParameters{}}
 
-		// Has the file already been queued or dispatched?
 		alreadyDispatched, err := dispatched.PathInDB(pathJob.Path)
 		if err != nil {
 			logger.Error(err.Error())
 			continue
 		}
-		if filesEntry.Queued || alreadyDispatched {
+
+		// Has the file already been dispatched or queued?
+		if alreadyDispatched || filesEntry.Queued || l.Queue.InQueuePath(pathJob) {
 			continue
 		}
 
