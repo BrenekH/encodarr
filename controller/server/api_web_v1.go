@@ -10,6 +10,7 @@ import (
 	"github.com/BrenekH/project-redcedar-controller/config"
 	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
 	"github.com/BrenekH/project-redcedar-controller/db/history"
+	"github.com/BrenekH/project-redcedar-controller/db/libraries"
 )
 
 type queueJSONResponse struct {
@@ -91,7 +92,18 @@ func getRunning(w http.ResponseWriter, r *http.Request) {
 func getQueue(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		jsonResponseStruct := queueJSONResponse{}
+		jsonResponseStruct := queueJSONResponse{JobQueue: make([]dispatched.Job, 0)}
+
+		allLibraries, err := libraries.All()
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+
+		for _, v := range allLibraries {
+			jsonResponseStruct.JobQueue = append(jsonResponseStruct.JobQueue, v.Queue.Items...)
+		}
+
 		queueJSONBytes, err := json.Marshal(jsonResponseStruct)
 		if err != nil {
 			serverError(w, r, fmt.Sprintf("Error marshaling Job queue to json: %v", err))
