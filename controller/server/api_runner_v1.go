@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/BrenekH/project-redcedar-controller/controller"
-	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
+	"github.com/BrenekH/encodarr/controller/controller"
+	"github.com/BrenekH/encodarr/controller/db/dispatched"
 )
 
 type incomingJobStatus struct {
@@ -24,7 +24,7 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		logger.Info(fmt.Sprintf("Received new job request from %v", r.RemoteAddr))
 		requestChannel := make(chan dispatched.Job, 1)
-		controller.JobRequestChannel <- controller.JobRequest{RunnerName: r.Header.Get("X-RedCedar-Runner-Name"), ReturnChannel: &requestChannel}
+		controller.JobRequestChannel <- controller.JobRequest{RunnerName: r.Header.Get("X-Encodarr-Runner-Name"), ReturnChannel: &requestChannel}
 		jobToSend, ok := <-requestChannel
 
 		if !ok {
@@ -39,7 +39,7 @@ func getNewJob(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			serverError(w, r, fmt.Sprintf("Runner API v1: Error marshaling Job to json: %v", err))
 		}
-		w.Header().Set("X-RedCedar-Job-Info", string(jobJSONBytes))
+		w.Header().Set("X-Encodarr-Job-Info", string(jobJSONBytes))
 
 		// Send file to Runner
 		file, err := os.Open(jobToSend.Path)
@@ -111,11 +111,11 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 func postJobComplete(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		h := r.Header.Get("X-RedCedar-History-Entry")
+		h := r.Header.Get("X-Encodarr-History-Entry")
 		if h == "" {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid header 'X-RedCedar-History-Entry'"))
+			w.Write([]byte("Invalid header 'X-Encodarr-History-Entry'"))
 			return
 		}
 

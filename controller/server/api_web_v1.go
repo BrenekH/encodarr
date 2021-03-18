@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/BrenekH/project-redcedar-controller/config"
-	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
-	"github.com/BrenekH/project-redcedar-controller/db/history"
-	"github.com/BrenekH/project-redcedar-controller/db/libraries"
+	"github.com/BrenekH/encodarr/controller/config"
+	"github.com/BrenekH/encodarr/controller/db/dispatched"
+	"github.com/BrenekH/encodarr/controller/db/history"
+	"github.com/BrenekH/encodarr/controller/db/libraries"
 )
 
 type queueJSONResponse struct {

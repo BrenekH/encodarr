@@ -2,11 +2,9 @@
 	"cSpell.words": [
 		"popen",
 		"pymediainfo",
-		"redcedar",
-		"socketio"
+		"encodarr"
 	],
 	"python.analysis.extraPaths": [
-		"controller",
 		"runner"
 	]
 }

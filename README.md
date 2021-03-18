@@ -1,17 +1,17 @@
-# Project RedCedar
+# Encodarr
 
 Docker-based webapp for encoding video files to the HEVC \(H.265\) standard.
 
 ## Docker Compose
 
-Recommended `docker-compose.yaml` \(Assumes the docker image was built with the tag `zpaw/redcedar:latest`\)
+Recommended `docker-compose.yaml` \(Assumes the docker image was built with the tag `brenekh/encodarr:latest`\)
 
 ```yaml
 version: "2.2"
 services:
-  redcedar:
-    image: zpaw/redcedar:latest
-    container_name: RedCedar
+  encodarr:
+    image: brenekh/encodarr:latest
+    container_name: Encodarr
     volumes:
       - /config:/config:rw
       - /media/folder/to/search:/usr/app/tosearch:rw
@@ -26,17 +26,17 @@ services:
 
 ### Common
 
-- REDCEDAR_DEBUG (bool)
+- ENCODARR_DEBUG (bool)
 
-- REDCEDAR_LOG_FILE (string)
+- ENCODARR_LOG_FILE (string)
 
 ### Runner
 
-- REDCEDAR_RUNNER_NAME (string)
+- ENCODARR_RUNNER_NAME (string)
 
-- REDCEDAR_RUNNER_CONTROLLER_IP (string)
+- ENCODARR_RUNNER_CONTROLLER_IP (string)
 
-- REDCEDAR_RUNNER_CONTROLLER_PORT (integer)
+- ENCODARR_RUNNER_CONTROLLER_PORT (integer)
 
 ## Attributions
 

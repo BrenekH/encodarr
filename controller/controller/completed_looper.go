@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/BrenekH/project-redcedar-controller/config"
-	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
-	"github.com/BrenekH/project-redcedar-controller/db/history"
+	"github.com/BrenekH/encodarr/controller/config"
+	"github.com/BrenekH/encodarr/controller/db/dispatched"
+	"github.com/BrenekH/encodarr/controller/db/history"
 )
 
 // HistoryEntry represents an entry for the history collection
@@ -97,11 +97,11 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 		failMessage := fmt.Sprintf("Failed to remove file '%v' because of error: %v", dJob.Job.Path, err)
 		logger.Error(failMessage)
 
-		// Set filename to a string with an extra redcedar extension
+		// Set filename to a string with an extra encodarr extension
 		fnExt := path.Ext(filename)
 		i := strings.LastIndex(filename, fnExt)
 		fnWoExt := filename[:i] + strings.Replace(filename[i:], fnExt, "", 1)
-		filename = fmt.Sprintf("%v.redcedar%v", fnWoExt, fnExt)
+		filename = fmt.Sprintf("%v.encodarr%v", fnWoExt, fnExt)
 
 		r.History.Warnings = append(r.History.Warnings, failMessage)
 	}

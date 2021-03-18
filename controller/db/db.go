@@ -3,8 +3,8 @@ package db
 import (
 	"database/sql"
 
+	"github.com/BrenekH/encodarr/controller/options"
 	"github.com/BrenekH/logange"
-	"github.com/BrenekH/project-redcedar-controller/options"
 
 	// Load SQLite driver
 	_ "github.com/mattn/go-sqlite3"
