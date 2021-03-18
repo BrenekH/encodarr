@@ -3,8 +3,8 @@ package files
 import (
 	"time"
 
+	"github.com/BrenekH/encodarr/controller/db"
 	"github.com/BrenekH/logange"
-	"github.com/BrenekH/project-redcedar-controller/db"
 )
 
 var logger logange.Logger

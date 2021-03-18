@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/BrenekH/project-redcedar-controller/options"
+	"github.com/BrenekH/encodarr/controller/options"
 )
 
 // The config struct could contain a channel to update parameters on the fly.

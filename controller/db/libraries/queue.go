@@ -3,7 +3,7 @@ package libraries
 import (
 	"errors"
 
-	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
+	"github.com/BrenekH/encodarr/controller/db/dispatched"
 )
 
 // Moved from controller/util.go to avoid cyclic imports

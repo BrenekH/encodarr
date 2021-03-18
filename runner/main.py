@@ -2,13 +2,13 @@ from logging import DEBUG, INFO, getLogger, WARNING, StreamHandler, FileHandler,
 from os import getenv as os_getenv
 from sys import argv
 
-from redcedar_runner import JobRunner
+from encodarr_runner import JobRunner
 
 # Setup logging for main.py
 # Logging related env var setup
-log_level = DEBUG if os_getenv("REDCEDAR_DEBUG") == "True" or "--debug" in argv else INFO
+log_level = DEBUG if os_getenv("ENCODARR_DEBUG") == "True" or "--debug" in argv else INFO
 
-temp = os_getenv("REDCEDAR_LOG_FILE")
+temp = os_getenv("ENCODARR_LOG_FILE")
 
 if temp != None:
 	log_file = temp
@@ -41,10 +41,10 @@ root_logger.addHandler(file_handler)
 root_logger.setLevel(log_level)
 
 if __name__ == "__main__":
-	controller_ip = os_getenv("REDCEDAR_RUNNER_CONTROLLER_IP")
-	controller_port = os_getenv("REDCEDAR_RUNNER_CONTROLLER_PORT")
+	controller_ip = os_getenv("ENCODARR_RUNNER_CONTROLLER_IP")
+	controller_port = os_getenv("ENCODARR_RUNNER_CONTROLLER_PORT")
 
-	runner_name = os_getenv("REDCEDAR_RUNNER_NAME")
+	runner_name = os_getenv("ENCODARR_RUNNER_NAME")
 
 	if controller_ip == None:
 		controller_ip = "localhost"
@@ -74,5 +74,5 @@ if __name__ == "__main__":
 
 	runner = JobRunner(controller_ip=f"{controller_ip}:{controller_port}", runner_name=runner_name)
 
-	logger.info("Starting RedCedarRunner")
+	logger.info("Starting Encodarr Runner")
 	runner.run()

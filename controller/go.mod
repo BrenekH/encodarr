@@ -1,4 +1,4 @@
-module github.com/BrenekH/project-redcedar-controller
+module github.com/BrenekH/encodarr/controller
 
 go 1.16
 

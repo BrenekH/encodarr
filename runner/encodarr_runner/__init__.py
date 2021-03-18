@@ -52,7 +52,7 @@ class JobRunner:
 
 	def stop(self, *args):
 		# This method accepts *args because the signal module calls with extra info that we don't care about when shutting down
-		logger.info("Stopping RedCedarRunner")
+		logger.info("Stopping Encodarr Runner")
 		self.__running = False
 
 	def run(self):
@@ -68,7 +68,7 @@ class JobRunner:
 		for i in range(100):
 			if self.__running:
 				try:
-					r = requests.get(f"http://{self.controller_ip}/api/runner/v1/job/request", headers={"X-RedCedar-Runner-Name": self.runner_name}, stream=True)
+					r = requests.get(f"http://{self.controller_ip}/api/runner/v1/job/request", headers={"X-Encodarr-Runner-Name": self.runner_name}, stream=True)
 				except requests.exceptions.ConnectionError as e:
 					logger.error(f"Received ConnectionError. Retrying in {i} seconds")
 					logger.debug(f"ConnectionError info: ", exc_info=True)
@@ -84,7 +84,7 @@ class JobRunner:
 					time.sleep(i)
 					continue
 
-				job_info = loads(r.headers.get("X-RedCedar-Job-Info"))
+				job_info = loads(r.headers.get("X-Encodarr-Job-Info"))
 				input_file = Path.cwd() / f"input{Path(job_info['path']).suffix}" # Creates an input file with the same suffix as the input
 
 				if input_file.exists():
@@ -363,11 +363,11 @@ class JobRunner:
 						data=m,
 						headers={
 							"Content-Type": m.content_type,
-							"X-RedCedar-History-Entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": False})
+							"X-Encodarr-History-Entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": False})
 						})
 			else:
 				r = requests.post(f"http://{self.controller_ip}/api/runner/v1/job/complete", headers={
-					"X-RedCedar-History-Entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": True})
+					"X-Encodarr-History-Entry": dumps({"uuid": self.__current_uuid, "history": history_entry, "failed": True})
 				})
 
 			if r.status_code != 200:

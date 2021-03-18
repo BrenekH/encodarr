@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/BrenekH/encodarr/controller/db"
+	"github.com/BrenekH/encodarr/controller/mediainfo"
 	"github.com/BrenekH/logange"
-	"github.com/BrenekH/project-redcedar-controller/db"
-	"github.com/BrenekH/project-redcedar-controller/mediainfo"
 )
 
 // DJob represents a singular row in the dispatched_jobs table
@@ -230,7 +230,7 @@ func (d *DJob) Delete() error {
 
 // Structs stolen from controller.go to avoid cyclic import errors
 
-// Job represents a job in the RedCedar ecosystem.
+// Job represents a job in the Encodarr ecosystem.
 type Job struct {
 	UUID         string              `json:"uuid"`
 	Path         string              `json:"path"`

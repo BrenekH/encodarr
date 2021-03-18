@@ -1,4 +1,4 @@
-// Package options is a centralized location for all supported command-line/environment variable options for RedCedar
+// Package options is a centralized location for all supported command-line/environment variable options for Encodarr
 package options
 
 import (
@@ -14,13 +14,13 @@ type optionConst struct {
 	CmdLine string
 }
 
-var portConst optionConst = optionConst{"REDCEDAR_PORT", "port"}
+var portConst optionConst = optionConst{"ENCODARR_PORT", "port"}
 var port string = "8123"
 
-var configDirConst optionConst = optionConst{"REDCEDAR_CONFIG_DIR", "config-dir"}
+var configDirConst optionConst = optionConst{"ENCODARR_CONFIG_DIR", "config-dir"}
 var configDir string = ""
 
-var searchDirConst optionConst = optionConst{"REDCEDAR_SEARCH_DIR", "search-dir"}
+var searchDirConst optionConst = optionConst{"ENCODARR_SEARCH_DIR", "search-dir"}
 var searchDir string = ""
 
 var inputsParsed bool = false
@@ -35,7 +35,7 @@ func init() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	configDir = cDir + "/redcedar/config"
+	configDir = cDir + "/encodarr/config"
 
 	logger = logange.NewLogger("options")
 }

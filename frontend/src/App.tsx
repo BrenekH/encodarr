@@ -9,7 +9,7 @@ import { SettingsTab } from "./tabs/SettingsTab";
 import './spacers.css';
 
 function Title() {
-	return <div className="header-content text-center"><h1>Project RedCedar</h1></div>
+	return <div className="header-content text-center"><h1>Encodarr</h1></div>
 }
 
 class App extends React.Component {
@@ -17,19 +17,19 @@ class App extends React.Component {
 		switch (eventKey) {
 			case "queue":
 				window.history.replaceState(undefined, "", "/queue");
-				document.title = "Queue - Project RedCedar";
+				document.title = "Queue - Encodarr";
 				break;
 			case "history":
 				window.history.replaceState(undefined, "", "/history");
-				document.title = "History - Project RedCedar";
+				document.title = "History - Encodarr";
 				break;
 			case "settings":
 				window.history.replaceState(undefined, "", "/settings");
-				document.title = "Settings - Project RedCedar";
+				document.title = "Settings - Encodarr";
 				break;
 			case "running":
 				window.history.replaceState(undefined, "", "/running");
-				document.title = "Running - Project RedCedar";
+				document.title = "Running - Encodarr";
 				break;
 			default:
 				break;

@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BrenekH/encodarr/controller/config"
+	"github.com/BrenekH/encodarr/controller/db/dispatched"
+	"github.com/BrenekH/encodarr/controller/db/libraries"
 	"github.com/BrenekH/logange"
-	"github.com/BrenekH/project-redcedar-controller/config"
-	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
-	"github.com/BrenekH/project-redcedar-controller/db/libraries"
 )
 
 var logger logange.Logger
@@ -18,7 +18,7 @@ func init() {
 	logger = logange.NewLogger("controller")
 }
 
-// DispatchedJob represents a dispatched job in the RedCedar ecosystem.
+// DispatchedJob represents a dispatched job in the Encodarr ecosystem.
 type DispatchedJob struct {
 	Job         dispatched.Job       `json:"job"`
 	RunnerName  string               `json:"runner_name"`

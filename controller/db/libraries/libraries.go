@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/BrenekH/encodarr/controller/db"
 	"github.com/BrenekH/logange"
-	"github.com/BrenekH/project-redcedar-controller/db"
 )
 
 // Library represents a singular row in the libraries table

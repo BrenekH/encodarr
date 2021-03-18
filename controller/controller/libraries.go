@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/BrenekH/project-redcedar-controller/db/dispatched"
-	"github.com/BrenekH/project-redcedar-controller/db/files"
-	"github.com/BrenekH/project-redcedar-controller/db/libraries"
-	"github.com/BrenekH/project-redcedar-controller/mediainfo"
+	"github.com/BrenekH/encodarr/controller/db/dispatched"
+	"github.com/BrenekH/encodarr/controller/db/files"
+	"github.com/BrenekH/encodarr/controller/db/libraries"
+	"github.com/BrenekH/encodarr/controller/mediainfo"
 	"github.com/google/uuid"
 )
 

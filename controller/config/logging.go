@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/BrenekH/logange"
-	"github.com/BrenekH/project-redcedar-controller/options"
+	"github.com/BrenekH/encodarr/controller/options"
 )
 
 var (

@@ -7,10 +7,10 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/BrenekH/encodarr/controller/config"
+	"github.com/BrenekH/encodarr/controller/controller"
+	"github.com/BrenekH/encodarr/controller/server"
 	"github.com/BrenekH/logange"
-	"github.com/BrenekH/project-redcedar-controller/config"
-	"github.com/BrenekH/project-redcedar-controller/controller"
-	"github.com/BrenekH/project-redcedar-controller/server"
 )
 
 var logger logange.Logger
