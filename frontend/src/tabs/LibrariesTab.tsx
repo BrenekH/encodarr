@@ -6,7 +6,7 @@ import Table from "react-bootstrap/Table"
 import { AudioImage } from "./shared/AudioImage";
 import { VideoImage } from "./shared/VideoImage";
 
-import "./QueueTab.css";
+import "./LibrariesTab.css";
 
 interface IQueuedJob {
 	uuid: string,
@@ -22,7 +22,7 @@ interface IQueueTabState {
 	waitingOnServer: Boolean,
 }
 
-export class QueueTab extends React.Component<{}, IQueueTabState> {
+export class LibrariesTab extends React.Component<{}, IQueueTabState> {
 	timerID: ReturnType<typeof setInterval>;
 
 	constructor(props: any) {
