@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/BrenekH/encodarr/controller/config"
+	"github.com/BrenekH/encodarr/controller/controller"
 	"github.com/BrenekH/encodarr/controller/db/dispatched"
 	"github.com/BrenekH/encodarr/controller/db/history"
 	"github.com/BrenekH/encodarr/controller/db/libraries"
@@ -50,6 +51,10 @@ type settingsJSON struct {
 	HealthCheckTimeout      string
 	LogVerbosity            string
 	SmallerFiles            bool
+}
+
+type waitingRunners struct {
+	Runners []string
 }
 
 func makeFilteredDispatchedJobs() runningJSONResponse {
@@ -232,6 +237,31 @@ func settings(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// getWaitingRunners is a HTTP handler that returns all runners waiting for a job in a JSON response.
+func getWaitingRunners(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		runners := make([]string, len(controller.JobRequests))
+
+		for _, v := range controller.JobRequests {
+			runners = append(runners, v.RunnerName)
+		}
+
+		wR := waitingRunners{Runners: runners[1:]}
+
+		b, err := json.Marshal(wR)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		w.Write(b)
+	default:
+		methodForbidden(w, r)
+	}
+}
+
 func registerWebAPIv1Handlers() {
 	r := newSubRouter("/api/web/v1")
 
@@ -239,4 +269,5 @@ func registerWebAPIv1Handlers() {
 	r.HandleFunc("/queue", getQueue)
 	r.HandleFunc("/history", getHistory)
 	r.HandleFunc("/settings", settings)
+	r.HandleFunc("/waitingrunners", getWaitingRunners)
 }
