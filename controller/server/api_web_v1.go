@@ -248,7 +248,10 @@ func getWaitingRunners(w http.ResponseWriter, r *http.Request) {
 			runners = append(runners, v.RunnerName)
 		}
 
-		wR := waitingRunners{Runners: runners[1:]}
+		if len(runners) > 0 {
+			runners = runners[1:]
+		}
+		wR := waitingRunners{Runners: runners}
 
 		b, err := json.Marshal(wR)
 		if err != nil {

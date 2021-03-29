@@ -39,6 +39,7 @@ interface IRunningTabState {
 	jobs: Array<IRunningJob>,
 	waitingOnServer: Boolean,
 	showModal: Boolean,
+	waitingRunnersText: String,
 }
 
 export class RunningTab extends React.Component<{}, IRunningTabState> {
@@ -50,6 +51,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 			jobs: [],
 			waitingOnServer: true,
 			showModal: false,
+			waitingRunnersText: "",
 		};
 
 		// This is just so Typescript doesn't whine about timerID not being instantiated.
@@ -70,6 +72,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 	}
 
 	tick() {
+		// Update currently running jobs
 		axios.get("/api/web/v1/running").then((response) => {
 			let rJobs: Array<IRunningJob> = response.data.jobs;
 			if (rJobs === undefined) {
@@ -90,6 +93,25 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 			});
 		}).catch((error) => {
 			console.error(`Request to /api/web/v1/running failed with error: ${error}`);
+		});
+
+		// Update waiting runners
+		axios.get("/api/web/v1/waitingrunners").then((response) => {
+			if (response.data.Runners.length === 0) {
+				this.setState({
+					waitingRunnersText: "No waiting runners",
+				});
+			} else {
+				let runStr = response.data.Runners.toString();
+				if (response.data.Runners.length !== 1) {
+					runStr = runStr.slice(1);
+				}
+				this.setState({
+					waitingRunnersText: runStr,
+				});
+			}
+		}).catch((error) => {
+			console.error(`Request to /api/web/v1/waitingrunners failed with error: ${error}`);
 		});
 	}
 
@@ -120,12 +142,11 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 
 			<Modal show={this.state.showModal} onHide={handleClose}>
 				<Modal.Header closeButton>
-					<Modal.Title>Modal heading</Modal.Title>
+					<Modal.Title>Waiting Runners</Modal.Title>
 				</Modal.Header>
-				<Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
+				<Modal.Body>{this.state.waitingRunnersText}</Modal.Body>
 				<Modal.Footer>
 					<Button variant="secondary" onClick={handleClose}>Close</Button>
-					<Button variant="primary" onClick={handleClose}>Save Changes</Button>
 				</Modal.Footer>
 			</Modal>
 		</div>);
