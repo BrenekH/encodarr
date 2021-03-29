@@ -1,6 +1,8 @@
 import axios from "axios";
 import React from "react";
 import Button from "react-bootstrap/Button";
+import FormControl from "react-bootstrap/FormControl";
+import InputGroup from "react-bootstrap/InputGroup";
 import Modal from "react-bootstrap/Modal";
 
 import "./LibrariesTab.css";
@@ -73,21 +75,51 @@ function LibraryCard() {
 	return (<div></div>);
 }
 
-interface CreateLibraryModalProps {
+interface ICreateLibraryModalProps {
 	show: Boolean,
 	closeHandler: any,
 }
 
-function CreateLibraryModal(props: CreateLibraryModalProps) {
-	return (<div>
-		<Modal show={props.show} onHide={props.closeHandler}>
-			<Modal.Header closeButton>
-				<Modal.Title>Create New Library</Modal.Title>
-			</Modal.Header>
-			<Modal.Body>Hello, World!</Modal.Body>
-			<Modal.Footer>
-				<Button variant="secondary" onClick={props.closeHandler}>Close</Button>
-			</Modal.Footer>
-		</Modal>
-	</div>);
+interface ICreateLibraryModalState {
+	folder: string,
+}
+
+class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICreateLibraryModalState> {
+	constructor(props: ICreateLibraryModalProps) {
+		super(props);
+
+		this.state = {
+			folder: "",
+		}
+	}
+
+	render(): React.ReactNode {
+		return (<div>
+			<Modal show={this.props.show} onHide={this.props.closeHandler}>
+				<Modal.Header closeButton>
+					<Modal.Title>Create New Library</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Folder</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="/home/user/lib1"
+							aria-label="folder"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ folder: event.target.value }); }}
+							value={this.state.folder}
+						/>
+					</InputGroup>
+					<p>priority</p>
+					<p>fs_check_interval</p>
+					<p>Plugin Pipeline</p>
+					<p>path_masks</p>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={this.props.closeHandler}>Close</Button>
+				</Modal.Footer>
+			</Modal>
+		</div>);
+	}
 }
