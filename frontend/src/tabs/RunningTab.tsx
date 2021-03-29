@@ -1,15 +1,19 @@
 import axios from "axios";
 import React from "react";
+import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
-import Row from "react-bootstrap/Row";
+import Modal from "react-bootstrap/Modal";
 import ProgressBar from "react-bootstrap/ProgressBar";
+import Row from "react-bootstrap/Row";
 
 import { AudioImage } from "./shared/AudioImage";
 import { VideoImage } from "./shared/VideoImage";
 
 import "./RunningTab.css";
 import "../spacers.css";
+
+import infoI from "./Info-I.svg";
 
 interface IRunningJob {
 	runner_name: string,
@@ -34,6 +38,7 @@ interface IRunningJob {
 interface IRunningTabState {
 	jobs: Array<IRunningJob>,
 	waitingOnServer: Boolean,
+	showModal: Boolean,
 }
 
 export class RunningTab extends React.Component<{}, IRunningTabState> {
@@ -44,6 +49,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 		this.state = {
 			jobs: [],
 			waitingOnServer: true,
+			showModal: false,
 		};
 
 		// This is just so Typescript doesn't whine about timerID not being instantiated.
@@ -88,6 +94,9 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 	}
 
 	render(): React.ReactNode {
+		const handleClose = () => this.setState({showModal: false});
+		const handleShow = () => this.setState({showModal: true});
+
 		const jobsList = this.state.jobs.map((v) => {
 			return (<RunningCard
 				key={v.job.uuid}
@@ -106,7 +115,19 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 		});
 
 		return (<div>
+			<div className="info-i-flexbox"><img className="info-i" src={infoI} alt="" height="20px" onClick={handleShow}></img></div>
 			{(jobsList.length !== 0) ? jobsList : <h5 className="text-center">No running jobs</h5>}
+
+			<Modal show={this.state.showModal} onHide={handleClose}>
+				<Modal.Header closeButton>
+					<Modal.Title>Modal heading</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={handleClose}>Close</Button>
+					<Button variant="primary" onClick={handleClose}>Save Changes</Button>
+				</Modal.Footer>
+			</Modal>
 		</div>);
 	}
 }
