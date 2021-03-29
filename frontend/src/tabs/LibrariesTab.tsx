@@ -1,34 +1,20 @@
 import axios from "axios";
 import React from "react";
-import Card from "react-bootstrap/Card";
-import Table from "react-bootstrap/Table"
-
-import { AudioImage } from "./shared/AudioImage";
-import { VideoImage } from "./shared/VideoImage";
 
 import "./LibrariesTab.css";
 
-interface IQueuedJob {
-	uuid: string,
-	path: string,
-	parameters: {
-		hevc: Boolean,
-		stereo: Boolean,
-	}
+interface ILibrariesTabState {
+	libraries: Array<Number>
+	waitingOnServer: Boolean
 }
 
-interface IQueueTabState {
-	jobs: Array<IQueuedJob>,
-	waitingOnServer: Boolean,
-}
-
-export class LibrariesTab extends React.Component<{}, IQueueTabState> {
+export class LibrariesTab extends React.Component<{}, ILibrariesTabState> {
 	timerID: ReturnType<typeof setInterval>;
 
 	constructor(props: any) {
 		super(props);
 		this.state = {
-			jobs: [],
+			libraries: [],
 			waitingOnServer: true,
 		};
 
@@ -50,60 +36,29 @@ export class LibrariesTab extends React.Component<{}, IQueueTabState> {
 	}
 
 	tick() {
-		axios.get("/api/web/v1/queue").then((response) => {
-			let queue = response.data.queue;
-			if (queue === undefined) {
-				console.error("Response from /api/web/v1/queue returned undefined for data.queue");
-				return;
+		axios.get("/api/web/v1/libraries").then((response) => {
+			if (response.status === 200) {
+				this.setState({
+					libraries: response.data.IDs
+				});
 			}
-			this.setState({
-				jobs: queue,
-				waitingOnServer: false,
-			});
 		}).catch((error) => {
-			console.error(`Request to /api/web/v1/queue failed with error: ${error}`);
+			console.error(`Request to /api/web/v1/libraries failed with error: ${error}`);
 		});
 	}
 
 	render(): React.ReactNode {
-		const jobEntries = this.state.jobs.map((v: IQueuedJob, i: number) => {
-			return <TableEntry key={v.uuid} index={i+1} path={v.path} videoOperation={v.parameters.hevc} audioOperation={v.parameters.stereo}/>;
-		});
-
-		const waitingForServerEntry = <tr><th scope="row">-</th><td>Waiting on server</td></tr>;
-
-		return (<Card>
-			<Table hover size="sm">
-				<thead>
-					<tr>
-						<th scope="col">#</th>
-						<th scope="col">File</th>
-					</tr>
-				</thead>
-				<tbody>
-					{(!this.state.waitingOnServer) ? jobEntries : waitingForServerEntry}
-				</tbody>
-			</Table>
-		</Card>);
+		return <LibraryCard />;
 	}
 }
 
-interface ITableEntryProps {
-	index: number,
-	path: string,
-	videoOperation: Boolean,
-	audioOperation: Boolean,
-}
+function LibraryCard() {
+	let id = 1;
+	axios.get(`/api/web/v1/library/${id}`).then((response) => {
+		// TODO: Add to state (to load)
+	}).catch((error) => {
+		console.error(`Request to /api/web/v1/library/${id} failed with error: ${error}`)
+	});
 
-function TableEntry(props: ITableEntryProps) {
-	return (<tr>
-		<th scope="row">{props.index}</th>
-		<td>{props.path}</td>
-		<td>
-			<div className="queue-icon-container">
-				{(props.videoOperation) ? <span className="play-button-image"><VideoImage/></span> : null}
-				{(props.audioOperation) ? <AudioImage /> : null}
-			</div>
-		</td>
-	</tr>);
+	return (<div></div>);
 }
