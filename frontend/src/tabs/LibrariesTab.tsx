@@ -1,11 +1,16 @@
 import axios from "axios";
 import React from "react";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
 
 import "./LibrariesTab.css";
+
+import addLibraryIcon from "./addLibraryIcon.svg";
 
 interface ILibrariesTabState {
 	libraries: Array<Number>
 	waitingOnServer: Boolean
+	showCreateLibModal: Boolean
 }
 
 export class LibrariesTab extends React.Component<{}, ILibrariesTabState> {
@@ -16,6 +21,7 @@ export class LibrariesTab extends React.Component<{}, ILibrariesTabState> {
 		this.state = {
 			libraries: [],
 			waitingOnServer: true,
+			showCreateLibModal: false,
 		};
 
 		// This is just so Typescript doesn't whine about timerID not being instantiated.
@@ -48,7 +54,11 @@ export class LibrariesTab extends React.Component<{}, ILibrariesTabState> {
 	}
 
 	render(): React.ReactNode {
-		return <LibraryCard />;
+		return (<>
+			<img className="add-lib-ico" src={addLibraryIcon} alt="" height="20px" onClick={() => { this.setState({showCreateLibModal: true}); }} />
+			<CreateLibraryModal show={this.state.showCreateLibModal} closeHandler={() => { this.setState({showCreateLibModal: false}); }} />
+			<LibraryCard />
+		</>);
 	}
 }
 
@@ -61,4 +71,23 @@ function LibraryCard() {
 	});
 
 	return (<div></div>);
+}
+
+interface CreateLibraryModalProps {
+	show: Boolean,
+	closeHandler: any,
+}
+
+function CreateLibraryModal(props: CreateLibraryModalProps) {
+	return (<div>
+		<Modal show={props.show} onHide={props.closeHandler}>
+			<Modal.Header closeButton>
+				<Modal.Title>Create New Library</Modal.Title>
+			</Modal.Header>
+			<Modal.Body>Hello, World!</Modal.Body>
+			<Modal.Footer>
+				<Button variant="secondary" onClick={props.closeHandler}>Close</Button>
+			</Modal.Footer>
+		</Modal>
+	</div>);
 }

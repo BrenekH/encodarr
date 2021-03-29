@@ -19,8 +19,3 @@
 .info-i {
 	cursor: pointer;
 }
-
-.info-i-flexbox {
-	display: flex;
-	align-items: flex-end;
-}

@@ -137,7 +137,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 		});
 
 		return (<div>
-			<div className="info-i-flexbox"><img className="info-i" src={infoI} alt="" height="20px" onClick={handleShow}></img></div>
+			<img className="info-i" src={infoI} alt="" height="20px" onClick={handleShow} />
 			{(jobsList.length !== 0) ? jobsList : <h5 className="text-center">No running jobs</h5>}
 
 			<Modal show={this.state.showModal} onHide={handleClose}>
