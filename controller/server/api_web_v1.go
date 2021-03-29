@@ -262,6 +262,40 @@ func getWaitingRunners(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// getAllLibraryIDs is a HTTP handler that returns all of the library's IDs
+func getAllLibraryIDs(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		// TODO: Send back all library ids
+	}
+	w.Write([]byte(""))
+}
+
+// handleLibrary is a HTTP handler than takes care of the management of a Library
+func handleLibrary(w http.ResponseWriter, r *http.Request) {
+	libraryID := r.URL.Path[len("/api/web/v1/library/"):]
+	_ = libraryID
+
+	// TODO: Validate libraryID
+
+	// TODO: If libraryID is new and the HTTP verb is post, create a new library
+
+	// TODO: Respond to HTTP methods
+	switch r.Method {
+	case http.MethodGet:
+		// TODO: Respond with Library entry
+	case http.MethodPut:
+		// TODO: Update the Library settings
+	case http.MethodDelete:
+		// TODO: Delete the Library
+	default:
+		methodForbidden(w, r)
+		return
+	}
+
+	w.Write([]byte(""))
+}
+
 func registerWebAPIv1Handlers() {
 	r := newSubRouter("/api/web/v1")
 
@@ -270,4 +304,6 @@ func registerWebAPIv1Handlers() {
 	r.HandleFunc("/history", getHistory)
 	r.HandleFunc("/settings", settings)
 	r.HandleFunc("/waitingrunners", getWaitingRunners)
+	r.HandleFunc("/libraries", getAllLibraryIDs)
+	r.HandleFunc("/library/", handleLibrary)
 }
