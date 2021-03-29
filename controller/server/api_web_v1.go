@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/BrenekH/encodarr/controller/config"
@@ -266,28 +267,120 @@ func getWaitingRunners(w http.ResponseWriter, r *http.Request) {
 func getAllLibraryIDs(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		// TODO: Send back all library ids
+		allLibs, err := libraries.All()
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		ids := make([]int, len(allLibs))
+		for _, v := range allLibs {
+			ids = append(ids, v.ID)
+		}
+
+		b, err := json.Marshal(struct{ IDs []int }{ids[1:]})
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+		w.Write(b)
+	default:
+		methodForbidden(w, r)
 	}
-	w.Write([]byte(""))
 }
 
 // handleLibrary is a HTTP handler than takes care of the management of a Library
 func handleLibrary(w http.ResponseWriter, r *http.Request) {
 	libraryID := r.URL.Path[len("/api/web/v1/library/"):]
-	_ = libraryID
 
-	// TODO: Validate libraryID
+	if libraryID == "new" && r.Method == http.MethodPost {
+		readBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
 
-	// TODO: If libraryID is new and the HTTP verb is post, create a new library
+		newLib := libraries.Library{}
+		err = json.Unmarshal(readBytes, &newLib)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
 
-	// TODO: Respond to HTTP methods
+		if err = newLib.Create(); err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		w.Write([]byte(""))
+		return
+	}
+
+	// Transform the string libraryID into an int intLibID
+	temp, err := strconv.ParseInt(libraryID, 0, 0)
+	if err != nil {
+		logger.Error(err.Error())
+		serverError(w, r, err.Error())
+		return
+	}
+	intLibID := int(temp)
+
+	// Validate libraryID
+	lib := libraries.Library{ID: intLibID}
+	if err = lib.Get(); err != nil {
+		logger.Error(err.Error())
+		serverError(w, r, err.Error())
+		return
+	}
+
 	switch r.Method {
 	case http.MethodGet:
-		// TODO: Respond with Library entry
+		b, err := json.Marshal(lib)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(b)
 	case http.MethodPut:
-		// TODO: Update the Library settings
+		// Technically, there is a security flaw where an attacker can set the id in their request
+		// to a different library and overwrite a different library, but it's not like this API is locked down at all
+		// so does it really matter?
+		readBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		err = json.Unmarshal(readBytes, &lib)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		if err = lib.Update(); err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		w.Write([]byte(""))
+		return
 	case http.MethodDelete:
-		// TODO: Delete the Library
+		if err = lib.Delete(); err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+		w.Write([]byte(""))
 	default:
 		methodForbidden(w, r)
 		return

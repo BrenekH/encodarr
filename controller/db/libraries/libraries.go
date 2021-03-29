@@ -10,14 +10,14 @@ import (
 
 // Library represents a singular row in the libraries table
 type Library struct {
-	ID              int
-	Folder          string
-	Priority        int
-	FsCheckInterval time.Duration
-	Pipeline        pluginPipeline
-	Queue           Queue
-	FileCache       fileCache
-	PathMasks       []string
+	ID              int            `json:"id"`
+	Folder          string         `json:"folder"`
+	Priority        int            `json:"priority"`
+	FsCheckInterval time.Duration  `json:"fs_check_interval"`
+	Pipeline        pluginPipeline `json:"pipeline"`
+	Queue           Queue          `json:"queue"`
+	FileCache       fileCache      `json:"-"`
+	PathMasks       []string       `json:"path_masks"`
 }
 
 type pluginPipeline struct{} // TODO: Implement
@@ -213,6 +213,39 @@ func (l *Library) fromDBLibrary(d dBLibrary) error {
 		logger.Error(err.Error())
 		return err
 	}
+
+	return nil
+}
+
+// Create INSERTS data into the database similar to Insert.
+// However Create omits inserting the id and allows the DB to assign one instead.
+func (l *Library) Create() error {
+	d, err := l.toDBLibrary()
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
+	r, err := db.Client.Exec("INSERT INTO libraries (folder, priority, fs_check_interval, pipeline, queue, file_cache, path_masks) VALUES ($1, $2, $3, $4, $5, $6, $7);",
+		l.Folder,
+		l.Priority,
+		d.FsCheckInterval,
+		d.Pipeline,
+		d.Queue,
+		d.FileCache,
+		d.PathMasks,
+	)
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
+	id, err := r.LastInsertId()
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+	l.ID = int(id)
 
 	return nil
 }

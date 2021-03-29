@@ -17,7 +17,7 @@ var logger logange.Logger
 
 var schemaStmt string = `
 CREATE TABLE IF NOT EXISTS libraries (
-	ID integer,
+	ID integer PRIMARY KEY,
 	folder text,
 	priority integer,
 	fs_check_interval text,
