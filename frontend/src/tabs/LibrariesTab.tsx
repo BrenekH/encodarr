@@ -82,14 +82,21 @@ interface ICreateLibraryModalProps {
 
 interface ICreateLibraryModalState {
 	folder: string,
+	priority: string,
+	fs_check_interval: string,
+	path_masks: string,
 }
 
 class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICreateLibraryModalState> {
+	// TODO: Post a new library to the server
 	constructor(props: ICreateLibraryModalProps) {
 		super(props);
 
 		this.state = {
 			folder: "",
+			priority: "",
+			fs_check_interval: "",
+			path_masks: "",
 		}
 	}
 
@@ -111,10 +118,43 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 							value={this.state.folder}
 						/>
 					</InputGroup>
-					<p>priority</p>
-					<p>fs_check_interval</p>
-					<p>Plugin Pipeline</p>
-					<p>path_masks</p>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Priority</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="0"
+							aria-label="priority"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ priority: event.target.value }); }}
+							value={this.state.priority}
+						/>
+					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>File System Check Interval</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="0h0m0s"
+							aria-label="fs_check_interval"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ fs_check_interval: event.target.value }); }}
+							value={this.state.fs_check_interval}
+						/>
+					</InputGroup>
+					{/* <p>Plugin Pipeline</p> */}
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Path Masks</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="Plex Versions,private,.m4a"
+							aria-label="path_masks"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ path_masks: event.target.value }); }}
+							value={this.state.path_masks}
+						/>
+					</InputGroup>
 				</Modal.Body>
 				<Modal.Footer>
 					<Button variant="secondary" onClick={this.props.closeHandler}>Close</Button>
