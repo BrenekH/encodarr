@@ -14,13 +14,13 @@ type Library struct {
 	Folder          string         `json:"folder"`
 	Priority        int            `json:"priority"`
 	FsCheckInterval time.Duration  `json:"fs_check_interval"`
-	Pipeline        pluginPipeline `json:"pipeline"`
+	Pipeline        PluginPipeline `json:"pipeline"`
 	Queue           Queue          `json:"queue"`
 	FileCache       fileCache      `json:"-"`
 	PathMasks       []string       `json:"path_masks"`
 }
 
-type pluginPipeline struct{} // TODO: Implement
+type PluginPipeline struct{} // TODO: Implement
 
 type fileCache struct{} // TODO: Complete
 

@@ -58,6 +58,16 @@ type waitingRunners struct {
 	Runners []string
 }
 
+type libraryJSON struct {
+	ID              int                      `json:"id"`
+	Folder          string                   `json:"folder"`
+	Priority        int                      `json:"priority"`
+	FsCheckInterval string                   `json:"fs_check_interval"`
+	Pipeline        libraries.PluginPipeline `json:"pipeline"`
+	Queue           libraries.Queue          `json:"queue"`
+	PathMasks       []string                 `json:"path_masks"`
+}
+
 func makeFilteredDispatchedJobs() runningJSONResponse {
 	dispatchedJobsSlice, _ := dispatched.All()
 	runningJSONResponseStruct := runningJSONResponse{DispatchedJobs: make([]filteredDispatchedJob, len(dispatchedJobsSlice))}
@@ -343,7 +353,8 @@ func handleLibrary(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		b, err := json.Marshal(lib)
+		toSend := libraryJSON{lib.ID, lib.Folder, lib.Priority, lib.FsCheckInterval.String(), lib.Pipeline, lib.Queue, lib.PathMasks}
+		b, err := json.Marshal(toSend)
 		if err != nil {
 			logger.Error(err.Error())
 			serverError(w, r, err.Error())

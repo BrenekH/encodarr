@@ -168,7 +168,6 @@ interface IRunningCardProps {
 }
 
 function RunningCard(props: IRunningCardProps) {
-	console.log(props);
 	return (<div>
 		<Card style={{ padding: '1rem' }}>
 			<Card.Header className="text-center">
