@@ -176,11 +176,10 @@ func settings(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		rS := settingsJSON{
-			FileSystemCheckInterval: time.Duration(config.Global.FileSystemCheckInterval).String(),
-			HealthCheckInterval:     time.Duration(config.Global.HealthCheckInterval).String(),
-			HealthCheckTimeout:      time.Duration(config.Global.HealthCheckTimeout).String(),
-			LogVerbosity:            config.RootFileHandler.LevelString(),
-			SmallerFiles:            config.Global.SmallerFiles,
+			HealthCheckInterval: time.Duration(config.Global.HealthCheckInterval).String(),
+			HealthCheckTimeout:  time.Duration(config.Global.HealthCheckTimeout).String(),
+			LogVerbosity:        config.RootFileHandler.LevelString(),
+			SmallerFiles:        config.Global.SmallerFiles,
 		}
 		b, err := json.Marshal(rS)
 		if err != nil {
@@ -198,11 +197,10 @@ func settings(w http.ResponseWriter, r *http.Request) {
 		}
 
 		rS := settingsJSON{
-			FileSystemCheckInterval: time.Duration(config.Global.FileSystemCheckInterval).String(),
-			HealthCheckInterval:     time.Duration(config.Global.HealthCheckInterval).String(),
-			HealthCheckTimeout:      time.Duration(config.Global.HealthCheckTimeout).String(),
-			LogVerbosity:            config.RootFileHandler.LevelString(),
-			SmallerFiles:            config.Global.SmallerFiles,
+			HealthCheckInterval: time.Duration(config.Global.HealthCheckInterval).String(),
+			HealthCheckTimeout:  time.Duration(config.Global.HealthCheckTimeout).String(),
+			LogVerbosity:        config.RootFileHandler.LevelString(),
+			SmallerFiles:        config.Global.SmallerFiles,
 		}
 		err = json.Unmarshal(b, &rS)
 		if err != nil {
@@ -212,12 +210,7 @@ func settings(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		td, err := time.ParseDuration(rS.FileSystemCheckInterval)
-		if err == nil {
-			config.Global.FileSystemCheckInterval = int(td)
-		}
-
-		td, err = time.ParseDuration(rS.HealthCheckInterval)
+		td, err := time.ParseDuration(rS.HealthCheckInterval)
 		if err == nil {
 			config.Global.HealthCheckInterval = int(td)
 		}
