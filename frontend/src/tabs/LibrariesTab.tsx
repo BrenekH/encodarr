@@ -59,7 +59,7 @@ export class LibrariesTab extends React.Component<{}, ILibrariesTabState> {
 
 	render(): React.ReactNode {
 		const libsList = this.state.libraries.map((v) => {
-			return (<><LibraryCard key={v} id={v} /><div className="smol-spacer"></div></>);
+			return (<div key={v}><LibraryCard id={v} /><div className="smol-spacer"></div></div>);
 		});
 
 		return (<>
@@ -80,6 +80,8 @@ interface ILibraryCardState {
 	priority: string,
 	fs_check_interval: string,
 	path_masks: string,
+
+	showEditModal: Boolean,
 }
 
 class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> {
@@ -91,10 +93,13 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 			priority: "",
 			fs_check_interval: "",
 			path_masks: "",
-		};
 
-		// Schedule the library data to be fetched in 100 milliseconds
-		setTimeout(() => { this.getLibraryData() }, 100);
+			showEditModal: false,
+		};
+	}
+
+	componentDidMount() {
+		this.getLibraryData();
 	}
 
 	getLibraryData() {
@@ -103,7 +108,7 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				folder: response.data.folder,
 				priority: response.data.priority,
 				fs_check_interval: response.data.fs_check_interval,
-				path_masks: response.data.path_masks,
+				path_masks: response.data.path_masks.join(","),
 			});
 		}).catch((error) => {
 			console.error(`Request to /api/web/v1/library/${this.props.id} failed with error: ${error}`)
@@ -112,13 +117,24 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 
 	render() {
 		return (
+		<>
 			<Card>
 				<Card.Header className="text-center"><h5>{this.state.folder}</h5></Card.Header>
 				<p className="text-center">Priority: {this.state.priority}</p>
 				<p className="text-center">File System Check Interval: {this.state.fs_check_interval}</p>
 				<p className="text-center">Path Masks: {this.state.path_masks}</p>
+				<Button variant="primary" onClick={() => {this.setState({showEditModal: true})}}>Edit</Button>
 			</Card>
-		);
+			{(this.state.showEditModal) ? (<EditLibraryModal
+				show={true}
+				closeHandler={() => { this.setState({showEditModal: false}); }}
+				id={this.props.id}
+				folder={this.state.folder}
+				priority={this.state.priority}
+				fs_check_interval={this.state.fs_check_interval}
+				path_masks={this.state.path_masks}
+			/>) : null}
+		</>);
 	}
 }
 
@@ -221,6 +237,116 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 				<Modal.Footer>
 					<Button variant="secondary" onClick={this.props.closeHandler}>Close</Button>
 					<Button variant="primary" onClick={this.submitLib}>Create</Button>
+				</Modal.Footer>
+			</Modal>
+		</div>);
+	}
+}
+
+interface IEditLibraryModalProps {
+	show: Boolean,
+	closeHandler: any,
+	id: number,
+	folder: string,
+	priority: string,
+	fs_check_interval: string,
+	path_masks: string,
+}
+
+interface IEditLibraryModalState {
+	folder: string,
+	priority: string,
+	fs_check_interval: string,
+	path_masks: string,
+}
+
+class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibraryModalState> {
+	constructor(props: IEditLibraryModalProps) {
+		super(props);
+
+		this.state = {
+			folder: props.folder,
+			priority: props.priority,
+			fs_check_interval: props.fs_check_interval,
+			path_masks: props.path_masks,
+		}
+
+		this.putChanges = this.putChanges.bind(this);
+	}
+
+	putChanges(): void {
+		let data = {
+			folder: this.state.folder,
+			priority: parseInt(this.state.priority),
+			fs_check_interval: this.state.fs_check_interval,
+			path_masks: this.state.path_masks.split(","),
+		};
+		axios.put(`/api/web/v1/library/${this.props.id}`, data).then(() => {
+			this.props.closeHandler();
+		}).catch((error) => {
+			console.error(`/api/web/v1/library/${this.props.id} failed with error: ${error}`)
+		});
+	}
+
+	render(): React.ReactNode {
+		return (<div>
+			<Modal show={this.props.show} onHide={this.props.closeHandler}>
+				<Modal.Header closeButton>
+					<Modal.Title>Edit Library</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Folder</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="/home/user/lib1"
+							aria-label="folder"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ folder: event.target.value }); }}
+							value={this.state.folder}
+						/>
+					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Priority</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="0"
+							aria-label="priority"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ priority: event.target.value }); }}
+							value={this.state.priority}
+						/>
+					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>File System Check Interval</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="0h0m0s"
+							aria-label="fs_check_interval"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ fs_check_interval: event.target.value }); }}
+							value={this.state.fs_check_interval}
+						/>
+					</InputGroup>
+					{/* <p>Plugin Pipeline</p> */}
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Path Masks</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="Plex Versions,private,.m4a"
+							aria-label="path_masks"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ path_masks: event.target.value }); }}
+							value={this.state.path_masks}
+						/>
+					</InputGroup>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={this.props.closeHandler}>Close</Button>
+					<Button variant="primary" onClick={this.putChanges}>Update</Button>
 				</Modal.Footer>
 			</Modal>
 		</div>);

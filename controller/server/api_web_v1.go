@@ -328,7 +328,6 @@ func handleLibrary(w http.ResponseWriter, r *http.Request) {
 			Folder:    interimNewLib.Folder,
 			Priority:  interimNewLib.Priority,
 			Pipeline:  interimNewLib.Pipeline,
-			Queue:     interimNewLib.Queue,
 			PathMasks: interimNewLib.PathMasks,
 		}
 
@@ -386,11 +385,22 @@ func handleLibrary(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = json.Unmarshal(readBytes, &lib)
+		uLib := libraryJSON{}
+		err = json.Unmarshal(readBytes, &uLib)
 		if err != nil {
 			logger.Error(err.Error())
 			serverError(w, r, err.Error())
 			return
+		}
+
+		lib.Folder = uLib.Folder
+		lib.Priority = uLib.Priority
+		lib.PathMasks = uLib.PathMasks
+		lib.Pipeline = uLib.Pipeline
+
+		td, err := time.ParseDuration(uLib.FsCheckInterval)
+		if err == nil {
+			lib.FsCheckInterval = td
 		}
 
 		if err = lib.Update(); err != nil {
