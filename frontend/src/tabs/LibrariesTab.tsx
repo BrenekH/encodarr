@@ -135,7 +135,6 @@ interface ICreateLibraryModalState {
 }
 
 class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICreateLibraryModalState> {
-	// TODO: Post a new library to the server
 	constructor(props: ICreateLibraryModalProps) {
 		super(props);
 
@@ -145,6 +144,22 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			fs_check_interval: "",
 			path_masks: "",
 		}
+
+		this.submitLib = this.submitLib.bind(this);
+	}
+
+	submitLib(): void {
+		let data = {
+			folder: this.state.folder,
+			priority: parseInt(this.state.priority),
+			fs_check_interval: this.state.fs_check_interval,
+			path_masks: this.state.path_masks.split(","),
+		};
+		axios.post("/api/web/v1/library/new", data).then(() => {
+			this.props.closeHandler();
+		}).catch((error) => {
+			console.error(`/api/web/v1/library/new failed with error: ${error}`)
+		});
 	}
 
 	render(): React.ReactNode {
@@ -205,6 +220,7 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 				</Modal.Body>
 				<Modal.Footer>
 					<Button variant="secondary" onClick={this.props.closeHandler}>Close</Button>
+					<Button variant="primary" onClick={this.submitLib}>Create</Button>
 				</Modal.Footer>
 			</Modal>
 		</div>);

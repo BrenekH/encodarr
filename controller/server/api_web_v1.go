@@ -288,11 +288,11 @@ func getAllLibraryIDs(w http.ResponseWriter, r *http.Request) {
 		}
 
 		ids := make([]int, len(allLibs))
-		for _, v := range allLibs {
-			ids = append(ids, v.ID)
+		for k, v := range allLibs {
+			ids[k] = v.ID
 		}
 
-		b, err := json.Marshal(struct{ IDs []int }{ids[1:]})
+		b, err := json.Marshal(struct{ IDs []int }{ids})
 		if err != nil {
 			logger.Error(err.Error())
 			serverError(w, r, err.Error())
@@ -316,12 +316,25 @@ func handleLibrary(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		newLib := libraries.Library{}
-		err = json.Unmarshal(readBytes, &newLib)
+		interimNewLib := libraryJSON{}
+		err = json.Unmarshal(readBytes, &interimNewLib)
 		if err != nil {
 			logger.Error(err.Error())
 			serverError(w, r, err.Error())
 			return
+		}
+
+		newLib := libraries.Library{
+			Folder:    interimNewLib.Folder,
+			Priority:  interimNewLib.Priority,
+			Pipeline:  interimNewLib.Pipeline,
+			Queue:     interimNewLib.Queue,
+			PathMasks: interimNewLib.PathMasks,
+		}
+
+		td, err := time.ParseDuration(interimNewLib.FsCheckInterval)
+		if err == nil {
+			newLib.FsCheckInterval = td
 		}
 
 		if err = newLib.Create(); err != nil {
