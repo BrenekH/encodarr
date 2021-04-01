@@ -5,6 +5,10 @@ import Card from "react-bootstrap/Card";
 import FormControl from "react-bootstrap/FormControl";
 import InputGroup from "react-bootstrap/InputGroup";
 import Modal from "react-bootstrap/Modal";
+import Table from "react-bootstrap/Table";
+
+import { AudioImage } from "./shared/AudioImage";
+import { VideoImage } from "./shared/VideoImage";
 
 import "./LibrariesTab.css";
 import "../spacers.css";
@@ -80,8 +84,10 @@ interface ILibraryCardState {
 	priority: string,
 	fs_check_interval: string,
 	path_masks: string,
+	queue: Array<IQueuedJob>,
 
 	showEditModal: Boolean,
+	showQueueModal: Boolean,
 }
 
 class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> {
@@ -93,8 +99,10 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 			priority: "",
 			fs_check_interval: "",
 			path_masks: "",
+			queue: [],
 
 			showEditModal: false,
+			showQueueModal: false,
 		};
 	}
 
@@ -109,6 +117,7 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				priority: response.data.priority,
 				fs_check_interval: response.data.fs_check_interval,
 				path_masks: response.data.path_masks.join(","),
+				queue: response.data.queue.Items,
 			});
 		}).catch((error) => {
 			console.error(`Request to /api/web/v1/library/${this.props.id} failed with error: ${error}`)
@@ -123,6 +132,7 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				<p className="text-center">Priority: {this.state.priority}</p>
 				<p className="text-center">File System Check Interval: {this.state.fs_check_interval}</p>
 				<p className="text-center">Path Masks: {this.state.path_masks}</p>
+				<Button variant="secondary" onClick={() => {this.setState({showQueueModal: true})}}>Queue</Button>
 				<Button variant="primary" onClick={() => {this.setState({showEditModal: true})}}>Edit</Button>
 			</Card>
 			{(this.state.showEditModal) ? (<EditLibraryModal
@@ -133,6 +143,12 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				priority={this.state.priority}
 				fs_check_interval={this.state.fs_check_interval}
 				path_masks={this.state.path_masks}
+			/>) : null}
+
+			{(this.state.showQueueModal) ? (<QueueModal
+				show={true}
+				closeHandler={() => { this.setState({showQueueModal: false}); }}
+				queue={this.state.queue}
 			/>) : null}
 		</>);
 	}
@@ -351,4 +367,71 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 			</Modal>
 		</div>);
 	}
+}
+
+interface IQueueModalProps {
+	show: Boolean,
+	closeHandler: any,
+	queue: Array<IQueuedJob>,
+}
+
+class QueueModal extends React.Component<IQueueModalProps> {
+	render(): React.ReactNode {
+		const qList = this.props.queue.map((v: IQueuedJob, i: number) => {
+			return <TableEntry key={v.uuid} index={i+1} path={v.path} videoOperation={v.parameters.hevc} audioOperation={v.parameters.stereo}/>;
+		});
+
+		return (<div>
+			<Modal show={this.props.show} onHide={this.props.closeHandler} size="lg">
+				<Modal.Header closeButton>
+					<Modal.Title>Queue</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<Table>
+						<thead>
+							<tr>
+								<th scope="col">#</th>
+								<th scope="col">File</th>
+							</tr>
+						</thead>
+						<tbody>
+							{qList}
+						</tbody>
+					</Table>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={this.props.closeHandler}>Close</Button>
+				</Modal.Footer>
+			</Modal>
+		</div>);
+	}
+}
+
+interface IQueuedJob {
+	uuid: string,
+	path: string,
+	parameters: {
+		hevc: Boolean,
+		stereo: Boolean,
+	},
+}
+
+interface ITableEntryProps {
+	index: number,
+	path: string,
+	videoOperation: Boolean,
+	audioOperation: Boolean,
+}
+
+function TableEntry(props: ITableEntryProps) {
+	return (<tr>
+		<th scope="row">{props.index}</th>
+		<td>{props.path}</td>
+		<td>
+			<div className="queue-icon-container">
+				{(props.videoOperation) ? <span className="play-button-image"><VideoImage/></span> : null}
+				{(props.audioOperation) ? <AudioImage /> : null}
+			</div>
+		</td>
+	</tr>);
 }
