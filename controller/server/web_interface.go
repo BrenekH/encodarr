@@ -33,9 +33,9 @@ func registerWebInterfaceHandlers() {
 	}
 	http.Handle("/", http.FileServer(http.FS(fSys)))
 
-	// Non-root handlers (/running, /queue, /history, and /settings should all send index.html, but by default they don't)
+	// Non-root handlers (/running, /libraries, /history, and /settings should all send index.html, but by default they don't)
 	http.HandleFunc("/running", nonRootIndexHandler)
-	http.HandleFunc("/queue", nonRootIndexHandler)
+	http.HandleFunc("/libraries", nonRootIndexHandler)
 	http.HandleFunc("/history", nonRootIndexHandler)
 	http.HandleFunc("/settings", nonRootIndexHandler)
 }

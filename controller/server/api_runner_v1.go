@@ -22,7 +22,7 @@ type incomingJobStatus struct {
 func getNewJob(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		logger.Info(fmt.Sprintf("Received new job request from %v", r.RemoteAddr))
+		logger.Info(fmt.Sprintf("Received new job request from %v @ %v", r.Header.Get("X-Encodarr-Runner-Name"), r.RemoteAddr))
 		requestChannel := make(chan dispatched.Job, 1)
 		controller.JobRequestChannel <- controller.JobRequest{RunnerName: r.Header.Get("X-Encodarr-Runner-Name"), ReturnChannel: &requestChannel}
 		jobToSend, ok := <-requestChannel

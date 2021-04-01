@@ -8,7 +8,6 @@ import "./SettingsTab.css";
 import "../spacers.css";
 
 interface IInputValues {
-	fsCheckInterval: string,
 	smallerFilesCheck: Boolean,
 	healthCheckInterval: string,
 	unresponsiveRunnerTimeout: string,
@@ -25,7 +24,6 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 		super(props);
 		this.state = {
 			inputValues: {
-				"fsCheckInterval": "",
 				"smallerFilesCheck": false,
 				"healthCheckInterval": "",
 				"unresponsiveRunnerTimeout": "",
@@ -59,7 +57,6 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 
 	handleClick(): void {
 		axios.put("/api/web/v1/settings", {
-			"FileSystemCheckInterval": this.state.inputValues.fsCheckInterval,
 			"SmallerFiles": this.state.inputValues.smallerFilesCheck,
 			"HealthCheckInterval": this.state.inputValues.healthCheckInterval,
 			"HealthCheckTimeout": this.state.inputValues.unresponsiveRunnerTimeout,
@@ -81,7 +78,6 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 		axios.get("/api/web/v1/settings").then((response) => {
 			this.setState({
 				inputValues: {
-					"fsCheckInterval": response.data.FileSystemCheckInterval,
 					"smallerFilesCheck": response.data.SmallerFiles,
 					"healthCheckInterval": response.data.HealthCheckInterval,
 					"unresponsiveRunnerTimeout": response.data.HealthCheckTimeout,
@@ -101,20 +97,6 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 
 		return (<div>
 			<h5>General</h5>
-
-			<InputGroup className="mb-3">
-				<InputGroup.Prepend>
-					<InputGroup.Text>File System Scan Interval</InputGroup.Text>
-				</InputGroup.Prepend>
-				<FormControl
-					className="dark-text-input"
-					placeholder="0h0m0s"
-					aria-label="fs-check-interval"
-					aria-describedby="basic-addon1"
-					onChange={this.createChangeHandler("fsCheckInterval")}
-					value={this.state.inputValues["fsCheckInterval"]}
-				/>
-			</InputGroup>
 
 			<InputGroup className="mb-3">
 				<InputGroup.Prepend>

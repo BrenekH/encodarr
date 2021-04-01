@@ -7,7 +7,7 @@ import (
 	"github.com/BrenekH/logange"
 
 	// Load SQLite driver
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 // Client is a "database/sql" DB pointer for access to the SQLite database
@@ -17,7 +17,7 @@ var logger logange.Logger
 
 var schemaStmt string = `
 CREATE TABLE IF NOT EXISTS libraries (
-	ID integer,
+	ID integer PRIMARY KEY,
 	folder text,
 	priority integer,
 	fs_check_interval text,
@@ -55,7 +55,7 @@ func init() {
 
 	// Setup SQLite database
 	var err error
-	Client, err = sql.Open("sqlite3", options.ConfigDir()+"/data.db")
+	Client, err = sql.Open("sqlite", options.ConfigDir()+"/data.db")
 	if err != nil {
 		logger.Critical(err.Error())
 	}

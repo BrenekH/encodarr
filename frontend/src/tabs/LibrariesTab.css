@@ -1,0 +1,26 @@
+.queue-icon-container {
+	white-space: nowrap;
+}
+
+.play-button-image {
+	padding-right: 5px;
+}
+
+.add-lib-ico {
+	cursor: pointer;
+}
+
+/* Override Bootstrap CSS */
+.dark-text-input {
+	/* I know !important isn't great practice,
+	but the browser likes to prioritize the bootstrap over main.css
+	and that's not okay */
+	background-color: #060606 !important;
+	border-color: #282828 !important;
+	color: #ffffff !important;
+}
+
+.form-control:focus {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}

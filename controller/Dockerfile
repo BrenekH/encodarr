@@ -5,8 +5,8 @@ WORKDIR /go/src/encodarr/controller
 
 COPY . .
 
-# We disable CGo via an env var, but reenable it using an installsuffix so that a statically linked binary is produced.
-RUN CGO_ENABLED=0 GOOS=linux go build -installsuffix cgo -o encodarr .
+# Disable CGO so that we have a static binary
+RUN CGO_ENABLED=0 GOOS=linux go build -o encodarr .
 
 
 # Run stage

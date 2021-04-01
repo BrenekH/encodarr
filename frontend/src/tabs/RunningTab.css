@@ -15,3 +15,7 @@
 	flex-direction: column;
 	justify-content: space-evenly;
 }
+
+.info-i {
+	cursor: pointer;
+}

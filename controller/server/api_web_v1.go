@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/BrenekH/encodarr/controller/config"
+	"github.com/BrenekH/encodarr/controller/controller"
 	"github.com/BrenekH/encodarr/controller/db/dispatched"
 	"github.com/BrenekH/encodarr/controller/db/history"
 	"github.com/BrenekH/encodarr/controller/db/libraries"
@@ -50,6 +52,20 @@ type settingsJSON struct {
 	HealthCheckTimeout      string
 	LogVerbosity            string
 	SmallerFiles            bool
+}
+
+type waitingRunners struct {
+	Runners []string
+}
+
+type libraryJSON struct {
+	ID              int                      `json:"id"`
+	Folder          string                   `json:"folder"`
+	Priority        int                      `json:"priority"`
+	FsCheckInterval string                   `json:"fs_check_interval"`
+	Pipeline        libraries.PluginPipeline `json:"pipeline"`
+	Queue           libraries.Queue          `json:"queue"`
+	PathMasks       []string                 `json:"path_masks"`
 }
 
 func makeFilteredDispatchedJobs() runningJSONResponse {
@@ -160,11 +176,10 @@ func settings(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		rS := settingsJSON{
-			FileSystemCheckInterval: time.Duration(config.Global.FileSystemCheckInterval).String(),
-			HealthCheckInterval:     time.Duration(config.Global.HealthCheckInterval).String(),
-			HealthCheckTimeout:      time.Duration(config.Global.HealthCheckTimeout).String(),
-			LogVerbosity:            config.RootFileHandler.LevelString(),
-			SmallerFiles:            config.Global.SmallerFiles,
+			HealthCheckInterval: time.Duration(config.Global.HealthCheckInterval).String(),
+			HealthCheckTimeout:  time.Duration(config.Global.HealthCheckTimeout).String(),
+			LogVerbosity:        config.RootFileHandler.LevelString(),
+			SmallerFiles:        config.Global.SmallerFiles,
 		}
 		b, err := json.Marshal(rS)
 		if err != nil {
@@ -182,11 +197,10 @@ func settings(w http.ResponseWriter, r *http.Request) {
 		}
 
 		rS := settingsJSON{
-			FileSystemCheckInterval: time.Duration(config.Global.FileSystemCheckInterval).String(),
-			HealthCheckInterval:     time.Duration(config.Global.HealthCheckInterval).String(),
-			HealthCheckTimeout:      time.Duration(config.Global.HealthCheckTimeout).String(),
-			LogVerbosity:            config.RootFileHandler.LevelString(),
-			SmallerFiles:            config.Global.SmallerFiles,
+			HealthCheckInterval: time.Duration(config.Global.HealthCheckInterval).String(),
+			HealthCheckTimeout:  time.Duration(config.Global.HealthCheckTimeout).String(),
+			LogVerbosity:        config.RootFileHandler.LevelString(),
+			SmallerFiles:        config.Global.SmallerFiles,
 		}
 		err = json.Unmarshal(b, &rS)
 		if err != nil {
@@ -196,12 +210,7 @@ func settings(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		td, err := time.ParseDuration(rS.FileSystemCheckInterval)
-		if err == nil {
-			config.Global.FileSystemCheckInterval = int(td)
-		}
-
-		td, err = time.ParseDuration(rS.HealthCheckInterval)
+		td, err := time.ParseDuration(rS.HealthCheckInterval)
 		if err == nil {
 			config.Global.HealthCheckInterval = int(td)
 		}
@@ -232,6 +241,184 @@ func settings(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// getWaitingRunners is a HTTP handler that returns all runners waiting for a job in a JSON response.
+func getWaitingRunners(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		runners := make([]string, len(controller.JobRequests))
+
+		for _, v := range controller.JobRequests {
+			runners = append(runners, v.RunnerName)
+		}
+
+		if len(runners) > 0 {
+			runners = runners[1:]
+		}
+		wR := waitingRunners{Runners: runners}
+
+		b, err := json.Marshal(wR)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		w.Write(b)
+	default:
+		methodForbidden(w, r)
+	}
+}
+
+// getAllLibraryIDs is a HTTP handler that returns all of the library's IDs
+func getAllLibraryIDs(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		allLibs, err := libraries.All()
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		ids := make([]int, len(allLibs))
+		for k, v := range allLibs {
+			ids[k] = v.ID
+		}
+
+		b, err := json.Marshal(struct{ IDs []int }{ids})
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+		w.Write(b)
+	default:
+		methodForbidden(w, r)
+	}
+}
+
+// handleLibrary is a HTTP handler than takes care of the management of a Library
+func handleLibrary(w http.ResponseWriter, r *http.Request) {
+	libraryID := r.URL.Path[len("/api/web/v1/library/"):]
+
+	if libraryID == "new" && r.Method == http.MethodPost {
+		readBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		interimNewLib := libraryJSON{}
+		err = json.Unmarshal(readBytes, &interimNewLib)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		newLib := libraries.Library{
+			Folder:    interimNewLib.Folder,
+			Priority:  interimNewLib.Priority,
+			Pipeline:  interimNewLib.Pipeline,
+			PathMasks: interimNewLib.PathMasks,
+		}
+
+		td, err := time.ParseDuration(interimNewLib.FsCheckInterval)
+		if err == nil {
+			newLib.FsCheckInterval = td
+		}
+
+		if err = newLib.Create(); err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		w.Write([]byte(""))
+		return
+	}
+
+	// Transform the string libraryID into an int intLibID
+	temp, err := strconv.ParseInt(libraryID, 0, 0)
+	if err != nil {
+		logger.Error(err.Error())
+		serverError(w, r, err.Error())
+		return
+	}
+	intLibID := int(temp)
+
+	// Validate libraryID
+	lib := libraries.Library{ID: intLibID}
+	if err = lib.Get(); err != nil {
+		logger.Error(err.Error())
+		serverError(w, r, err.Error())
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		toSend := libraryJSON{lib.ID, lib.Folder, lib.Priority, lib.FsCheckInterval.String(), lib.Pipeline, lib.Queue, lib.PathMasks}
+		b, err := json.Marshal(toSend)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(b)
+	case http.MethodPut:
+		// Technically, there is a security flaw where an attacker can set the id in their request
+		// to a different library and overwrite a different library, but it's not like this API is locked down at all
+		// so does it really matter?
+		readBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		uLib := libraryJSON{}
+		err = json.Unmarshal(readBytes, &uLib)
+		if err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		lib.Folder = uLib.Folder
+		lib.Priority = uLib.Priority
+		lib.PathMasks = uLib.PathMasks
+		lib.Pipeline = uLib.Pipeline
+
+		td, err := time.ParseDuration(uLib.FsCheckInterval)
+		if err == nil {
+			lib.FsCheckInterval = td
+		}
+
+		if err = lib.Update(); err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+
+		w.Write([]byte(""))
+		return
+	case http.MethodDelete:
+		if err = lib.Delete(); err != nil {
+			logger.Error(err.Error())
+			serverError(w, r, err.Error())
+			return
+		}
+		w.Write([]byte(""))
+	default:
+		methodForbidden(w, r)
+		return
+	}
+
+	w.Write([]byte(""))
+}
+
 func registerWebAPIv1Handlers() {
 	r := newSubRouter("/api/web/v1")
 
@@ -239,4 +426,7 @@ func registerWebAPIv1Handlers() {
 	r.HandleFunc("/queue", getQueue)
 	r.HandleFunc("/history", getHistory)
 	r.HandleFunc("/settings", settings)
+	r.HandleFunc("/waitingrunners", getWaitingRunners)
+	r.HandleFunc("/libraries", getAllLibraryIDs)
+	r.HandleFunc("/library/", handleLibrary)
 }

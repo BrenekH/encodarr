@@ -14,11 +14,10 @@ import (
 
 // Settings is used to represent how settings are saved to a file
 type Settings struct {
-	FileSystemCheckInterval int
-	HealthCheckInterval     int
-	HealthCheckTimeout      int
-	LogVerbosity            string
-	SmallerFiles            bool
+	HealthCheckInterval int
+	HealthCheckTimeout  int
+	LogVerbosity        string
+	SmallerFiles        bool
 }
 
 // Global is an instance of ControllerConfiguration that can be accessed anywhere in the program
@@ -63,10 +62,9 @@ func SaveGlobal() error {
 // DefaultSettings returns a "constant" settings struct with sensible defaults
 func DefaultSettings() Settings {
 	return Settings{
-		FileSystemCheckInterval: int(15 * time.Minute),
-		HealthCheckInterval:     int(1 * time.Minute),
-		HealthCheckTimeout:      int(1 * time.Hour),
-		LogVerbosity:            "INFO",
-		SmallerFiles:            false,
+		HealthCheckInterval: int(1 * time.Minute),
+		HealthCheckTimeout:  int(1 * time.Hour),
+		LogVerbosity:        "INFO",
+		SmallerFiles:        false,
 	}
 }

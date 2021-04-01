@@ -1,27 +1,29 @@
 {
   "files": {
-    "main.css": "/static/css/main.46be663d.chunk.css",
-    "main.js": "/static/js/main.a0ee24c0.chunk.js",
-    "main.js.map": "/static/js/main.a0ee24c0.chunk.js.map",
-    "runtime-main.js": "/static/js/runtime-main.a9c3a08c.js",
-    "runtime-main.js.map": "/static/js/runtime-main.a9c3a08c.js.map",
+    "main.css": "/static/css/main.0cf50ce7.chunk.css",
+    "main.js": "/static/js/main.7369ed80.chunk.js",
+    "main.js.map": "/static/js/main.7369ed80.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.749f560d.js",
+    "runtime-main.js.map": "/static/js/runtime-main.749f560d.js.map",
     "static/css/2.2c2d1656.chunk.css": "/static/css/2.2c2d1656.chunk.css",
-    "static/js/2.5b1f60c0.chunk.js": "/static/js/2.5b1f60c0.chunk.js",
-    "static/js/2.5b1f60c0.chunk.js.map": "/static/js/2.5b1f60c0.chunk.js.map",
-    "static/js/3.1683eeb5.chunk.js": "/static/js/3.1683eeb5.chunk.js",
-    "static/js/3.1683eeb5.chunk.js.map": "/static/js/3.1683eeb5.chunk.js.map",
+    "static/js/2.a88351f5.chunk.js": "/static/js/2.a88351f5.chunk.js",
+    "static/js/2.a88351f5.chunk.js.map": "/static/js/2.a88351f5.chunk.js.map",
+    "static/js/3.146597c3.chunk.js": "/static/js/3.146597c3.chunk.js",
+    "static/js/3.146597c3.chunk.js.map": "/static/js/3.146597c3.chunk.js.map",
     "index.html": "/index.html",
     "static/css/2.2c2d1656.chunk.css.map": "/static/css/2.2c2d1656.chunk.css.map",
-    "static/css/main.46be663d.chunk.css.map": "/static/css/main.46be663d.chunk.css.map",
-    "static/js/2.5b1f60c0.chunk.js.LICENSE.txt": "/static/js/2.5b1f60c0.chunk.js.LICENSE.txt",
-    "static/media/headphones.d0211b61.svg": "/static/media/headphones.d0211b61.svg",
-    "static/media/play_button.a97890f5.svg": "/static/media/play_button.a97890f5.svg"
+    "static/css/main.0cf50ce7.chunk.css.map": "/static/css/main.0cf50ce7.chunk.css.map",
+    "static/js/2.a88351f5.chunk.js.LICENSE.txt": "/static/js/2.a88351f5.chunk.js.LICENSE.txt",
+    "static/media/Info-I.ffc9d3a2.svg": "/static/media/Info-I.ffc9d3a2.svg",
+    "static/media/addLibraryIcon.dd5f1d29.svg": "/static/media/addLibraryIcon.dd5f1d29.svg",
+    "static/media/headphones.f1e7bde3.svg": "/static/media/headphones.f1e7bde3.svg",
+    "static/media/play_button.415684ac.svg": "/static/media/play_button.415684ac.svg"
   },
   "entrypoints": [
-    "static/js/runtime-main.a9c3a08c.js",
+    "static/js/runtime-main.749f560d.js",
     "static/css/2.2c2d1656.chunk.css",
-    "static/js/2.5b1f60c0.chunk.js",
-    "static/css/main.46be663d.chunk.css",
-    "static/js/main.a0ee24c0.chunk.js"
+    "static/js/2.a88351f5.chunk.js",
+    "static/css/main.0cf50ce7.chunk.css",
+    "static/js/main.7369ed80.chunk.js"
   ]
 }

@@ -1,15 +1,19 @@
 import axios from "axios";
 import React from "react";
+import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
-import Row from "react-bootstrap/Row";
+import Modal from "react-bootstrap/Modal";
 import ProgressBar from "react-bootstrap/ProgressBar";
+import Row from "react-bootstrap/Row";
 
 import { AudioImage } from "./shared/AudioImage";
 import { VideoImage } from "./shared/VideoImage";
 
 import "./RunningTab.css";
 import "../spacers.css";
+
+import infoI from "./Info-I.svg";
 
 interface IRunningJob {
 	runner_name: string,
@@ -34,6 +38,8 @@ interface IRunningJob {
 interface IRunningTabState {
 	jobs: Array<IRunningJob>,
 	waitingOnServer: Boolean,
+	showModal: Boolean,
+	waitingRunnersText: String,
 }
 
 export class RunningTab extends React.Component<{}, IRunningTabState> {
@@ -44,6 +50,8 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 		this.state = {
 			jobs: [],
 			waitingOnServer: true,
+			showModal: false,
+			waitingRunnersText: "",
 		};
 
 		// This is just so Typescript doesn't whine about timerID not being instantiated.
@@ -64,6 +72,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 	}
 
 	tick() {
+		// Update currently running jobs
 		axios.get("/api/web/v1/running").then((response) => {
 			let rJobs: Array<IRunningJob> = response.data.jobs;
 			if (rJobs === undefined) {
@@ -85,9 +94,31 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 		}).catch((error) => {
 			console.error(`Request to /api/web/v1/running failed with error: ${error}`);
 		});
+
+		// Update waiting runners
+		axios.get("/api/web/v1/waitingrunners").then((response) => {
+			if (response.data.Runners.length === 0) {
+				this.setState({
+					waitingRunnersText: "No waiting runners",
+				});
+			} else {
+				let runStr = response.data.Runners.toString();
+				if (response.data.Runners.length !== 1) {
+					runStr = runStr.slice(1);
+				}
+				this.setState({
+					waitingRunnersText: runStr,
+				});
+			}
+		}).catch((error) => {
+			console.error(`Request to /api/web/v1/waitingrunners failed with error: ${error}`);
+		});
 	}
 
 	render(): React.ReactNode {
+		const handleClose = () => this.setState({showModal: false});
+		const handleShow = () => this.setState({showModal: true});
+
 		const jobsList = this.state.jobs.map((v) => {
 			return (<RunningCard
 				key={v.job.uuid}
@@ -106,7 +137,18 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 		});
 
 		return (<div>
+			<img className="info-i" src={infoI} alt="" height="20px" onClick={handleShow} />
 			{(jobsList.length !== 0) ? jobsList : <h5 className="text-center">No running jobs</h5>}
+
+			<Modal show={this.state.showModal} onHide={handleClose}>
+				<Modal.Header closeButton>
+					<Modal.Title>Waiting Runners</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>{this.state.waitingRunnersText}</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={handleClose}>Close</Button>
+				</Modal.Footer>
+			</Modal>
 		</div>);
 	}
 }
@@ -126,7 +168,6 @@ interface IRunningCardProps {
 }
 
 function RunningCard(props: IRunningCardProps) {
-	console.log(props);
 	return (<div>
 		<Card style={{ padding: '1rem' }}>
 			<Card.Header className="text-center">

@@ -3,7 +3,7 @@ import Tab from "react-bootstrap/Tab";
 import Nav from "react-bootstrap/Nav";
 
 import { RunningTab } from "./tabs/RunningTab";
-import { QueueTab } from "./tabs/QueueTab";
+import { LibrariesTab } from "./tabs/LibrariesTab";
 import { HistoryTab } from "./tabs/HistoryTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import './spacers.css';
@@ -15,9 +15,9 @@ function Title() {
 class App extends React.Component {
 	handleSelect(eventKey: any) {
 		switch (eventKey) {
-			case "queue":
-				window.history.replaceState(undefined, "", "/queue");
-				document.title = "Queue - Encodarr";
+			case "libraries":
+				window.history.replaceState(undefined, "", "/libraries");
+				document.title = "Libraries - Encodarr";
 				break;
 			case "history":
 				window.history.replaceState(undefined, "", "/history");
@@ -39,8 +39,8 @@ class App extends React.Component {
 	render() {
 		let activeKey: string = "running";
 		switch (window.location.pathname) {
-			case "/queue":
-				activeKey = "queue";
+			case "/libraries":
+				activeKey = "libraries";
 				break;
 			case "/history":
 				activeKey = "history";
@@ -60,7 +60,7 @@ class App extends React.Component {
 						<Nav.Link eventKey="running">Running</Nav.Link>
 					</Nav.Item>
 					<Nav.Item>
-						<Nav.Link eventKey="queue">Queue</Nav.Link>
+						<Nav.Link eventKey="libraries">Libraries</Nav.Link>
 					</Nav.Item>
 					<Nav.Item>
 						<Nav.Link eventKey="history">History</Nav.Link>
@@ -76,8 +76,8 @@ class App extends React.Component {
 					<Tab.Pane eventKey="running" mountOnEnter={true} unmountOnExit={true}>
 						<RunningTab />
 					</Tab.Pane>
-					<Tab.Pane eventKey="queue" mountOnEnter={true} unmountOnExit={true}>
-						<QueueTab />
+					<Tab.Pane eventKey="libraries" mountOnEnter={true} unmountOnExit={true}>
+						<LibrariesTab />
 					</Tab.Pane>
 					<Tab.Pane eventKey="history" mountOnEnter={true} unmountOnExit={true}>
 						<HistoryTab />

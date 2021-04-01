@@ -44,8 +44,8 @@ var JobRequestChannel chan JobRequest = make(chan JobRequest)
 // JobCompleteRequestChan is a channel used to send job completed requests to the Controller
 var JobCompleteRequestChan chan JobCompleteRequest = make(chan JobCompleteRequest)
 
-// jobRequests holds all of the requests until they can be resolved
-var jobRequests []JobRequest = make([]JobRequest, 0)
+// JobRequests holds all of the requests until they can be resolved
+var JobRequests []JobRequest = make([]JobRequest, 0)
 
 // RunController is a goroutine compliant way to run the controller.
 func RunController(stopChan *chan interface{}, wg *sync.WaitGroup) {
@@ -83,11 +83,11 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 		default:
 			select {
 			case c := <-*requestChan:
-				jobRequests = append(jobRequests, c)
+				JobRequests = append(JobRequests, c)
 			default:
 			}
 
-			if len(jobRequests) != 0 {
+			if len(JobRequests) != 0 {
 				if isJobAvailable() {
 					jR, err := popJobRequest()
 					if err != nil {
@@ -210,11 +210,11 @@ func healthCheck() {
 // popJobRequest returns the first element of the jobRequests slice
 // and shifts the remaining items up one slot.
 func popJobRequest() (JobRequest, error) {
-	if len(jobRequests) == 0 {
+	if len(JobRequests) == 0 {
 		return JobRequest{}, fmt.Errorf("jobRequests is empty")
 	}
-	item := jobRequests[0]
-	jobRequests[0] = JobRequest{} // Hopefully this garbage collects properly
-	jobRequests = jobRequests[1:]
+	item := JobRequests[0]
+	JobRequests[0] = JobRequest{} // Hopefully this garbage collects properly
+	JobRequests = JobRequests[1:]
 	return item, nil
 }

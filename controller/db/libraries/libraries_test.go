@@ -22,7 +22,7 @@ func TestFromDBLibrary(t *testing.T) {
 			PathMasks:       []byte("[]"),
 		}, want: Library{
 			FsCheckInterval: time.Duration(time.Hour + time.Minute + time.Second),
-			Pipeline:        pluginPipeline{},
+			Pipeline:        PluginPipeline{},
 			Queue:           Queue{},
 			FileCache:       fileCache{},
 			PathMasks:       []string{},
@@ -65,7 +65,7 @@ func TestToDBLibrary(t *testing.T) {
 	}{
 		{name: "Basic", errors: false, in: Library{
 			FsCheckInterval: time.Duration(time.Hour + time.Minute + time.Second),
-			Pipeline:        pluginPipeline{},
+			Pipeline:        PluginPipeline{},
 			Queue:           Queue{},
 			FileCache:       fileCache{},
 			PathMasks:       []string{},
