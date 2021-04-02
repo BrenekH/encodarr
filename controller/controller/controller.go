@@ -35,6 +35,9 @@ type JobRequest struct {
 // fsCheckTimes is a map of Library ids and the last time that they were checked.
 var fsCheckTimes map[int]time.Time = make(map[int]time.Time)
 
+// fsCheckComplete is a map of Library ids and a boolean to indicate whether the goroutine that was spawned is finished
+var fsCheckComplete map[int]bool = make(map[int]bool)
+
 // healthLastCheck holds the last time a health check was performed.
 var healthLastCheck time.Time
 
@@ -168,10 +171,17 @@ func fileSystemCheck(wg *sync.WaitGroup) {
 			t = fsCheckTimes[l.ID]
 		}
 
-		if time.Since(t) > l.FsCheckInterval {
+		prevDone, ok := fsCheckComplete[l.ID]
+		if !ok {
+			fsCheckComplete[l.ID] = true
+			prevDone = fsCheckComplete[l.ID]
+		}
+
+		if time.Since(t) > l.FsCheckInterval && prevDone {
 			logger.Debug(fmt.Sprintf("Initiating library (ID: %v) update", l.ID))
 			fsCheckTimes[l.ID] = time.Now()
-			go updateLibraryQueue(l, wg)
+			fsCheckComplete[l.ID] = false
+			go updateLibraryQueue(l, wg, &fsCheckComplete)
 		}
 	}
 }
@@ -200,7 +210,6 @@ func healthCheck() {
 					logger.Error(err.Error())
 					continue
 				}
-				// TODO: Add back into library queue
 			}
 		}
 		logger.Debug("Health check complete")
