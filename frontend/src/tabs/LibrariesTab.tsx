@@ -377,7 +377,12 @@ interface IQueueModalProps {
 
 class QueueModal extends React.Component<IQueueModalProps> {
 	render(): React.ReactNode {
-		const qList = this.props.queue.map((v: IQueuedJob, i: number) => {
+		let propsQueue = this.props.queue;
+		if (propsQueue === null) {
+			propsQueue = [];
+		}
+
+		const qList = propsQueue.map((v: IQueuedJob, i: number) => {
 			return <TableEntry key={v.uuid} index={i+1} path={v.path} videoOperation={v.parameters.hevc} audioOperation={v.parameters.stereo}/>;
 		});
 
