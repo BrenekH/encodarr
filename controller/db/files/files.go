@@ -79,7 +79,7 @@ func (f *File) Get() error {
 	)
 
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Trace(err.Error())
 		return err
 	}
 
