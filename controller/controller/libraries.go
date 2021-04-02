@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 
@@ -165,6 +166,11 @@ func popQueuedJob() (dispatched.Job, error) {
 		logger.Error(err.Error())
 		return dispatched.Job{}, err
 	}
+
+	// Sort libraries by decreasing order so that the libraries with the higher priority number dispatch jobs first.
+	sort.Slice(allLibraries, func(i, j int) bool {
+		return allLibraries[i].Priority > allLibraries[j].Priority
+	})
 
 	for _, v := range allLibraries {
 		if len(v.Queue.Items) > 0 {
