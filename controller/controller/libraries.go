@@ -38,24 +38,6 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			}
 		}
 
-		fInfo, err := os.Stat(videoFilepath)
-		if err != nil {
-			logger.Warn(err.Error())
-			continue
-		}
-
-		// We have to set the mod times to UTC because the db returns a different time zone format than os.Stat()
-		if fInfo.ModTime().UTC() == filesEntry.ModTime.UTC() {
-			logger.Debug(fmt.Sprintf("Skipping %v because the modtime is the same as the cached version", videoFilepath))
-			continue
-		} else {
-			logger.Debug(fmt.Sprintf("Adding %v to files table", videoFilepath))
-			filesEntry.ModTime = fInfo.ModTime()
-			if err = filesEntry.Update(); err != nil {
-				logger.Warn(err.Error())
-			}
-		}
-
 		pathJob := dispatched.Job{UUID: "", Path: videoFilepath, Parameters: dispatched.JobParameters{}}
 
 		alreadyDispatched, err := dispatched.PathInDB(pathJob.Path)
@@ -82,32 +64,62 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			continue
 		}
 
-		mediainfo, err := mediainfo.GetMediaInfo(videoFilepath)
+		fInfo, err := os.Stat(videoFilepath)
 		if err != nil {
-			logger.Error(fmt.Sprintf("Error getting mediainfo for %v: %v", videoFilepath, err))
+			logger.Warn(err.Error())
 			continue
 		}
-		logger.Trace(fmt.Sprintf("Mediainfo object for %v: %v", videoFilepath, mediainfo))
+
+		runMediaInfo := true
+		// We have to set the mod times to UTC because the db returns a different time zone format than os.Stat()
+		if fInfo.ModTime().UTC() == filesEntry.ModTime.UTC() {
+			logger.Debug(fmt.Sprintf("Skipping mediainfo on %v because the modtime is the same as the cached version", videoFilepath))
+			runMediaInfo = false
+		} else {
+			logger.Debug(fmt.Sprintf("Adding %v to files table", videoFilepath))
+			filesEntry.ModTime = fInfo.ModTime()
+			if err = filesEntry.Update(); err != nil {
+				logger.Warn(err.Error())
+			}
+		}
+
+		var mediaInfo mediainfo.MediaInfo
+		if runMediaInfo {
+			mediaInfo, err := mediainfo.GetMediaInfo(videoFilepath)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Error getting mediainfo for %v: %v", videoFilepath, err))
+				continue
+			}
+			logger.Trace(fmt.Sprintf("Mediainfo object for %v: %v", videoFilepath, mediaInfo))
+
+			// Save MediaInfo to the database
+			filesEntry.MediaInfo = mediaInfo
+			if err = filesEntry.Update(); err != nil {
+				logger.Warn(err.Error())
+			}
+		} else {
+			mediaInfo = filesEntry.MediaInfo
+		}
 
 		// Skips the file if it is not an actual media file
-		if !mediainfo.IsMedia() {
+		if !mediaInfo.IsMedia() {
 			continue
 		}
 
 		// TODO: Change to plugin behavior
 		// Is the file HDR?
-		if mediainfo.Video.ColorPrimaries == "BT.2020" {
+		if mediaInfo.Video.ColorPrimaries == "BT.2020" {
 			continue
 		}
 
 		stereoAudioTrackExists := false
-		for _, v := range mediainfo.Audio {
+		for _, v := range mediaInfo.Audio {
 			if v.Channels == "2" {
 				stereoAudioTrackExists = true
 			}
 		}
 
-		isHEVC := mediainfo.Video.Format == "HEVC"
+		isHEVC := mediaInfo.Video.Format == "HEVC"
 
 		if isHEVC && stereoAudioTrackExists {
 			continue
@@ -121,7 +133,7 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 				HEVC:   !isHEVC,
 				Stereo: !stereoAudioTrackExists,
 			},
-			RawMediaInfo: mediainfo,
+			RawMediaInfo: mediaInfo,
 		}
 
 		logger.Trace(fmt.Sprintf("%v isHEVC=%v stereoAudioTrackExists=%v", videoFilepath, isHEVC, stereoAudioTrackExists))
