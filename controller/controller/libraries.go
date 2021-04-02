@@ -17,9 +17,10 @@ import (
 // The purpose of this file is to hold all code relating to the "bussiness code" of libraries.
 // It is not meant to hold any data storage logic, that should all be located in the db/libraries package.
 
-func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup) {
+func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *map[int]bool) {
 	wg.Add(1)
 	defer wg.Done()
+	defer func() { (*completeMap)[l.ID] = true }()
 
 	discoveredVideos := GetVideoFilesFromDir(l.Folder)
 	for _, videoFilepath := range discoveredVideos {
@@ -64,6 +65,7 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup) {
 
 		// Has the file already been dispatched or queued?
 		if alreadyDispatched || filesEntry.Queued || l.Queue.InQueuePath(pathJob) {
+			logger.Debug(fmt.Sprintf("Skipping %v because it was detected as dispatched or queued", videoFilepath))
 			continue
 		}
 
