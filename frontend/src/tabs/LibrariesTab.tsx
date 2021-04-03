@@ -204,6 +204,11 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			priority: parseInt(this.state.priority),
 			fs_check_interval: this.state.fs_check_interval,
 			path_masks: this.state.path_masks.split(","),
+			pipeline: {
+				target_video_codec: this.state.target_video_codec,
+				create_stereo_audio: this.state.create_stereo_audio,
+				skip_hdr: this.state.skip_hdr,
+			},
 		};
 		axios.post("/api/web/v1/library/new", data).then(() => {
 			this.props.closeHandler();
