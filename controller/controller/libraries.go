@@ -188,18 +188,31 @@ func popQueuedJob() (dispatched.Job, error) {
 		return allLibraries[i].Priority > allLibraries[j].Priority
 	})
 
-	for _, v := range allLibraries {
-		if len(v.Queue.Items) > 0 {
-			item, err := v.Queue.Pop()
+	for _, lib := range allLibraries {
+		if len(lib.Queue.Items) > 0 {
+			item, err := lib.Queue.Pop()
 			if err != nil {
 				logger.Error(err.Error())
 				return item, err
 			}
 
-			if err = v.Update(); err != nil {
+			if err = lib.Update(); err != nil {
 				logger.Error(err.Error())
+				return item, err
 			}
-			// TODO: Update files table to indicate that the job is no longer queued
+
+			// Update files table to indicate that the job is no longer queued
+			f := files.File{Path: item.Path}
+			if err = f.Get(); err != nil {
+				logger.Error(err.Error())
+				return item, err
+			}
+			f.Queued = false
+			if err = f.Upsert(); err != nil {
+				logger.Error(err.Error())
+				return item, err
+			}
+
 			return item, nil
 		}
 	}
