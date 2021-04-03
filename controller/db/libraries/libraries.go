@@ -20,7 +20,11 @@ type Library struct {
 	PathMasks       []string       `json:"path_masks"`
 }
 
-type PluginPipeline struct{} // TODO: Implement
+type PluginPipeline struct { // TODO: Implement
+	TargetVideoCodec  string `json:"target_video_codec"`
+	CreateStereoAudio bool   `json:"create_stereo_audio"`
+	SkipHDR           bool   `json:"skip_hdr"`
+}
 
 type fileCache struct{} // TODO: Complete
 

@@ -240,8 +240,9 @@ type Job struct {
 
 // JobParameters represents the actions that need to be taken against a job.
 type JobParameters struct {
-	HEVC   bool `json:"hevc"`   // true when the file is not HEVC
-	Stereo bool `json:"stereo"` // true when the file is missing a stereo audio track
+	Encode bool   `json:"encode"` // true when the file's video stream needs to be encoded
+	Stereo bool   `json:"stereo"` // true when the file is missing a stereo audio track
+	Codec  string `json:"codec"`  // the ffmpeg compatible video codec
 }
 
 // Equal is a custom equality check for the Job type

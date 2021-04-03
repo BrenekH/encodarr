@@ -108,20 +108,23 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 
 		// TODO: Change to plugin behavior
 		// Is the file HDR?
-		if mediaInfo.Video.ColorPrimaries == "BT.2020" {
+		if l.Pipeline.SkipHDR && mediaInfo.Video.ColorPrimaries == "BT.2020" {
 			continue
 		}
 
-		stereoAudioTrackExists := false
-		for _, v := range mediaInfo.Audio {
-			if v.Channels == "2" {
-				stereoAudioTrackExists = true
+		stereoAudioTrackExists := true
+		if l.Pipeline.CreateStereoAudio {
+			stereoAudioTrackExists = false
+			for _, v := range mediaInfo.Audio {
+				if v.Channels == "2" {
+					stereoAudioTrackExists = true
+				}
 			}
 		}
 
-		isHEVC := mediaInfo.Video.Format == "HEVC"
+		encodeVideo := mediaInfo.Video.Format == l.Pipeline.TargetVideoCodec
 
-		if isHEVC && stereoAudioTrackExists {
+		if encodeVideo && stereoAudioTrackExists {
 			continue
 		}
 
@@ -130,13 +133,14 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			UUID: u.String(),
 			Path: videoFilepath,
 			Parameters: dispatched.JobParameters{
-				HEVC:   !isHEVC,
+				Encode: !encodeVideo,
 				Stereo: !stereoAudioTrackExists,
+				Codec:  mapTargetCodecToFFmpegParameter(l.Pipeline.TargetVideoCodec),
 			},
 			RawMediaInfo: mediaInfo,
 		}
 
-		logger.Trace(fmt.Sprintf("%v isHEVC=%v stereoAudioTrackExists=%v", videoFilepath, isHEVC, stereoAudioTrackExists))
+		logger.Trace(fmt.Sprintf("%v Encode=%v Stereo=%v Codec=%v", videoFilepath, !encodeVideo, !stereoAudioTrackExists, mapTargetCodecToFFmpegParameter(l.Pipeline.TargetVideoCodec)))
 
 		l.Queue.Push(job)
 		filesEntry.Queued = true
@@ -201,4 +205,16 @@ func popQueuedJob() (dispatched.Job, error) {
 	}
 
 	return dispatched.Job{}, fmt.Errorf("no queued jobs were found")
+}
+
+func mapTargetCodecToFFmpegParameter(s string) string {
+	switch s {
+	case "HEVC":
+		return "hevc"
+	case "AVC":
+		return "libx264"
+	case "VP9":
+		return "libvpx-vp9"
+	}
+	return ""
 }
