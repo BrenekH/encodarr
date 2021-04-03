@@ -208,7 +208,7 @@ func popQueuedJob() (dispatched.Job, error) {
 				return item, err
 			}
 			f.Queued = false
-			if err = f.Upsert(); err != nil {
+			if err = f.Update(); err != nil {
 				logger.Error(err.Error())
 				return item, err
 			}
