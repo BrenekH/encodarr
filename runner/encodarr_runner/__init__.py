@@ -85,6 +85,7 @@ class JobRunner:
 					continue
 
 				job_info = loads(r.headers.get("X-Encodarr-Job-Info"))
+				logger.debug(job_info)
 				input_file = Path.cwd() / f"input{Path(job_info['path']).suffix}" # Creates an input file with the same suffix as the input
 
 				if input_file.exists():
@@ -163,10 +164,11 @@ class JobRunner:
 
 	def _run_job(self, job_info: Dict):
 		input_file = Path(job_info["in_file"])
-		is_hevc = not job_info["parameters"]["hevc"]
-		has_stereo = not job_info["parameters"]["stereo"]
+		encode_video = job_info["parameters"]["encode"]
+		add_stereo_track = job_info["parameters"]["stereo"]
+		encoding_codec = job_info["parameters"]["codec"]
 
-		logger.info(f"Running job {job_info['path']} which has characteristics: [is_hevc: {is_hevc}, has_stereo: {has_stereo}]")
+		logger.info(f"Running job {job_info['path']} which has characteristics: [encode_video: {encode_video}, add_stereo_track: {add_stereo_track}, codec: {encoding_codec}]")
 
 		current_job_warnings, current_job_errors = ([], [])
 		critical_failure = False
@@ -180,7 +182,7 @@ class JobRunner:
 
 		downmixed_audio: Path = None
 
-		if not has_stereo:
+		if add_stereo_track:
 			# Extract audio to cwd/job_uuid-extracted-audio.mkv
 			extracted_audio = Path.cwd() / f"{job_info['uuid']}-extracted-audio.mka"
 			if extracted_audio.exists():
@@ -214,11 +216,11 @@ class JobRunner:
 			tracks_to_copy.append("-map")
 			tracks_to_copy.append("1:a")
 
-		if is_hevc:
+		if not encode_video:
 			tracks_to_copy.append("-map")
 			tracks_to_copy.append("0:v")
 		else:
-			encoding_commands = ["-map", "0:v", "-vcodec", "hevc"]
+			encoding_commands = ["-map", "0:v", "-vcodec", encoding_codec]
 
 		final_ffmpeg_command = base_ffmpeg_command + encode_inputs + tracks_to_copy + ["-c", "copy"] + encoding_commands + [str(output_file)]
 		self.__current_job_status["stage"] = "Final encode"
