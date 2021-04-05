@@ -46,8 +46,11 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			continue
 		}
 
+		//? This used to check the files table for a Queued bool to see if it was queued by a different library,
+		//?   but I think it causes more problems than it's worth so I guess we just hope the user isn't nesting library locations.
+		//?   Maybe looping through the other queues could replace the Queued bool, but I'm not convinced it's worth the performance hit.
 		// Has the file already been dispatched or queued?
-		if alreadyDispatched || filesEntry.Queued || l.Queue.InQueuePath(pathJob) {
+		if alreadyDispatched || l.Queue.InQueuePath(pathJob) {
 			logger.Debug(fmt.Sprintf("Skipping %v because it was detected as dispatched or queued", videoFilepath))
 			continue
 		}
@@ -143,7 +146,6 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 		logger.Trace(fmt.Sprintf("%v Encode=%v Stereo=%v Codec=%v", videoFilepath, !encodeVideo, !stereoAudioTrackExists, mapTargetCodecToFFmpegParameter(l.Pipeline.TargetVideoCodec)))
 
 		l.Queue.Push(job)
-		filesEntry.Queued = true
 		logger.Info(fmt.Sprintf("Added %v to the queue", job.Path))
 
 		if err = l.Update(); err != nil {
@@ -197,18 +199,6 @@ func popQueuedJob() (dispatched.Job, error) {
 			}
 
 			if err = lib.Update(); err != nil {
-				logger.Error(err.Error())
-				return item, err
-			}
-
-			// Update files table to indicate that the job is no longer queued
-			f := files.File{Path: item.Path}
-			if err = f.Get(); err != nil {
-				logger.Error(err.Error())
-				return item, err
-			}
-			f.Queued = false
-			if err = f.Update(); err != nil {
 				logger.Error(err.Error())
 				return item, err
 			}
