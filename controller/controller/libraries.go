@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/BrenekH/encodarr/controller/db/dispatched"
 	"github.com/BrenekH/encodarr/controller/db/files"
@@ -91,6 +92,10 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			mediaInfo, err := mediainfo.GetMediaInfo(videoFilepath)
 			if err != nil {
 				logger.Error(fmt.Sprintf("Error getting mediainfo for %v: %v", videoFilepath, err))
+				filesEntry.ModTime = time.Unix(0, 0)
+				if err = filesEntry.Update(); err != nil {
+					logger.Warn(err.Error())
+				}
 				continue
 			}
 			logger.Trace(fmt.Sprintf("Mediainfo object for %v: %v", videoFilepath, mediaInfo))
