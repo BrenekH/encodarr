@@ -104,7 +104,7 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 					<InputGroup.Checkbox
 						aria-label="Prefer Smaller Files Checkbox"
 						onChange={this.createChangeHandler("smallerFilesCheck", true)}
-						value={this.state.inputValues["smallerFilesCheck"]}
+						checked={this.state.inputValues["smallerFilesCheck"]}
 					/>
 				</InputGroup.Prepend>
 				<FormControl

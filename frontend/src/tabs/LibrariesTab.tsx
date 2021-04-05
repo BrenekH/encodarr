@@ -85,6 +85,9 @@ interface ILibraryCardState {
 	fs_check_interval: string,
 	path_masks: string,
 	queue: Array<IQueuedJob>,
+	target_video_codec: string,
+	create_stereo_audio: boolean,
+	skip_hdr: boolean,
 
 	showEditModal: Boolean,
 	showQueueModal: Boolean,
@@ -100,6 +103,9 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 			fs_check_interval: "",
 			path_masks: "",
 			queue: [],
+			target_video_codec: "HEVC",
+			create_stereo_audio: true,
+			skip_hdr: true,
 
 			showEditModal: false,
 			showQueueModal: false,
@@ -118,6 +124,9 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				fs_check_interval: response.data.fs_check_interval,
 				path_masks: response.data.path_masks.join(","),
 				queue: response.data.queue.Items,
+				target_video_codec: response.data.pipeline.target_video_codec,
+				create_stereo_audio: response.data.pipeline.create_stereo_audio,
+				skip_hdr: response.data.pipeline.skip_hdr,
 			});
 		}).catch((error) => {
 			console.error(`Request to /api/web/v1/library/${this.props.id} failed with error: ${error}`)
@@ -143,6 +152,9 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				priority={this.state.priority}
 				fs_check_interval={this.state.fs_check_interval}
 				path_masks={this.state.path_masks}
+				target_video_codec={this.state.target_video_codec}
+				create_stereo_audio={this.state.create_stereo_audio}
+				skip_hdr={this.state.skip_hdr}
 			/>) : null}
 
 			{(this.state.showQueueModal) ? (<QueueModal
@@ -164,6 +176,9 @@ interface ICreateLibraryModalState {
 	priority: string,
 	fs_check_interval: string,
 	path_masks: string,
+	target_video_codec: string,
+	create_stereo_audio: boolean,
+	skip_hdr: boolean,
 }
 
 class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICreateLibraryModalState> {
@@ -175,6 +190,9 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			priority: "",
 			fs_check_interval: "",
 			path_masks: "",
+			target_video_codec: "HEVC",
+			create_stereo_audio: true,
+			skip_hdr: true,
 		}
 
 		this.submitLib = this.submitLib.bind(this);
@@ -186,6 +204,11 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			priority: parseInt(this.state.priority),
 			fs_check_interval: this.state.fs_check_interval,
 			path_masks: this.state.path_masks.split(","),
+			pipeline: {
+				target_video_codec: this.state.target_video_codec,
+				create_stereo_audio: this.state.create_stereo_audio,
+				skip_hdr: this.state.skip_hdr,
+			},
 		};
 		axios.post("/api/web/v1/library/new", data).then(() => {
 			this.props.closeHandler();
@@ -236,7 +259,39 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 							value={this.state.fs_check_interval}
 						/>
 					</InputGroup>
-					{/* <p>Plugin Pipeline</p> */}
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Target Video Codec</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input no-box-shadow"
+							as="select"
+							custom
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ target_video_codec: event.target.value }); }}
+							value={this.state.target_video_codec}
+						>
+							<option value="HEVC">H.265 (HEVC)</option>
+							<option value="AVC">H.264 (AVC)</option>
+							<option value="VP9">VP9</option>
+						</FormControl>
+					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Create Stereo Audio Track</InputGroup.Text></InputGroup.Prepend>
+						<InputGroup.Checkbox
+							aria-label="Create Stereo Audio Track Checkbox"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ create_stereo_audio: event.target.checked }); }}
+							checked={this.state.create_stereo_audio}
+						/>
+					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Skip HDR</InputGroup.Text></InputGroup.Prepend>
+						<InputGroup.Checkbox
+							aria-label="Skip HDR Checkbox"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ skip_hdr: event.target.checked }); }}
+							checked={this.state.skip_hdr}
+						/>
+					</InputGroup>
 
 					<InputGroup className="mb-3">
 						<InputGroup.Prepend><InputGroup.Text>Path Masks</InputGroup.Text></InputGroup.Prepend>
@@ -267,6 +322,9 @@ interface IEditLibraryModalProps {
 	priority: string,
 	fs_check_interval: string,
 	path_masks: string,
+	target_video_codec: string,
+	create_stereo_audio: boolean,
+	skip_hdr: boolean,
 }
 
 interface IEditLibraryModalState {
@@ -274,6 +332,9 @@ interface IEditLibraryModalState {
 	priority: string,
 	fs_check_interval: string,
 	path_masks: string,
+	target_video_codec: string,
+	create_stereo_audio: boolean,
+	skip_hdr: boolean,
 }
 
 class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibraryModalState> {
@@ -285,9 +346,14 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 			priority: props.priority,
 			fs_check_interval: props.fs_check_interval,
 			path_masks: props.path_masks,
+			target_video_codec: props.target_video_codec,
+			create_stereo_audio: props.create_stereo_audio,
+			skip_hdr: props.skip_hdr,
 		}
 
 		this.putChanges = this.putChanges.bind(this);
+
+		console.log(props);
 	}
 
 	putChanges(): void {
@@ -296,7 +362,13 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 			priority: parseInt(this.state.priority),
 			fs_check_interval: this.state.fs_check_interval,
 			path_masks: this.state.path_masks.split(","),
+			pipeline: {
+				target_video_codec: this.state.target_video_codec,
+				create_stereo_audio: this.state.create_stereo_audio,
+				skip_hdr: this.state.skip_hdr,
+			},
 		};
+		console.log(data);
 		axios.put(`/api/web/v1/library/${this.props.id}`, data).then(() => {
 			this.props.closeHandler();
 		}).catch((error) => {
@@ -347,6 +419,40 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 						/>
 					</InputGroup>
 					{/* <p>Plugin Pipeline</p> */}
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Target Video Codec</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input no-box-shadow"
+							as="select"
+							custom
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ target_video_codec: event.target.value }); }}
+							value={this.state.target_video_codec}
+						>
+							<option value="HEVC">H.265 (HEVC)</option>
+							<option value="AVC">H.264 (AVC)</option>
+							<option value="AV1">AV1</option>
+							<option value="VP9">VP9</option>
+						</FormControl>
+					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Create Stereo Audio Track</InputGroup.Text></InputGroup.Prepend>
+						<InputGroup.Checkbox
+							aria-label="Create Stereo Audio Track Checkbox"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ create_stereo_audio: event.target.checked }); }}
+							checked={this.state.create_stereo_audio}
+						/>
+					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Skip HDR</InputGroup.Text></InputGroup.Prepend>
+						<InputGroup.Checkbox
+							aria-label="Skip HDR Checkbox"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ skip_hdr: event.target.checked }); }}
+							checked={this.state.skip_hdr}
+						/>
+					</InputGroup>
 
 					<InputGroup className="mb-3">
 						<InputGroup.Prepend><InputGroup.Text>Path Masks</InputGroup.Text></InputGroup.Prepend>

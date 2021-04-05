@@ -19,7 +19,6 @@ type File struct {
 	Path      string
 	ModTime   time.Time
 	MediaInfo mediainfo.MediaInfo
-	Queued    bool
 }
 
 // dBFile is an interim struct for converting to and from the data types in memory and in the database.
@@ -29,7 +28,7 @@ type dBFile struct {
 
 // All returns a slice of Files that represent the rows in the database
 func All() ([]File, error) {
-	rows, err := db.Client.Query("SELECT path, modtime, mediainfo, queued FROM files;")
+	rows, err := db.Client.Query("SELECT path, modtime, mediainfo FROM files;")
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +39,7 @@ func All() ([]File, error) {
 		f := File{}
 		d := dBFile{}
 
-		err = rows.Scan(&f.Path, &f.ModTime, &d.MediaInfo, &f.Queued)
+		err = rows.Scan(&f.Path, &f.ModTime, &d.MediaInfo)
 		if err != nil {
 			logger.Error(err.Error())
 			continue
@@ -72,10 +71,9 @@ func All() ([]File, error) {
 func (f *File) Get() error {
 	d := dBFile{}
 
-	err := db.Client.QueryRow("SELECT modtime, mediainfo, queued FROM files WHERE path = $1;", f.Path).Scan(
+	err := db.Client.QueryRow("SELECT modtime, mediainfo FROM files WHERE path = $1;", f.Path).Scan(
 		&f.ModTime,
 		&d.MediaInfo,
-		&f.Queued,
 	)
 
 	if err != nil {
@@ -100,11 +98,10 @@ func (f *File) Insert() error {
 		return err
 	}
 
-	_, err = db.Client.Exec("INSERT INTO files (path, modtime, mediainfo, queued) VALUES ($1, $2, $3, $4);",
+	_, err = db.Client.Exec("INSERT INTO files (path, modtime, mediainfo) VALUES ($1, $2, $3);",
 		f.Path,
 		f.ModTime,
 		d.MediaInfo,
-		f.Queued,
 	)
 	if err != nil {
 		logger.Error(err.Error())
@@ -123,11 +120,10 @@ func (f *File) Update() error {
 		return err
 	}
 
-	_, err = db.Client.Exec("UPDATE files SET path=$1, modtime=$2, mediainfo=$3, queued=$4 WHERE path=$1;",
+	_, err = db.Client.Exec("UPDATE files SET path=$1, modtime=$2, mediainfo=$3 WHERE path=$1;",
 		f.Path,
 		f.ModTime,
 		d.MediaInfo,
-		f.Queued,
 	)
 	if err != nil {
 		logger.Error(err.Error())
@@ -145,11 +141,10 @@ func (f *File) Upsert() error {
 		return err
 	}
 
-	_, err = db.Client.Exec("INSERT INTO files (path, modtime, mediainfo, queued) VALUES ($1, $2, $3, $4) ON CONFLICT(path) DO UPDATE SET path=$1, modtime=$2, mediainfo=$3, queued=$4;",
+	_, err = db.Client.Exec("INSERT INTO files (path, modtime, mediainfo) VALUES ($1, $2, $3) ON CONFLICT(path) DO UPDATE SET path=$1, modtime=$2, mediainfo=$3;",
 		f.Path,
 		f.ModTime,
 		d.MediaInfo,
-		f.Queued,
 	)
 	if err != nil {
 		logger.Error(err.Error())

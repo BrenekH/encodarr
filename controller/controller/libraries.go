@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/BrenekH/encodarr/controller/db/dispatched"
 	"github.com/BrenekH/encodarr/controller/db/files"
@@ -46,8 +47,11 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			continue
 		}
 
+		//? This used to check the files table for a Queued bool to see if it was queued by a different library,
+		//?   but I think it causes more problems than it's worth so I guess we just hope the user isn't nesting library locations.
+		//?   Maybe looping through the other queues could replace the Queued bool, but I'm not convinced it's worth the performance hit.
 		// Has the file already been dispatched or queued?
-		if alreadyDispatched || filesEntry.Queued || l.Queue.InQueuePath(pathJob) {
+		if alreadyDispatched || l.Queue.InQueuePath(pathJob) {
 			logger.Debug(fmt.Sprintf("Skipping %v because it was detected as dispatched or queued", videoFilepath))
 			continue
 		}
@@ -88,6 +92,10 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			mediaInfo, err := mediainfo.GetMediaInfo(videoFilepath)
 			if err != nil {
 				logger.Error(fmt.Sprintf("Error getting mediainfo for %v: %v", videoFilepath, err))
+				filesEntry.ModTime = time.Unix(0, 0)
+				if err = filesEntry.Update(); err != nil {
+					logger.Warn(err.Error())
+				}
 				continue
 			}
 			logger.Trace(fmt.Sprintf("Mediainfo object for %v: %v", videoFilepath, mediaInfo))
@@ -108,20 +116,23 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 
 		// TODO: Change to plugin behavior
 		// Is the file HDR?
-		if mediaInfo.Video.ColorPrimaries == "BT.2020" {
+		if l.Pipeline.SkipHDR && mediaInfo.Video.ColorPrimaries == "BT.2020" {
 			continue
 		}
 
-		stereoAudioTrackExists := false
-		for _, v := range mediaInfo.Audio {
-			if v.Channels == "2" {
-				stereoAudioTrackExists = true
+		stereoAudioTrackExists := true
+		if l.Pipeline.CreateStereoAudio {
+			stereoAudioTrackExists = false
+			for _, v := range mediaInfo.Audio {
+				if v.Channels == "2" {
+					stereoAudioTrackExists = true
+				}
 			}
 		}
 
-		isHEVC := mediaInfo.Video.Format == "HEVC"
+		encodeVideo := mediaInfo.Video.Format == l.Pipeline.TargetVideoCodec
 
-		if isHEVC && stereoAudioTrackExists {
+		if encodeVideo && stereoAudioTrackExists {
 			continue
 		}
 
@@ -130,16 +141,16 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			UUID: u.String(),
 			Path: videoFilepath,
 			Parameters: dispatched.JobParameters{
-				HEVC:   !isHEVC,
+				Encode: !encodeVideo,
 				Stereo: !stereoAudioTrackExists,
+				Codec:  mapTargetCodecToFFmpegParameter(l.Pipeline.TargetVideoCodec),
 			},
 			RawMediaInfo: mediaInfo,
 		}
 
-		logger.Trace(fmt.Sprintf("%v isHEVC=%v stereoAudioTrackExists=%v", videoFilepath, isHEVC, stereoAudioTrackExists))
+		logger.Trace(fmt.Sprintf("%v Encode=%v Stereo=%v Codec=%v", videoFilepath, !encodeVideo, !stereoAudioTrackExists, mapTargetCodecToFFmpegParameter(l.Pipeline.TargetVideoCodec)))
 
 		l.Queue.Push(job)
-		filesEntry.Queued = true
 		logger.Info(fmt.Sprintf("Added %v to the queue", job.Path))
 
 		if err = l.Update(); err != nil {
@@ -184,21 +195,34 @@ func popQueuedJob() (dispatched.Job, error) {
 		return allLibraries[i].Priority > allLibraries[j].Priority
 	})
 
-	for _, v := range allLibraries {
-		if len(v.Queue.Items) > 0 {
-			item, err := v.Queue.Pop()
+	for _, lib := range allLibraries {
+		if len(lib.Queue.Items) > 0 {
+			item, err := lib.Queue.Pop()
 			if err != nil {
 				logger.Error(err.Error())
 				return item, err
 			}
 
-			if err = v.Update(); err != nil {
+			if err = lib.Update(); err != nil {
 				logger.Error(err.Error())
+				return item, err
 			}
-			// TODO: Update files table to indicate that the job is no longer queued
+
 			return item, nil
 		}
 	}
 
 	return dispatched.Job{}, fmt.Errorf("no queued jobs were found")
+}
+
+func mapTargetCodecToFFmpegParameter(s string) string {
+	switch s {
+	case "HEVC":
+		return "hevc"
+	case "AVC":
+		return "libx264"
+	case "VP9":
+		return "libvpx-vp9"
+	}
+	return ""
 }

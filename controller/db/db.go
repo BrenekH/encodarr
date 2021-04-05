@@ -30,8 +30,7 @@ CREATE TABLE IF NOT EXISTS libraries (
 CREATE TABLE IF NOT EXISTS files (
 	path text,
 	modtime timestamp,
-	mediainfo binary,
-	queued integer
+	mediainfo binary
 );
 
 CREATE TABLE IF NOT EXISTS history (
