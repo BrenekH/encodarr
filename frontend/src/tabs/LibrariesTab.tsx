@@ -140,13 +140,16 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				<Card.Header className="text-center"><h5>{this.state.folder}</h5></Card.Header>
 				<p className="text-center">Priority: {this.state.priority}</p>
 				<p className="text-center">File System Check Interval: {this.state.fs_check_interval}</p>
-				<p className="text-center">Path Masks: {this.state.path_masks}</p>
+				<p className="text-center">Target Video Codec: {this.state.target_video_codec}</p>
+				<p className="text-center">Create Stereo Audio Track: {(this.state.create_stereo_audio) ? "True" : "False"}</p>
+				<p className="text-center">Skip HDR Files: {(this.state.skip_hdr) ? "True" : "False"}</p>
+				{(this.state.path_masks.length !== 0) ? <p className="text-center">Path Masks: {this.state.path_masks}</p> : null }
 				<Button variant="secondary" onClick={() => {this.setState({showQueueModal: true})}}>Queue</Button>
 				<Button variant="primary" onClick={() => {this.setState({showEditModal: true})}}>Edit</Button>
 			</Card>
 			{(this.state.showEditModal) ? (<EditLibraryModal
 				show={true}
-				closeHandler={() => { this.setState({showEditModal: false}); }}
+				closeHandler={() => { this.setState({showEditModal: false}); this.getLibraryData(); }}
 				id={this.props.id}
 				folder={this.state.folder}
 				priority={this.state.priority}
@@ -352,8 +355,7 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 		}
 
 		this.putChanges = this.putChanges.bind(this);
-
-		console.log(props);
+		this.deleteLibrary = this.deleteLibrary.bind(this);
 	}
 
 	putChanges(): void {
@@ -368,11 +370,16 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 				skip_hdr: this.state.skip_hdr,
 			},
 		};
-		console.log(data);
 		axios.put(`/api/web/v1/library/${this.props.id}`, data).then(() => {
 			this.props.closeHandler();
 		}).catch((error) => {
 			console.error(`/api/web/v1/library/${this.props.id} failed with error: ${error}`)
+		});
+	}
+
+	deleteLibrary(): void {
+		axios.delete(`/api/web/v1/library/${this.props.id}`).then(() => { this.props.closeHandler(); }).catch((error) => {
+			console.error(`/api/web/v1/library/${this.props.id} failed with error: ${error}`);
 		});
 	}
 
@@ -431,7 +438,6 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 						>
 							<option value="HEVC">H.265 (HEVC)</option>
 							<option value="AVC">H.264 (AVC)</option>
-							<option value="AV1">AV1</option>
 							<option value="VP9">VP9</option>
 						</FormControl>
 					</InputGroup>
@@ -467,6 +473,7 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 					</InputGroup>
 				</Modal.Body>
 				<Modal.Footer>
+					<Button className="delete-button" variant="danger" onClick={this.deleteLibrary}>Delete</Button>
 					<Button variant="secondary" onClick={this.props.closeHandler}>Close</Button>
 					<Button variant="primary" onClick={this.putChanges}>Update</Button>
 				</Modal.Footer>
@@ -489,7 +496,7 @@ class QueueModal extends React.Component<IQueueModalProps> {
 		}
 
 		const qList = propsQueue.map((v: IQueuedJob, i: number) => {
-			return <TableEntry key={v.uuid} index={i+1} path={v.path} videoOperation={v.parameters.hevc} audioOperation={v.parameters.stereo}/>;
+			return <TableEntry key={v.uuid} index={i+1} path={v.path} videoOperation={v.parameters.encode} audioOperation={v.parameters.stereo}/>;
 		});
 
 		return (<div>
@@ -522,8 +529,9 @@ interface IQueuedJob {
 	uuid: string,
 	path: string,
 	parameters: {
-		hevc: Boolean,
+		encode: Boolean,
 		stereo: Boolean,
+		codec: String,
 	},
 }
 

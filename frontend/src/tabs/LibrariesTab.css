@@ -10,6 +10,10 @@
 	cursor: pointer;
 }
 
+.delete-button {
+	margin-right: auto;
+}
+
 /* Override Bootstrap CSS */
 .dark-text-input {
 	/* I know !important isn't great practice,
