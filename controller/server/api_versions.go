@@ -3,6 +3,8 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/BrenekH/encodarr/controller/config"
 )
 
 var webVersions []string = make([]string, 1)
@@ -64,6 +66,10 @@ func runnerAPIVersions(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func controllerVersion(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(config.Version))
+}
+
 func registerAPIHandlers() {
 	registerWebAPIv1Handlers()
 	webVersions[0] = "v1"
@@ -74,4 +80,6 @@ func registerAPIHandlers() {
 	http.HandleFunc("/api", apiVersions)
 	http.HandleFunc("/api/web", webAPIVersions)
 	http.HandleFunc("/api/runner", runnerAPIVersions)
+
+	http.HandleFunc("/version", controllerVersion)
 }

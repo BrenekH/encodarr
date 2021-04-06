@@ -9,8 +9,8 @@ import (
 	"github.com/BrenekH/encodarr/controller/options"
 )
 
-// The config struct could contain a channel to update parameters on the fly.
-// An additional method to check and apply any changes would probably be a good idea for this change.
+// Version represents the current version of the Encodarr Controller
+const Version string = "0.0.1-alpha.1"
 
 // Settings is used to represent how settings are saved to a file
 type Settings struct {
