@@ -14,7 +14,7 @@ import logo from "./Encodarr-Logo.svg";
 function Title() {
 	return (<div className="header-flex header-content text-center">
 		{/* 100px for Circle; 60px for bare logo; */}
-		<img src={logo} alt="" height="60px" title=""></img>
+		<img src={logo} alt="" height="60px" title="" />
 		<h1>ncodarr</h1>
 	</div>);
 }
