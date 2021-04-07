@@ -39,7 +39,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.6', '3.7', '3.8', '3.9']
+        python-version: ['3.9']
 
     defaults:
       run:
@@ -63,11 +63,14 @@ jobs:
       - name: Create Executable
         run: python -m PyInstaller --name "encodarr-runner-${{ runner.os }}-amd64" --onefile main.py
 
-      - name: Upload .zip artifact
+      - name: List dist folder
+        run: ls ${{ github.workspace }}/runner/dist
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: encodarr-runner-${{ runner.os }}-amd64
-          path: dist/*
+          path: ${{ github.workspace }}/runner/dist/*
 
   deploy-container-images-tags:
     runs-on: ubuntu-latest
