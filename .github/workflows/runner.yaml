@@ -63,9 +63,6 @@ jobs:
       - name: Create Executable
         run: python -m PyInstaller --name "encodarr-runner-${{ runner.os }}-amd64" --onefile main.py
 
-      - name: List dist folder
-        run: ls ${{ github.workspace }}/runner/dist
-
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
