@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path.cwd()))
-print(sys.path)
 
 from datetime import timedelta
 from encodarr_runner import chop_ms
