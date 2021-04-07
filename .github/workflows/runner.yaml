@@ -40,11 +40,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set PREREL environment variable
-        env:
-          TAG: ${{ github.ref }}
-        run: echo "PREREL=$(if [[ $TAG =~ "alpha" ]] || [[ $TAG =~ "beta" ]] || [[ $TAG =~ "rc" ]]; then echo "true"; else echo "false"; fi;)" >> $GITHUB_ENV
-
       - name: Generate Docker Metadata
         id: meta
         uses: crazy-max/ghaction-docker-meta@v2
