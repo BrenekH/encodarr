@@ -4,6 +4,8 @@ import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
 
+import AboutSection from "./AboutSection";
+
 import "./SettingsTab.css";
 import "../spacers.css";
 
@@ -95,7 +97,7 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 			});}, 5000);
 		}
 
-		return (<div>
+		return (<><div>
 			<h5>General</h5>
 
 			<InputGroup className="mb-3">
@@ -175,7 +177,12 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 
 			<Button variant="light" onClick={this.handleClick}>Save</Button>
 			{savedIndicator}
-		</div>);
+		</div>
+
+		<div className="spacer" />
+
+		<AboutSection />
+		</>);
 	}
 }
 
