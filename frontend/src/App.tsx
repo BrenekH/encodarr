@@ -6,10 +6,17 @@ import { RunningTab } from "./tabs/RunningTab";
 import { LibrariesTab } from "./tabs/LibrariesTab";
 import { HistoryTab } from "./tabs/HistoryTab";
 import { SettingsTab } from "./tabs/SettingsTab";
-import './spacers.css';
+import "./spacers.css";
+import "./App.css";
+
+import logo from "./Encodarr-Logo.svg";
 
 function Title() {
-	return <div className="header-content text-center"><h1>Encodarr</h1></div>
+	return (<div className="header-flex header-content text-center">
+		{/* 100px for Circle; 60px for bare logo; */}
+		<img src={logo} alt="" height="60px" title="" />
+		<h1>ncodarr</h1>
+	</div>);
 }
 
 class App extends React.Component {

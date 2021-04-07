@@ -1,0 +1,7 @@
+.header-flex {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+
+	margin-top: 1rem;
+}
