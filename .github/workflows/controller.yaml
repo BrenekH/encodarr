@@ -57,7 +57,8 @@ jobs:
           read -ra SPLITITEMS <<< "${{ matrix.go-os-arch }}"
           echo "COMP_GOOS=${SPLITITEMS[0]}" >> $GITHUB_ENV
           echo "COMP_GOARCH=${SPLITITEMS[1]}" >> $GITHUB_ENV
-          echo $SPLITITEMS
+          echo ${SPLITITEMS[0]}
+          echo ${SPLITITEMS[1]}
 
       - name: Set suffix (windows)
         if: contains(matrix.go-os-arch, 'windows')
