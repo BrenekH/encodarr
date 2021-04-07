@@ -56,8 +56,11 @@ jobs:
         run: |
           read -ra SPLITITEMS <<< "${{ matrix.go-os-arch }}"
           echo "COMP_GOOS=${SPLITITEMS[0]}" >> $GITHUB_ENV
+          read -ra SPLITITEMS <<< "${{ matrix.go-os-arch }}"
           echo "COMP_GOARCH=${SPLITITEMS[1]}" >> $GITHUB_ENV
+          read -ra SPLITITEMS <<< "${{ matrix.go-os-arch }}"
           echo ${SPLITITEMS[0]}
+          read -ra SPLITITEMS <<< "${{ matrix.go-os-arch }}"
           echo ${SPLITITEMS[1]}
 
       - name: Set suffix (windows)
