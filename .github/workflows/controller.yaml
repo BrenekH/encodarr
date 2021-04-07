@@ -51,10 +51,12 @@ jobs:
           go-version: ${{ matrix.go-version }}
 
       - name: Generate Env Vars
+        env:
+          IFS: "/"
         run: |
-          readarray -d / -t splititems <<< "${{ matrix.go-os-arch }}"
-          echo "COMP_GOOS=$(splititems[0])" >> $GITHUB_ENV
-          echo "COMP_GOARCH=$(splititems[1])" >> $GITHUB_ENV
+          read -ra SPLITITEMS <<< "${{ matrix.go-os-arch }}"
+          echo "COMP_GOOS=$(SPITITEMS[0])" >> $GITHUB_ENV
+          echo "COMP_GOARCH=$(SPITITEMS[1])" >> $GITHUB_ENV
 
       - name: Set suffix (windows)
         if: contains(matrix.go-os-arch, 'windows')
