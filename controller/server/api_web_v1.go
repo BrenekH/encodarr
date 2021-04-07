@@ -212,12 +212,12 @@ func settings(w http.ResponseWriter, r *http.Request) {
 
 		td, err := time.ParseDuration(rS.HealthCheckInterval)
 		if err == nil {
-			config.Global.HealthCheckInterval = int(td)
+			config.Global.HealthCheckInterval = uint64(td)
 		}
 
 		td, err = time.ParseDuration(rS.HealthCheckTimeout)
 		if err == nil {
-			config.Global.HealthCheckTimeout = int(td)
+			config.Global.HealthCheckTimeout = uint64(td)
 		}
 
 		err = config.SetRootFHVerbosity(rS.LogVerbosity)
