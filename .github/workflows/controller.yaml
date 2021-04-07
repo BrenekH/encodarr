@@ -79,7 +79,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: encodarr-controller-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }}
-          path: encodarr-controller-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }}
+          path: ${{ github.workspace }}/controller/encodarr-controller-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }}
 
   deploy-container-images-tags:
     runs-on: ubuntu-latest
