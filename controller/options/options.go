@@ -31,6 +31,12 @@ func init() {
 	}
 	configDir = cDir + "/encodarr/controller/config"
 
+	cDir, err := os.UserConfigDir()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	configDir = cDir + "/encodarr/config"
+
 	logger = logange.NewLogger("options")
 }
 
