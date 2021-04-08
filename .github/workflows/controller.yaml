@@ -28,7 +28,7 @@ jobs:
           # We aim to be CGO free to improve compatibility. Disabling it in the CI should help with that goal.
           CGO_ENABLED: 0
           ENCODARR_CONFIG_DIR: ${{ runner.temp }}
-        run: echo $ENCODARR_CONFIG_DIR && go test ./...
+        run: go test ./...
 
   build:
     runs-on: ${{ matrix.os }}
