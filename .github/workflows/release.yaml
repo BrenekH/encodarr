@@ -22,7 +22,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: Version ${{ env.TAG_USED }}
-          draft: true
+          draft: false
           prerelease: ${{ env.PREREL }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
