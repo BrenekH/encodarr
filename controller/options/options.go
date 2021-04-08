@@ -34,6 +34,7 @@ func init() {
 	logger = logange.NewLogger("options")
 
 	err = os.MkdirAll(configDir, 0664)
+	fmt.Println(err)
 	if err != nil {
 		logger.Critical(fmt.Sprintf("Failed to create config directory '%v' because of error: %v", configDir, err.Error()))
 	}
