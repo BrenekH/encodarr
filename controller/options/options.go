@@ -20,18 +20,11 @@ var port string = "8123"
 var configDirConst optionConst = optionConst{"ENCODARR_CONFIG_DIR", "config-dir"}
 var configDir string = ""
 
-// TODO: Remove. Search directory is no longer needed because each library has its own.
-var searchDirConst optionConst = optionConst{"ENCODARR_SEARCH_DIR", "search-dir"}
-var searchDir string = ""
-
 var inputsParsed bool = false
 
 var logger logange.Logger
 
 func init() {
-	cwd, _ := os.Getwd()
-	searchDir = cwd
-
 	cDir, err := os.UserConfigDir()
 	if err != nil {
 		log.Fatalln(err)
@@ -60,10 +53,6 @@ func parseInputs() {
 	stringVarFromEnv(&configDir, configDirConst.EnvVar)
 	stringVar(&configDir, configDirConst.CmdLine, "")
 
-	// Search directory
-	stringVarFromEnv(&searchDir, searchDirConst.EnvVar)
-	stringVar(&searchDir, searchDirConst.CmdLine, "")
-
 	parseCL()
 
 	inputsParsed = true
@@ -89,10 +78,4 @@ func Port() string {
 func ConfigDir() string {
 	parseInputs()
 	return configDir
-}
-
-// SearchDir returns the passed search directory
-func SearchDir() string {
-	parseInputs()
-	return searchDir
 }

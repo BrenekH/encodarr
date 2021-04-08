@@ -49,7 +49,7 @@ if __name__ == "__main__":
 	if controller_ip == None:
 		controller_ip = "localhost"
 	if controller_port == None:
-		controller_port = "5000"
+		controller_port = "8123"
 
 	if "--name" in argv:
 		flag_index = argv.index("--name")

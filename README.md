@@ -6,7 +6,7 @@
 Encodarr is a self-hosted web application that encodes video files to a target format using distributed computing.
 
 ## Why use Encodarr?
-<!-- TODO: Why use Encodarr? -->
+<!-- TODO: Why use Encodarr? (other than easy to setup) -->
 
 ### Easy to Setup
 
@@ -100,7 +100,6 @@ For example, `/mnt/disk/tv:/tv:rw` and `/mnt/disk/movies:/movies:rw`.
 In addition, the paths to data that are mounted to `/config` in the container should be separate folders, ideally with full paths\(`/home/user/docker` instead of `~/docker`\).
 
 ### Startup Configuration
-<!-- TODO: Startup Configuration(Env Vars/Command-Line) -->
 
 Startup values configured either through environment variables, or command line arguments.
 All of the command line variants expect a value after a space (`--port 8123`) expect the Runner `--debug` flag.
@@ -108,24 +107,32 @@ It is a boolean flag.
 
 #### Controller
 
-`ENCODARR_PORT`, `--port` (default: `8123`) sets the port for the HTTP web server.
+`ENCODARR_PORT`, `--port` sets the port for the HTTP web server.
 For containers, it is recommended to modify the external port (`8124:8123`) instead of setting this value.
+(default: `8123`)
 
-`ENCODARR_CONFIG_DIR`, `--config-dir` (default: `<platform user config directory>/encodarr/controller/config`) sets the directory that the configuration files are saved to.
+`ENCODARR_CONFIG_DIR`, `--config-dir` sets the directory that the configuration files are saved to.
 This includes the log file.
 In a container, this is pre-set to `/config`.
+(default: `<platform user config directory>/encodarr/controller/config`)
 
 #### Runner
 
-`ENCODARR_DEBUG`, `--debug`
+`ENCODARR_DEBUG`, `--debug` enables outputting debug messages to the log.
+If the environment variable is set to `True`, then debug messages are turned on.
+(default: `False`)
 
-`ENCODARR_LOG_FILE`
+`ENCODARR_LOG_FILE` sets the location of the runner log file.
+(default: `/config/runner.log`)
 
-`ENCODARR_RUNNER_NAME`, `--name`
+`ENCODARR_RUNNER_NAME`, `--name` sets the name to be shown in the Web UI when referring to this runner.
+(default: `Runner-<random 3 digit number>`)
 
-`ENCODARR_RUNNER_CONTROLLER_IP`, `--controller-ip`
+`ENCODARR_RUNNER_CONTROLLER_IP`, `--controller-ip` sets the IP for connecting to the Controller.
+(default: `localhost`)
 
-`ENCODARR_RUNNER_CONTROLLER_PORT`, `--controller-port`
+`ENCODARR_RUNNER_CONTROLLER_PORT`, `--controller-port` sets the port for connecting to the Controller.
+(default: `8123`)
 
 ## Contributing
 
@@ -137,7 +144,16 @@ Do note that the project is going to be rewritten soon to more closely follow cl
 This project holds all maintainers, contributors, and participants to the standards outlined by the Contributor Covenant, a copy of which can be found in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Future Plans
-<!-- TODO: Future Plans (plugins, scheduled working times, etc. + voting system?) -->
+
+* Rewrite Runner from Python to Go (following Clean Architecture guidelines)
+
+* Rewrite Controller to conform to Clean Architecture guidelines
+
+* Instead of configuring with dropdowns and checkboxes, use a plugin system
+
+* Massive frontend overhaul
+
+* Scheduled working times
 
 ## Attributions
 
