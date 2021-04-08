@@ -2,7 +2,17 @@
   <img src="images/Encodarr-Text-Logo.png" height="175"/>
 </p>
 
-<!-- TODO: Badges (Docker pulls, GHCR pulls, master CI status) -->
+[![https://img.shields.io/badge/license-MPL--2.0-blue](https://img.shields.io/badge/license-MPL--2.0-blue)](https://github.com/BrenekH/encodarr/blob/master/LICENSE)
+![GitHub all releases](https://img.shields.io/github/downloads/brenekh/encodarr/total?label=github%20downloads)
+![Docker Pulls](https://img.shields.io/docker/pulls/brenekh/encodarr-controller?label=controller%20docker%20pulls)
+![Docker Pulls](https://img.shields.io/docker/pulls/brenekh/encodarr-runner?label=runner%20docker%20pulls)
+![Docker Image Size (tag)](https://img.shields.io/docker/image-size/brenekh/encodarr-controller/latest?label=controller%20image%20size)
+![Docker Image Size (tag)](https://img.shields.io/docker/image-size/brenekh/encodarr-runner/latest?label=runner%20image%20size)
+[![Controller CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml)
+[![Runner CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml)
+
+## What is Encodarr?
+
 Encodarr is a self-hosted web application that encodes video files to a target format using distributed computing.
 
 ## Why use Encodarr?
