@@ -32,12 +32,6 @@ func init() {
 	configDir = cDir + "/encodarr/controller/config"
 
 	logger = logange.NewLogger("options")
-
-	err = os.MkdirAll(configDir, 0664)
-	fmt.Println(err)
-	if err != nil {
-		logger.Critical(fmt.Sprintf("Failed to create config directory '%v' because of error: %v", configDir, err.Error()))
-	}
 }
 
 // parseInputs parses the command line and environment variables into Golang variables
@@ -53,6 +47,8 @@ func parseInputs() {
 	// Config directory
 	stringVarFromEnv(&configDir, configDirConst.EnvVar)
 	stringVar(&configDir, configDirConst.CmdLine, "")
+
+	makeConfigDir()
 
 	parseCL()
 
@@ -79,4 +75,13 @@ func Port() string {
 func ConfigDir() string {
 	parseInputs()
 	return configDir
+}
+
+// makeConfigDir creates the options.configDir
+func makeConfigDir() {
+	err := os.MkdirAll(configDir, 0644)
+	if err != nil {
+		fmt.Println(err)
+		logger.Critical(fmt.Sprintf("Failed to create config directory '%v' because of error: %v", configDir, err.Error()))
+	}
 }
