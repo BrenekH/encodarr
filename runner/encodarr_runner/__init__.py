@@ -350,7 +350,7 @@ class JobRunner:
 					return
 				logger.warning(f"Current job status failed to send because of error: {r.content}")
 
-		x() # This is threaded because sending the status takes approx. 2 seconds which significantly reduces the speed of the runner
+		x()
 
 	def send_job_complete(self, history_entry, output_file_path: Path):
 		for i in range(100):
