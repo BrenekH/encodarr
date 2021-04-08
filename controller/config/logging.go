@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/BrenekH/logange"
 	"github.com/BrenekH/encodarr/controller/options"
+	"github.com/BrenekH/logange"
 )
 
 var (
