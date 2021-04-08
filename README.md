@@ -8,6 +8,7 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/brenekh/encodarr-runner?label=runner%20docker%20pulls)
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/brenekh/encodarr-controller/latest?label=controller%20image%20size)
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/brenekh/encodarr-runner/latest?label=runner%20image%20size)
+![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=controller%2Fgo.mod)
 [![Controller CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml)
 [![Runner CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml)
 
