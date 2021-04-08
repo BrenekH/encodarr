@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/Encodarr-Text-Logo.svg" height="175"/>
+  <img src="images/Encodarr-Text-Logo.png" height="175"/>
 </p>
 
 <!-- TODO: Tag things (Docker pulls, GHCR pulls, master CI status) -->
