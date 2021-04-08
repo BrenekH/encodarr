@@ -1,5 +1,0 @@
-JobRunner:
-	☐ Handle failures during stereo audio creation (probably just warn user and skip stereo audio creation)
-
-Command line options:
-	☐ Trace logging command-line option (enables extremely spammy debug logging like every ffmpeg line)

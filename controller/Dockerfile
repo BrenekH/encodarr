@@ -1,19 +1,23 @@
 # Build stage
-FROM golang:1.16-alpine AS builder
+FROM golang:1.16-buster AS builder
 
-WORKDIR /go/src/project-redcedar/controller
+ARG TARGETOS
+ARG TARGETARCH
+
+WORKDIR /go/src/encodarr/controller
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o redcedar .
+# Disable CGO so that we have a static binary
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o encodarr .
 
 
 # Run stage
 FROM ubuntu:20.04
 
 ENV TZ=Etc/GMT \
-    REDCEDAR_SEARCH_DIR="/tosearch" \
-    REDCEDAR_CONFIG_DIR="/config"
+ENCODARR_SEARCH_DIR="/tosearch" \
+ENCODARR_CONFIG_DIR="/config"
 
 WORKDIR /usr/src/app
 
@@ -21,10 +25,10 @@ RUN chmod 777 /usr/src/app \
  && apt-get update -qq \
  && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata mediainfo
 
-COPY --from=builder /go/src/project-redcedar/controller/redcedar ./redcedar
+COPY --from=builder /go/src/encodarr/controller/encodarr ./encodarr
 
-RUN chmod 777 ./redcedar
+RUN chmod 777 ./encodarr
 
 EXPOSE 8123
 
-CMD ["./redcedar"]
+CMD ["./encodarr"]

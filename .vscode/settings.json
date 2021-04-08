@@ -1,12 +1,11 @@
 {
 	"cSpell.words": [
+		"encodarr",
+		"ncodarr",
 		"popen",
-		"pymediainfo",
-		"redcedar",
-		"socketio"
+		"pymediainfo"
 	],
 	"python.analysis.extraPaths": [
-		"controller",
 		"runner"
 	]
 }

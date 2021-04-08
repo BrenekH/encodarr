@@ -1,20 +1,15 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"os"
-	"reflect"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/BrenekH/encodarr/controller/config"
+	"github.com/BrenekH/encodarr/controller/db/dispatched"
+	"github.com/BrenekH/encodarr/controller/db/libraries"
 	"github.com/BrenekH/logange"
-	"github.com/BrenekH/project-redcedar-controller/config"
-	"github.com/BrenekH/project-redcedar-controller/mediainfo"
-	"github.com/BrenekH/project-redcedar-controller/options"
-	"github.com/google/uuid"
 )
 
 var logger logange.Logger
@@ -23,82 +18,37 @@ func init() {
 	logger = logange.NewLogger("controller")
 }
 
-// Job represents a job in the RedCedar ecosystem.
-type Job struct {
-	UUID         string              `json:"uuid"`
-	Path         string              `json:"path"`
-	Parameters   JobParameters       `json:"parameters"`
-	RawMediaInfo mediainfo.MediaInfo `json:"media_info"`
-}
-
-// JobParameters represents the actions that need to be taken against a job.
-type JobParameters struct {
-	HEVC   bool `json:"hevc"`   // true when the file is not HEVC
-	Stereo bool `json:"stereo"` // true when the file is missing a stereo audio track
-}
-
-// Equal is a custom equality check for the Job type
-func (j Job) Equal(check Job) bool {
-	if j.UUID != check.UUID {
-		return false
-	}
-	if j.Path != check.Path {
-		return false
-	}
-	if !reflect.DeepEqual(j.Parameters, check.Parameters) {
-		return false
-	}
-	return true
-}
-
-// EqualPath is a custom equality check for the Job type that only checks the Path parameter
-func (j Job) EqualPath(check Job) bool {
-	return j.Path == check.Path
-}
-
-// EqualUUID is a custom equality check for the Job type that only checks the UUID parameter
-func (j Job) EqualUUID(check Job) bool {
-	return j.UUID == check.UUID
-}
-
-// DispatchedJob represents a dispatched job in the RedCedar ecosystem.
+// DispatchedJob represents a dispatched job in the Encodarr ecosystem.
 type DispatchedJob struct {
-	Job         Job       `json:"job"`
-	RunnerName  string    `json:"runner_name"`
-	LastUpdated time.Time `json:"last_updated"`
-	Status      JobStatus `json:"status"`
-}
-
-// JobStatus represents the status of a dispatched job
-type JobStatus struct {
-	Stage                       string `json:"stage"`
-	Percentage                  string `json:"percentage"`
-	JobElapsedTime              string `json:"job_elapsed_time"`
-	FPS                         string `json:"fps"`
-	StageElapsedTime            string `json:"stage_elapsed_time"`
-	StageEstimatedTimeRemaining string `json:"stage_estimated_time_remaining"`
+	Job         dispatched.Job       `json:"job"`
+	RunnerName  string               `json:"runner_name"`
+	LastUpdated time.Time            `json:"last_updated"`
+	Status      dispatched.JobStatus `json:"status"`
 }
 
 // JobRequest represents a request for a job
 type JobRequest struct {
 	RunnerName    string
-	ReturnChannel *chan Job
+	ReturnChannel *chan dispatched.Job
 }
 
-var fileSystemLastCheck time.Time
+// fsCheckTimes is a map of Library ids and the last time that they were checked.
+var fsCheckTimes map[int]time.Time = make(map[int]time.Time)
+
+// fsCheckComplete is a map of Library ids and a boolean to indicate whether the goroutine that was spawned is finished
+var fsCheckComplete map[int]bool = make(map[int]bool)
+
+// healthLastCheck holds the last time a health check was performed.
 var healthLastCheck time.Time
-
-// JobQueue is the queue of the jobs
-var JobQueue Queue = Queue{sync.Mutex{}, make([]Job, 0)}
-
-// DispatchedJobs is a collection for all dispatched jobs
-var DispatchedJobs DispatchedContainer = DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
 
 // JobRequestChannel is a channel used to send new job requests to the Controller
 var JobRequestChannel chan JobRequest = make(chan JobRequest)
 
-// CompletedRequestChannel is a channel used to send job completed requests to the Controller
-var CompletedRequestChannel chan JobCompleteRequest = make(chan JobCompleteRequest)
+// JobCompleteRequestChan is a channel used to send job completed requests to the Controller
+var JobCompleteRequestChan chan JobCompleteRequest = make(chan JobCompleteRequest)
+
+// JobRequests holds all of the requests until they can be resolved
+var JobRequests []JobRequest = make([]JobRequest, 0)
 
 // RunController is a goroutine compliant way to run the controller.
 func RunController(stopChan *chan interface{}, wg *sync.WaitGroup) {
@@ -106,32 +56,17 @@ func RunController(stopChan *chan interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 	defer logger.Info("Controller successfully stopped")
 
-	// Read JSON(Dispatched & History) and apply to containers
-	DispatchedJobs = readDispatchedFile()
-	HistoryEntries = readHistoryFile()
-
-	// Save if they didn't exist before
-	err := DispatchedJobs.Save()
-	if err != nil {
-		logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
-	}
-
-	err = HistoryEntries.Save()
-	if err != nil {
-		logger.Error(fmt.Sprintf("Error saving history: %v", err.Error()))
-	}
-
 	// Start the job request handler
 	go jobRequestHandler(&JobRequestChannel, stopChan, wg)
 
 	// Start the completed request handler
-	go completedLooper(&CompletedRequestChannel, stopChan, wg)
+	go completedLooper(&JobCompleteRequestChan, stopChan, wg)
 
 	// This loop is in charge of running the controller logic until the stop signal channel "stopChan" has a value pushed to it
 	for {
 		select {
 		default:
-			fileSystemCheck()
+			fileSystemCheck(wg)
 			healthCheck()
 		case <-*stopChan:
 			return
@@ -149,66 +84,70 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 	for {
 		select {
 		default:
-			if !JobQueue.Empty() {
-				select {
-				case val, ok := <-*requestChan:
-					if ok {
-						var j Job
-						for {
-							// Pop a job off the Queue
-							var err error // err must be defined using var instead of := because j won't be set properly otherwise
-							j, err = JobQueue.Pop()
-							if err != nil {
-								if err == ErrEmptyQueue {
-									time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
-									continue
-								} else {
-									logger.Critical(fmt.Sprintf("Got unexpected error while popping from queue: %v", err))
-								}
-							}
+			select {
+			case c := <-*requestChan:
+				JobRequests = append(JobRequests, c)
+			default:
+			}
 
-							// Check if the job is still valid
-							if _, err := os.Stat(j.Path); err == nil {
-								// TODO: Do more than just check if it exists (verify hevc and stereo attributes)
-								break
-							} else if os.IsNotExist(err) {
-								// File does not exist. Do not add back into queue
-								continue
-							} else {
-								// File may or may not exist. Error has more details.
-								logger.Error(fmt.Sprintf("Unexpected error while stating file '%v': %v", j.Path, err))
-							}
-							time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
-						}
-
-						// Add to dispatched jobs
-						DispatchedJobs.Add(DispatchedJob{
-							Job:         j,
-							RunnerName:  val.RunnerName,
-							LastUpdated: time.Now(),
-							Status: JobStatus{
-								Stage:                       "Copying to Runner",
-								Percentage:                  "0",
-								JobElapsedTime:              "N/A",
-								FPS:                         "N/A",
-								StageElapsedTime:            "N/A",
-								StageEstimatedTimeRemaining: "N/A",
-							},
-						})
-						err := DispatchedJobs.Save()
-						if err != nil {
-							logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
-						}
-
-						// Return Job struct in return channel
-						*val.ReturnChannel <- j
-					} else {
-						// Channel closed. Stop handler.
-						return
+			if len(JobRequests) != 0 {
+				if isJobAvailable() {
+					jR, err := popJobRequest()
+					if err != nil {
+						logger.Warn(err.Error())
+						continue
 					}
-				case <-*stopChan:
-					return
-				default:
+
+					var j dispatched.Job
+					doNotUseJob := false
+					for {
+						// Pop a job off the Queue
+						var err error // err must be defined using var instead of := because j won't be set properly otherwise
+						j, err = popQueuedJob()
+						if err != nil {
+							logger.Error(err.Error())
+							doNotUseJob = true
+						}
+
+						// Check if the job is still valid
+						if _, err := os.Stat(j.Path); err == nil {
+							// TODO: Do more than just check if it exists (verify hevc and stereo attributes)
+							break
+						} else if os.IsNotExist(err) {
+							// File does not exist. Do not add back into queue
+							continue
+						} else {
+							// File may or may not exist. Error has more details.
+							logger.Error(fmt.Sprintf("Unexpected error while stating file '%v': %v", j.Path, err))
+						}
+						time.Sleep(time.Duration(int64(0.1 * float64(time.Second)))) // Sleep for 0.1 seconds
+					}
+					if doNotUseJob {
+						continue
+					}
+
+					// Add to dispatched jobs
+					dJob := dispatched.DJob{
+						UUID:        j.UUID,
+						Job:         j,
+						Runner:      jR.RunnerName,
+						LastUpdated: time.Now(),
+						Status: dispatched.JobStatus{
+							Stage:                       "Copying to Runner",
+							Percentage:                  "0",
+							JobElapsedTime:              "N/A",
+							FPS:                         "N/A",
+							StageElapsedTime:            "N/A",
+							StageEstimatedTimeRemaining: "N/A",
+						},
+					}
+					err = dJob.Insert()
+					if err != nil {
+						logger.Error(fmt.Sprintf("Error saving dispatched jobs: %v", err.Error()))
+					}
+
+					// Return Job struct in return channel
+					*jR.ReturnChannel <- j
 				}
 			}
 		case <-*stopChan:
@@ -218,71 +157,32 @@ func jobRequestHandler(requestChan *chan JobRequest, stopChan *chan interface{},
 	}
 }
 
-func fileSystemCheck() {
-	if time.Since(fileSystemLastCheck) > time.Duration(config.Global.FileSystemCheckInterval) {
-		logger.Debug("Starting file system check")
-		fileSystemLastCheck = time.Now()
-		discoveredVideos := GetVideoFilesFromDir(options.SearchDir())
-		for _, videoFilepath := range discoveredVideos {
-			pathJob := Job{UUID: "", Path: videoFilepath, Parameters: JobParameters{}}
+func fileSystemCheck(wg *sync.WaitGroup) {
+	allLibraries, err := libraries.All()
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
 
-			// Is the file already in the queue or dispatched?
-			if JobQueue.InQueuePath(pathJob) || DispatchedJobs.InContainerPath(pathJob) {
-				continue
-			}
-
-			// Is the file 'optimized' by Plex?
-			if strings.Contains(videoFilepath, "Plex Versions") {
-				continue
-			}
-
-			mediainfo, err := mediainfo.GetMediaInfo(videoFilepath)
-			if err != nil {
-				logger.Error(fmt.Sprintf("Error getting mediainfo for %v: %v", videoFilepath, err))
-				continue
-			}
-			logger.Trace(fmt.Sprintf("Mediainfo object for %v: %v", videoFilepath, mediainfo))
-
-			// Skips the file if it is not an actual media file
-			if !mediainfo.IsMedia() {
-				continue
-			}
-
-			// Is the file HDR?
-			if mediainfo.Video.ColorPrimaries == "BT.2020" {
-				continue
-			}
-
-			stereoAudioTrackExists := false
-			for _, v := range mediainfo.Audio {
-				if v.Channels == "2" {
-					stereoAudioTrackExists = true
-				}
-			}
-
-			isHEVC := mediainfo.Video.Format == "HEVC"
-
-			if isHEVC && stereoAudioTrackExists {
-				continue
-			}
-
-			u := uuid.New()
-			job := Job{
-				UUID: u.String(),
-				Path: videoFilepath,
-				Parameters: JobParameters{
-					HEVC:   !isHEVC,
-					Stereo: !stereoAudioTrackExists,
-				},
-				RawMediaInfo: mediainfo,
-			}
-
-			logger.Trace(fmt.Sprintf("%v isHEVC=%v stereoAudioTrackExists=%v", videoFilepath, isHEVC, stereoAudioTrackExists))
-
-			JobQueue.Push(job)
-			logger.Info(fmt.Sprintf("Added %v to the queue", job.Path))
+	for _, l := range allLibraries {
+		t, ok := fsCheckTimes[l.ID]
+		if !ok {
+			fsCheckTimes[l.ID] = time.Unix(0, 0)
+			t = fsCheckTimes[l.ID]
 		}
-		logger.Debug("File system check complete")
+
+		prevDone, ok := fsCheckComplete[l.ID]
+		if !ok {
+			fsCheckComplete[l.ID] = true
+			prevDone = fsCheckComplete[l.ID]
+		}
+
+		if time.Since(t) > l.FsCheckInterval && prevDone {
+			logger.Debug(fmt.Sprintf("Initiating library (ID: %v) update", l.ID))
+			fsCheckTimes[l.ID] = time.Now()
+			fsCheckComplete[l.ID] = false
+			go updateLibraryQueue(l, wg, &fsCheckComplete)
+		}
 	}
 }
 
@@ -290,41 +190,40 @@ func healthCheck() {
 	if time.Since(healthLastCheck) > time.Duration(config.Global.HealthCheckInterval) {
 		healthLastCheck = time.Now()
 		logger.Debug("Starting health check")
-		for _, v := range DispatchedJobs.Decontain() {
+		dJobs, err := dispatched.All()
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+
+		for _, v := range dJobs {
 			if time.Since(v.LastUpdated) > time.Duration(config.Global.HealthCheckTimeout) {
-				d, _ := DispatchedJobs.PopByUUID(v.Job.UUID)
-				logger.Warn(fmt.Sprintf("Depositing %v back into Job queue because of unresponsive Runner", d.Job.Path))
-				d.Job.UUID = uuid.NewString()
-				JobQueue.Push(d.Job)
-				//? Do we follow the python controller and add another "thread-safe" container for timedout jobs or do we return 409 for all requests where the uuid can't be found?
+				d := dispatched.DJob{UUID: v.Job.UUID}
+				if err = d.Get(); err != nil {
+					logger.Error(err.Error())
+					continue
+				}
+
+				logger.Warn(fmt.Sprintf("Removing %v from dispatched jobs because of unresponsive Runner", d.Job.Path))
+
+				if err = d.Delete(); err != nil {
+					logger.Error(err.Error())
+					continue
+				}
 			}
 		}
 		logger.Debug("Health check complete")
 	}
 }
 
-func readDispatchedFile() DispatchedContainer {
-	// Read/unmarshal json from JSONDir/dispatched_jobs.json
-	f, err := os.Open(fmt.Sprintf("%v/dispatched_jobs.json", options.ConfigDir()))
-	if err != nil {
-		logger.Warn(fmt.Sprintf("Failed to open dispatched_jobs.json because of error: %v", err))
-		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
+// popJobRequest returns the first element of the jobRequests slice
+// and shifts the remaining items up one slot.
+func popJobRequest() (JobRequest, error) {
+	if len(JobRequests) == 0 {
+		return JobRequest{}, fmt.Errorf("jobRequests is empty")
 	}
-	defer f.Close()
-
-	b, err := io.ReadAll(f)
-	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to read dispatched_jobs.json because of error: %v", err))
-		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
-	}
-
-	var readJSON []DispatchedJob
-	err = json.Unmarshal(b, &readJSON)
-	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to unmarshal dispatched_jobs.json because of error: %v", err))
-		return DispatchedContainer{sync.Mutex{}, make([]DispatchedJob, 0)}
-	}
-
-	// Add into DispatchedContainer and return
-	return DispatchedContainer{sync.Mutex{}, readJSON}
+	item := JobRequests[0]
+	JobRequests[0] = JobRequest{} // Hopefully this garbage collects properly
+	JobRequests = JobRequests[1:]
+	return item, nil
 }

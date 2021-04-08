@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BrenekH/encodarr/controller/options"
 	"github.com/BrenekH/logange"
-	"github.com/BrenekH/project-redcedar-controller/options"
 )
 
 var logger logange.Logger
@@ -21,16 +21,16 @@ func serverError(w http.ResponseWriter, r *http.Request, reason string) {
 	logger.Warn(fmt.Sprintf("Responding to an HTTP request with code 500 because: %v", reason))
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(500)
-	w.Write([]byte(`<html><head><title>Server Error - Project RedCedar</title></head><body>Code 500: Server Error</body></html>`))
+	w.Write([]byte(`<html><head><title>Server Error - Encodarr</title></head><body>Code 500: Server Error</body></html>`))
 }
 
 func methodForbidden(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusForbidden)
-	w.Write([]byte(`<html><head><title>Method Forbidden - Project RedCedar</title></head><body>Code 403: Method Forbidden</body></html>`))
+	w.Write([]byte(`<html><head><title>Method Forbidden - Encodarr</title></head><body>Code 403: Method Forbidden</body></html>`))
 }
 
-// RunHTTPServer runs the HTTP server for Project RedCedar.
+// RunHTTPServer runs the HTTP server for Encodarr.
 func RunHTTPServer(stopChan *chan interface{}, wg *sync.WaitGroup) {
 	wg.Add(1) // This is done in the function rather than outside so that we can easily comment out this function in main.go
 	defer wg.Done()

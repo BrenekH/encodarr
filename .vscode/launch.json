@@ -10,15 +10,6 @@
       "request": "launch",
       "program": "${file}",
       "console": "integratedTerminal"
-    },
-    {
-      "name": "Python: Start Project",
-      "type": "python",
-      "request": "launch",
-      "program": "${workspaceFolder}/controller/main.py",
-      "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}/controller",
-      "args": ["-d", "D:\\redcedar_test_env"]
     }
   ]
 }

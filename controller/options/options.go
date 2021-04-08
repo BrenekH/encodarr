@@ -1,9 +1,9 @@
-// Package options is a centralized location for all supported command-line/environment variable options for RedCedar
+// Package options is a centralized location for all supported command-line/environment variable options for Encodarr
 package options
 
 import (
-	"flag"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/BrenekH/logange"
@@ -14,13 +14,14 @@ type optionConst struct {
 	CmdLine string
 }
 
-var portConst optionConst = optionConst{"REDCEDAR_PORT", "port"}
+var portConst optionConst = optionConst{"ENCODARR_PORT", "port"}
 var port string = "8123"
 
-var configDirConst optionConst = optionConst{"REDCEDAR_CONFIG_DIR", "config-dir"}
-var configDir string = "/redcedar/config"
+var configDirConst optionConst = optionConst{"ENCODARR_CONFIG_DIR", "config-dir"}
+var configDir string = ""
 
-var searchDirConst optionConst = optionConst{"REDCEDAR_SEARCH_DIR", "search-dir"}
+// TODO: Remove. Search directory is no longer needed because each library has its own.
+var searchDirConst optionConst = optionConst{"ENCODARR_SEARCH_DIR", "search-dir"}
 var searchDir string = ""
 
 var inputsParsed bool = false
@@ -30,6 +31,12 @@ var logger logange.Logger
 func init() {
 	cwd, _ := os.Getwd()
 	searchDir = cwd
+
+	cDir, err := os.UserConfigDir()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	configDir = cDir + "/encodarr/config"
 
 	logger = logange.NewLogger("options")
 }
@@ -42,17 +49,17 @@ func parseInputs() {
 
 	// HTTP Server port
 	stringVarFromEnv(&port, portConst.EnvVar)
-	flag.StringVar(&port, portConst.CmdLine, port, "")
+	stringVar(&port, portConst.CmdLine, "")
 
 	// Config directory
 	stringVarFromEnv(&configDir, configDirConst.EnvVar)
-	flag.StringVar(&configDir, configDirConst.CmdLine, configDir, "")
+	stringVar(&configDir, configDirConst.CmdLine, "")
 
 	// Search directory
 	stringVarFromEnv(&searchDir, searchDirConst.EnvVar)
-	flag.StringVar(&searchDir, searchDirConst.CmdLine, searchDir, "")
+	stringVar(&searchDir, searchDirConst.CmdLine, "")
 
-	flag.Parse()
+	parseCL()
 
 	inputsParsed = true
 }

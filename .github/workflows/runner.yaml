@@ -1,0 +1,141 @@
+name: Runner CI/CD
+
+on: push
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.6', '3.7', '3.8', '3.9']
+
+    defaults:
+      run:
+        working-directory: ./runner
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Install Pytest
+        run: python -m pip install pytest
+
+      - name: Test using Pytest
+        run: python -m pytest
+
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.9']
+
+    defaults:
+      run:
+        working-directory: ./runner
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Install PyInstaller
+        run: python -m pip install PyInstaller
+
+      - name: Create Executable
+        run: python -m PyInstaller --name "encodarr-runner-${{ runner.os }}-amd64" --onefile main.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: encodarr-runner-${{ runner.os }}-amd64
+          path: ${{ github.workspace }}/runner/dist/*
+
+  deploy-container-images-tags:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate Docker Metadata
+        id: meta
+        uses: crazy-max/ghaction-docker-meta@v2
+        with:
+          images: |
+            brenekh/encodarr-runner
+            ghcr.io/brenekh/encodarr-runner
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push container images/tags
+        uses: docker/build-push-action@v2
+        with:
+          context: ./runner
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  upload-binaries-to-gh-releases:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ${{ github.workspace }}/build-artifacts
+
+      - name: Upload to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ github.workspace }}/build-artifacts/*/*
+          tag: ${{ github.ref }}
+          overwrite: true
