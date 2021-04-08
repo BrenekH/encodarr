@@ -1,0 +1,28 @@
+name: Create Release
+
+on: push
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Set PREREL environment variable
+        env:
+          TAG: ${{ github.ref }}
+        run: echo "PREREL=$(if [[ $TAG =~ "alpha" ]] || [[ $TAG =~ "beta" ]] || [[ $TAG =~ "rc" ]]; then echo "true"; else echo "false"; fi;)" >> $GITHUB_ENV
+
+      - name: Sanitize github.ref
+        run: echo "TAG_USED=$(echo ${GITHUB_REF:10})" >> $GITHUB_ENV
+
+      - name: Create Release with Assets
+        id: release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Version ${{ env.TAG_USED }}
+          draft: true
+          prerelease: ${{ env.PREREL }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

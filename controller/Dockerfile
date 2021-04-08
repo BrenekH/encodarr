@@ -1,12 +1,15 @@
 # Build stage
 FROM golang:1.16-buster AS builder
 
+ARG TARGETOS
+ARG TARGETARCH
+
 WORKDIR /go/src/encodarr/controller
 
 COPY . .
 
 # Disable CGO so that we have a static binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o encodarr .
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o encodarr .
 
 
 # Run stage

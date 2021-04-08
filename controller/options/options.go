@@ -20,6 +20,7 @@ var port string = "8123"
 var configDirConst optionConst = optionConst{"ENCODARR_CONFIG_DIR", "config-dir"}
 var configDir string = ""
 
+// TODO: Remove. Search directory is no longer needed because each library has its own.
 var searchDirConst optionConst = optionConst{"ENCODARR_SEARCH_DIR", "search-dir"}
 var searchDir string = ""
 

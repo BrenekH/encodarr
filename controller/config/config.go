@@ -14,8 +14,8 @@ const Version string = "0.0.1-alpha.1"
 
 // Settings is used to represent how settings are saved to a file
 type Settings struct {
-	HealthCheckInterval int
-	HealthCheckTimeout  int
+	HealthCheckInterval uint64
+	HealthCheckTimeout  uint64
 	LogVerbosity        string
 	SmallerFiles        bool
 }
@@ -62,8 +62,8 @@ func SaveGlobal() error {
 // DefaultSettings returns a "constant" settings struct with sensible defaults
 func DefaultSettings() Settings {
 	return Settings{
-		HealthCheckInterval: int(1 * time.Minute),
-		HealthCheckTimeout:  int(1 * time.Hour),
+		HealthCheckInterval: uint64(1 * time.Minute),
+		HealthCheckTimeout:  uint64(1 * time.Hour),
 		LogVerbosity:        "INFO",
 		SmallerFiles:        false,
 	}
