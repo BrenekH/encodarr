@@ -50,4 +50,4 @@ When a Git tag is pushed to the repo, special actions are ran that deploy the co
 
 ## Code of Conduct
 
-This project holds all contributors, maintainers, and participants to the standards outlined by the Contributor Covenant, a copy of which can be found in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+This project holds all maintainers, contributors, and participants to the standards outlined by the Contributor Covenant, a copy of which can be found in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).

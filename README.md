@@ -1,43 +1,31 @@
-# Encodarr
+<p align="center">
+  <img src="images/Encodarr-Text-Logo.svg" height="175"/>
+</p>
 
-Docker-based webapp for encoding video files to the HEVC \(H.265\) standard.
+<!-- TODO: Tag things (Docker pulls, GHCR pulls, master CI status) -->
+<!-- TODO: Description -->
 
-## Docker Compose
+## Why use Encodarr?
+<!-- TODO: Why use Encodarr? -->
 
-Recommended `docker-compose.yaml` \(Assumes the docker image was built with the tag `brenekh/encodarr:latest`\)
+## Installing
+<!-- TODO: Installing (docker/docker-compose, raw binaries) -->
 
-```yaml
-version: "2.2"
-services:
-  encodarr:
-    image: brenekh/encodarr:latest
-    container_name: Encodarr
-    volumes:
-      - /config:/config:rw
-      - /media/folder/to/search:/usr/app/tosearch:rw
-    ports:
-      - 5000:5000
-    restart: unless-stopped
-    cpus: 2.00
-    stop_signal: SIGINT
-```
+## Usage
+<!-- TODO: Usage (Env Vars/Command-Line) -->
 
-## Environment Variables
+## Contributing
 
-### Common
+If you want to contribute to this project, head over to [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+Do note that the project is going to be rewritten soon to more closely follow clean architecture guidelines, so contributing to the `master` or `development` branches is not recommended at this time.
 
-- ENCODARR_DEBUG (bool)
+## Code of Conduct
 
-- ENCODARR_LOG_FILE (string)
+This project holds all maintainers, contributors, and participants to the standards outlined by the Contributor Covenant, a copy of which can be found in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-### Runner
-
-- ENCODARR_RUNNER_NAME (string)
-
-- ENCODARR_RUNNER_CONTROLLER_IP (string)
-
-- ENCODARR_RUNNER_CONTROLLER_PORT (integer)
+## Future Plans
+<!-- TODO: Future Plans (plugins, scheduled working times, etc. + voting system?) -->
 
 ## Attributions
 
-`controller/controller/mediainfo.go` was modified from [pascoej/go-mediainfo](https://github.com/pascoej/go-mediainfo/blob/509f5adb9998a8fe497be4eed69c73d75161709e/mediainfo.go)
+`controller/mediainfo/mediainfo.go` was modified from [pascoej/go-mediainfo](https://github.com/pascoej/go-mediainfo/blob/509f5adb9998a8fe497be4eed69c73d75161709e/mediainfo.go).
