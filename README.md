@@ -147,6 +147,10 @@ If the environment variable is set to `True`, then debug messages are turned on.
 
 ## Contributing
 
+> I am currently looking for someone to verify the Mac OS binaries.
+> They theoretically should just work, but I can't test it because I don't have access to a Mac.
+> If you do verify please let me know in the [Discussions](https://github.com/BrenekH/encodarr/discussions) page, but if they don't please open a [new issue](https://github.com/BrenekH/encodarr/issues/new/choose).
+
 If you want to contribute to this project, head over to [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 Do note that the project is going to be rewritten soon to more closely follow clean architecture guidelines, so contributing to the `master` or `development` branches is not recommended at this time.
 
