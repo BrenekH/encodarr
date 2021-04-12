@@ -29,7 +29,7 @@ func (r *CmdRunner) Start(args []string) {
 		for {
 			n, err := errPipe.Read(b)
 			fmt.Println(err, n)
-			fmt.Println(string(b))
+			fmt.Println(string(b[:n]))
 			// TODO: Parse out status from line
 
 			if n == 0 {
