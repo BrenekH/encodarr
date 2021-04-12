@@ -7,21 +7,25 @@ import (
 	"net/http"
 	"os"
 	"path"
+
+	"github.com/BrenekH/encodarr/runner"
 )
 
 type ApiV1 struct{}
 
-func (a *ApiV1) SendJobComplete(ctx *context.Context) error {
+func (a *ApiV1) SendJobComplete(ctx *context.Context) error { return nil }
+
+func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) {
 	req, err := http.NewRequestWithContext(*ctx, http.MethodGet, "http://localhost:8123/api/runner/v1/job/request", nil)
 	if err != nil {
-		return err
+		return runner.JobInfo{}, err
 	}
 
 	req.Header.Set("X-Encodarr-Runner-Name", "Develop")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return runner.JobInfo{}, err
 	}
 	defer resp.Body.Close()
 
@@ -30,21 +34,21 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context) error {
 	var jobInfo Job
 	err = json.Unmarshal([]byte(strJobInfo), &jobInfo)
 	if err != nil {
-		return err
+		return runner.JobInfo{}, err
 	}
 
 	fPath := "input" + path.Ext(jobInfo.Path)
 
 	f, err := os.Create(fPath)
 	if err != nil {
-		return err
+		return runner.JobInfo{}, err
 	}
 
 	_, err = io.Copy(f, resp.Body)
-	return err
+	return runner.JobInfo{
+		CommandArgs: []string{""},
+	}, err
 }
-
-func (a *ApiV1) SendNewJobRequest(ctx *context.Context) error { return nil }
 
 func (a *ApiV1) SendStatus(ctx *context.Context) error { return nil }
 

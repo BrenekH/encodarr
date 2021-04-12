@@ -2,8 +2,13 @@ package main
 
 import (
 	"context"
-	"time"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/BrenekH/encodarr/runner"
+	"github.com/BrenekH/encodarr/runner/cmd_runner"
 	"github.com/BrenekH/encodarr/runner/http"
 	"github.com/BrenekH/logange"
 )
@@ -29,24 +34,34 @@ func init() {
 func main() {
 	logger.Info("Starting Encodarr Runner")
 	ctx, cancel := context.WithCancel(context.Background())
-	go func() { time.Sleep(time.Second); cancel() }()
-	Run(&ctx, &http.ApiV1{}, &MockCmdRunner{})
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-signals
+		logger.Info(fmt.Sprintf("Received stop signal: %v", sig))
+		cancel()
+	}()
+
+	cmdRun := cmd_runner.NewCmdRunner()
+	Run(&ctx, &http.ApiV1{}, &cmdRun)
 }
 
 // Run runs the basic loop of the Runner
-func Run(ctx *context.Context, c Communicator, r CommandRunner) {
+func Run(ctx *context.Context, c runner.Communicator, r runner.CommandRunner) {
 	for {
 		if IsContextFinished(ctx) {
 			break
 		}
 		// TODO: Send new job request
-		err := c.SendNewJobRequest(ctx)
+		ji, err := c.SendNewJobRequest(ctx)
 		if err != nil {
 			logger.Error(err.Error())
 		}
 
 		// TODO: Start job with request info
-		r.Start()
+		r.Start(ji.CommandArgs)
 
 		for !r.Done() {
 			// TODO: Get status from job
@@ -75,25 +90,13 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 	}
 }
 
-type Communicator interface {
-	SendJobComplete(*context.Context) error
-	SendNewJobRequest(*context.Context) error
-	SendStatus(*context.Context) error
-}
-
-type CommandRunner interface {
-	Done() bool
-	Start()
-	Status()
-}
-
 type MockCmdRunner struct{}
 
 func (r *MockCmdRunner) Done() bool {
 	return true
 }
 
-func (r *MockCmdRunner) Start() {}
+func (r *MockCmdRunner) Start(s string) {}
 
 func (r *MockCmdRunner) Status() {}
 
