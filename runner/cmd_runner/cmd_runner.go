@@ -47,7 +47,7 @@ func (r *CmdRunner) Status() {}
 func NewCmdRunner() CmdRunner {
 	return CmdRunner{
 		Executable: "ffmpeg",
-		BaseArgs:   []string{"-hide_banner", "-loglevel", "warning", "-stats"},
+		BaseArgs:   []string{"-hide_banner", "-loglevel", "warning", "-stats", "-y"},
 		done:       false,
 	}
 }
