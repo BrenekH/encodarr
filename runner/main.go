@@ -1,6 +1,10 @@
 package main
 
 import (
+	"context"
+	"time"
+
+	"github.com/BrenekH/encodarr/runner/http"
 	"github.com/BrenekH/logange"
 )
 
@@ -23,18 +27,81 @@ func init() {
 }
 
 func main() {
-	logger.Info("Hello, World!")
+	logger.Info("Starting Encodarr Runner")
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() { time.Sleep(time.Second); cancel() }()
+	Run(&ctx, &http.ApiV1{}, &MockCmdRunner{})
 }
 
 // Run runs the basic loop of the Runner
-func Run() {
+func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 	for {
-		// TODO: Send new job request
-		// TODO: Start job with request info
-		for { // TODO: Add stop condition (job is no longer running)
-			// TODO: Get status from job
-			// TODO: Send status to Controller
+		if IsContextFinished(ctx) {
+			break
 		}
+		// TODO: Send new job request
+		err := c.SendNewJobRequest(ctx)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+
+		// TODO: Start job with request info
+		r.Start()
+
+		for !r.Done() {
+			// TODO: Get status from job
+			r.Status()
+
+			// TODO: Send status to Controller
+			err = c.SendStatus(ctx)
+			if err != nil {
+				logger.Error(err.Error())
+			}
+
+			if IsContextFinished(ctx) {
+				break
+			}
+		}
+
 		// TODO: Send job complete
+		err = c.SendJobComplete(ctx)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+
+		if IsContextFinished(ctx) {
+			break
+		}
+	}
+}
+
+type Communicator interface {
+	SendJobComplete(*context.Context) error
+	SendNewJobRequest(*context.Context) error
+	SendStatus(*context.Context) error
+}
+
+type CommandRunner interface {
+	Done() bool
+	Start()
+	Status()
+}
+
+type MockCmdRunner struct{}
+
+func (r *MockCmdRunner) Done() bool {
+	return true
+}
+
+func (r *MockCmdRunner) Start() {}
+
+func (r *MockCmdRunner) Status() {}
+
+func IsContextFinished(ctx *context.Context) bool {
+	select {
+	case <-(*ctx).Done():
+		return true
+	default:
+		return false
 	}
 }
