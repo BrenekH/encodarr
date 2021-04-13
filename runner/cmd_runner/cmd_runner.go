@@ -107,7 +107,7 @@ func (r *CmdRunner) Status() runner.JobStatus {
 
 	return runner.JobStatus{
 		Stage:                       "Running FFmpeg",
-		Percentage:                  fmt.Sprintf("%.2f", float64(currentFileTime)/float64(r.fileDuration)),
+		Percentage:                  fmt.Sprintf("%.2f", (float64(currentFileTime)/float64(r.fileDuration))*100),
 		JobElapsedTime:              fmt.Sprintf("%v", time.Since(r.startTime).Round(time.Second).String()),
 		FPS:                         fmt.Sprintf("%v", r.fps),
 		StageElapsedTime:            fmt.Sprintf("%v", time.Since(r.startTime).Round(time.Second).String()),
@@ -149,7 +149,7 @@ func parseFFmpegLine(line string) (fps float64, time string, speed float64) {
 	if len(speedReMatch) > 1 {
 		speed, err = strconv.ParseFloat(speedReMatch[1], 64)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}
 	return

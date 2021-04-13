@@ -4,17 +4,63 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/BrenekH/encodarr/runner"
 )
 
 type ApiV1 struct{}
 
-func (a *ApiV1) SendJobComplete(ctx *context.Context) error { return nil }
+func (a *ApiV1) SendJobComplete(ctx *context.Context) error {
+	filename := "output.mkv"
+
+	file, err := os.Open(filename)
+
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", filepath.Base(file.Name()))
+
+	if err != nil {
+		panic(err)
+	}
+
+	io.Copy(part, file)
+	writer.Close()
+	request, err := http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", body)
+
+	if err != nil {
+		panic(err)
+	}
+
+	request.Header.Add("Content-Type", writer.FormDataContentType())
+
+	response, err := http.DefaultClient.Do(request)
+
+	if err != nil {
+		panic(err)
+	}
+	defer response.Body.Close()
+
+	_, err = ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return nil
+}
 
 func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) {
 	req, err := http.NewRequestWithContext(*ctx, http.MethodGet, "http://localhost:8123/api/runner/v1/job/request", nil)
@@ -45,9 +91,11 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 		return runner.JobInfo{}, err
 	}
 
+	fmt.Printf("Received job for %v\n", jobInfo.Path)
+
 	_, err = io.Copy(f, resp.Body)
 	return runner.JobInfo{
-		CommandArgs: []string{"-i", fPath, "output.mkv"},
+		CommandArgs: []string{"-i", fPath, "output.mkv"}, // TODO: Construct proper ffmpeg command arguments
 		UUID:        jobInfo.UUID,
 		MediaInfo:   jobInfo.RawMediaInfo,
 	}, err
