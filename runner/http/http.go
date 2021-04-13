@@ -95,7 +95,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 
 	_, err = io.Copy(f, resp.Body)
 	return runner.JobInfo{
-		CommandArgs: []string{"-i", fPath, "output.mkv"}, // TODO: Construct proper ffmpeg command arguments
+		CommandArgs: genFFmpegCmd(fPath, "output.mkv", jobInfo.Parameters),
 		UUID:        jobInfo.UUID,
 		MediaInfo:   jobInfo.RawMediaInfo,
 	}, err
@@ -137,4 +137,16 @@ type JobParameters struct {
 	Encode bool   `json:"encode"` // true when the file's video stream needs to be encoded
 	Stereo bool   `json:"stereo"` // true when the file is missing a stereo audio track
 	Codec  string `json:"codec"`  // the ffmpeg compatible video codec
+}
+
+// genFFmpegCmd creates the correct ffmpeg arguments for the input/output filenames and the job parameters.
+func genFFmpegCmd(inputFname, outputFname string, params JobParameters) []string {
+	// TODO: Encode and add stereo audio track in one step
+	var s []string
+	if params.Stereo {
+		s = []string{"-i", inputFname, "-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", "copy", "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", outputFname}
+	} else if params.Encode {
+		s = []string{"-i", inputFname, "-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", params.Codec, outputFname}
+	}
+	return s
 }

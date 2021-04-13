@@ -127,14 +127,16 @@ func NewCmdRunner() CmdRunner {
 // There might be a speed up that involves changing the line parameter(and maybe the return results) to a pointer
 // (avoids copying the value for a new frame), but the jury is still out on that one.
 func parseFFmpegLine(line string) (fps float64, time string, speed float64) {
-	var err error
-
 	// FPS
 	fpsReMatch := fpsRe.FindStringSubmatch(line)
 	if len(fpsReMatch) > 1 {
-		fps, err = strconv.ParseFloat(fpsReMatch[1], 64)
+		// pfps (parsed fps) is an intermediary variable that can be parsed to w/o affecting the return value.
+		pfps, err := strconv.ParseFloat(fpsReMatch[1], 64)
 		if err != nil {
-			panic(err)
+			fmt.Printf("Line: %v\n", line)
+			fmt.Println(err)
+		} else {
+			fps = pfps
 		}
 	}
 
@@ -147,9 +149,13 @@ func parseFFmpegLine(line string) (fps float64, time string, speed float64) {
 	// Speed
 	speedReMatch := speedRe.FindStringSubmatch(line)
 	if len(speedReMatch) > 1 {
-		speed, err = strconv.ParseFloat(speedReMatch[1], 64)
+		// pspeed (parsed speed) is an intermediary variable that can be parsed to w/o affecting the return value.
+		pspeed, err := strconv.ParseFloat(speedReMatch[1], 64)
 		if err != nil {
+			fmt.Printf("Line: %v\n", line)
 			fmt.Println(err)
+		} else {
+			speed = pspeed
 		}
 	}
 	return
