@@ -54,21 +54,21 @@ func Run(ctx *context.Context, c runner.Communicator, r runner.CommandRunner) {
 		if IsContextFinished(ctx) {
 			break
 		}
-		// TODO: Send new job request
+		// Send new job request
 		ji, err := c.SendNewJobRequest(ctx)
 		if err != nil {
 			logger.Error(err.Error())
 		}
 
-		// TODO: Start job with request info
-		r.Start(ji.CommandArgs)
+		// Start job with request info
+		r.Start(ji)
 
 		for !r.Done() {
-			// TODO: Get status from job
-			r.Status()
+			// Get status from job
+			status := r.Status()
 
-			// TODO: Send status to Controller
-			err = c.SendStatus(ctx)
+			// Send status to Controller
+			err = c.SendStatus(ctx, ji.UUID, status)
 			if err != nil {
 				logger.Error(err.Error())
 			}
@@ -78,7 +78,7 @@ func Run(ctx *context.Context, c runner.Communicator, r runner.CommandRunner) {
 			}
 		}
 
-		// TODO: Send job complete
+		// Send job complete
 		err = c.SendJobComplete(ctx)
 		if err != nil {
 			logger.Error(err.Error())
