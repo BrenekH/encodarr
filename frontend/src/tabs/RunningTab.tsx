@@ -21,8 +21,9 @@ interface IRunningJob {
 		uuid: string,
 		path: string,
 		parameters: {
-			hevc: Boolean,
+			encode: Boolean,
 			stereo: Boolean,
+			codec: string,
 		}
 	},
 	status: {
@@ -131,7 +132,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 				jobElapsedTime={v.status.job_elapsed_time}
 				stageElapsedTime={v.status.stage_elapsed_time}
 				stageEstimatedTimeRemaining={v.status.stage_estimated_time_remaining}
-				videoOperation={v.job.parameters.hevc}
+				videoOperation={v.job.parameters.encode}
 				audioOperation={v.job.parameters.stereo}
 			/>);
 		});
