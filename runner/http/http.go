@@ -118,7 +118,8 @@ func (a *ApiV1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatu
 		return err
 	}
 
-	_, err = http.DefaultClient.Do(req)
+	resp, err := http.DefaultClient.Do(req)
+	resp.Body.Close() // We need to close the response body to make sure resources are cleaned up
 	// TODO: Detect if the Controller considers this Runner unresponsive
 
 	return err

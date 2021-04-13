@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/BrenekH/encodarr/runner"
 	"github.com/BrenekH/encodarr/runner/cmd_runner"
@@ -63,7 +64,15 @@ func Run(ctx *context.Context, c runner.Communicator, r runner.CommandRunner) {
 		// Start job with request info
 		r.Start(ji)
 
+		// This allows us to rate limit to approx. 1 status POST request every 500ms, which keeps resources (tcp sockets) down.
+		statusLastSent := time.Unix(0, 0)
+		statusInterval := time.Duration(500 * time.Millisecond)
+		sleepAmount := time.Duration(50 * time.Millisecond)
 		for !r.Done() {
+			if time.Since(statusLastSent) < statusInterval {
+				time.Sleep(sleepAmount)
+				continue
+			}
 			// Get status from job
 			status := r.Status()
 

@@ -54,6 +54,7 @@ func (r *CmdRunner) Done() bool {
 }
 
 func (r *CmdRunner) Start(ji runner.JobInfo) {
+	r.done = false
 	dur, err := strconv.ParseInt(ji.MediaInfo.General.Duration, 10, 64)
 	if err != nil {
 		panic(err)
@@ -79,13 +80,17 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 			// fmt.Println(err, n)
 			// fmt.Println(line)
 
-			fps, time, speed := parseFFmpegLine(line)
+			fps, time, speed, err := parseFFmpegLine(line)
 
-			r.fps = fps
-			r.time = time
-			r.speed = speed
-
-			// fmt.Println(r.fps, r.time, r.speed)
+			if err == nil {
+				r.fps = fps
+				r.time = time
+				r.speed = speed
+			} else {
+				// This information is too spammy for warning or erroring. Trace or debug would be more appropriate (probably debug).
+				// fmt.Printf("Line: %v\n", line)
+				// fmt.Println(err)
+			}
 
 			if n == 0 {
 				break
@@ -119,45 +124,46 @@ func NewCmdRunner() CmdRunner {
 	return CmdRunner{
 		Executable: "ffmpeg",
 		BaseArgs:   []string{"-hide_banner", "-loglevel", "warning", "-stats", "-y"},
-		done:       false,
 	}
 }
 
 // parseFFmpegLine parses out the fps, time, and speed information from a standard FFmpeg statistics line.
 // There might be a speed up that involves changing the line parameter(and maybe the return results) to a pointer
 // (avoids copying the value for a new frame), but the jury is still out on that one.
-func parseFFmpegLine(line string) (fps float64, time string, speed float64) {
+func parseFFmpegLine(line string) (fps float64, time string, speed float64, err error) {
 	// FPS
 	fpsReMatch := fpsRe.FindStringSubmatch(line)
 	if len(fpsReMatch) > 1 {
-		// pfps (parsed fps) is an intermediary variable that can be parsed to w/o affecting the return value.
-		pfps, err := strconv.ParseFloat(fpsReMatch[1], 64)
+		fps, err = strconv.ParseFloat(fpsReMatch[1], 64)
 		if err != nil {
-			fmt.Printf("Line: %v\n", line)
-			fmt.Println(err)
-		} else {
-			fps = pfps
+			return
 		}
+	} else {
+		err = fmt.Errorf("parseFFmpegLine: fps regex returned too little groups (need at least 2)")
+		return
 	}
 
 	// Time
 	timeReMatch := timeRe.FindStringSubmatch(line)
 	if len(timeReMatch) > 1 {
 		time = timeReMatch[1]
+	} else {
+		err = fmt.Errorf("parseFFmpegLine: time regex returned too little groups (need at least 2)")
+		return
 	}
 
 	// Speed
 	speedReMatch := speedRe.FindStringSubmatch(line)
 	if len(speedReMatch) > 1 {
-		// pspeed (parsed speed) is an intermediary variable that can be parsed to w/o affecting the return value.
-		pspeed, err := strconv.ParseFloat(speedReMatch[1], 64)
+		speed, err = strconv.ParseFloat(speedReMatch[1], 64)
 		if err != nil {
-			fmt.Printf("Line: %v\n", line)
-			fmt.Println(err)
-		} else {
-			speed = pspeed
+			return
 		}
+	} else {
+		err = fmt.Errorf("parseFFmpegLine: speed regex returned too little groups (need at least 2)")
+		return
 	}
+
 	return
 }
 
