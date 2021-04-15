@@ -120,13 +120,14 @@ func (r *CmdRunner) Status() runner.JobStatus {
 	}
 }
 
-func (r *CmdRunner) Results() (runner.CommandResults, bool, string) {
+func (r *CmdRunner) Results() runner.CommandResults {
 	//! The Command Runner doesn't know the actual file name so it will need to be injected by the caller
 	return runner.CommandResults{
-		DateTimeCompleted: time.Now(),
-		Warnings:          []string{},
-		Errors:            []string{},
-	}, false, time.Since(r.startTime).Round(time.Second).String()
+		Failed:         false,
+		JobElapsedTime: time.Since(r.startTime).Round(time.Second),
+		Warnings:       []string{},
+		Errors:         []string{},
+	}
 }
 
 func NewCmdRunner() CmdRunner {

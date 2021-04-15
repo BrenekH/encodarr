@@ -4,6 +4,7 @@ import "time"
 
 type JobInfo struct {
 	UUID        string
+	File        string
 	CommandArgs []string
 	MediaInfo   MediaInfo
 }
@@ -17,17 +18,11 @@ type JobStatus struct {
 	StageEstimatedTimeRemaining string `json:"stage_estimated_time_remaining"`
 }
 
-type HistoryEntry struct {
-	UUID    string         `json:"uuid"`
-	Failed  bool           `json:"failed"`
-	History CommandResults `json:"history"`
-}
-
 type CommandResults struct {
-	Filename          string    `json:"file"`
-	DateTimeCompleted time.Time `json:"datetime_completed"`
-	Warnings          []string  `json:"warnings"`
-	Errors            []string  `json:"errors"`
+	Failed         bool
+	JobElapsedTime time.Duration
+	Warnings       []string
+	Errors         []string
 }
 
 // MediaInfo represents the MediaInfo from a file.

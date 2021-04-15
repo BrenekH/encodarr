@@ -52,25 +52,29 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 		}
 
 		// Collect results from Command Runner
-		cmdResults, failed, totalTime := r.Results()
+		cmdResults := r.Results()
 
+		// Make sure that the Web UI properly states that we are copying the result to the Controller.
+		// Setting Percentage to 100 also makes sure that the Runner card appears at the top of the page.
 		c.SendStatus(ctx, ji.UUID, JobStatus{
 			Stage:                       "Copying to Controller",
 			Percentage:                  "100",
-			JobElapsedTime:              totalTime,
+			JobElapsedTime:              cmdResults.JobElapsedTime.String(),
 			FPS:                         "N/A",
 			StageElapsedTime:            "N/A",
 			StageEstimatedTimeRemaining: "N/A",
 		})
 
 		// Send job complete
-		err = c.SendJobComplete(ctx, ji, failed, cmdResults)
+		err = c.SendJobComplete(ctx, ji, cmdResults)
 		if err != nil {
 			logger.Error(err.Error())
 		}
 	}
 }
 
+// IsContextFinshed returns a boolean indicating whether or not a context.Context is finished.
+// This replaces the need to use a select code block.
 func IsContextFinished(ctx *context.Context) bool {
 	select {
 	case <-(*ctx).Done():

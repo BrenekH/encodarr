@@ -12,13 +12,14 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	"github.com/BrenekH/encodarr/runner"
 )
 
 type ApiV1 struct{}
 
-func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, failed bool, cmdR runner.CommandResults) error {
+func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR runner.CommandResults) error {
 	filename := "output.mkv"
 
 	r, w := io.Pipe()
@@ -47,21 +48,26 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, failed 
 	}()
 
 	request, err := http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", r)
-
 	if err != nil {
 		panic(err)
 	}
 
 	request.Header.Add("Content-Type", writer.FormDataContentType())
 
-	b, err := json.Marshal(runner.HistoryEntry{
-		UUID:    ji.UUID,
-		Failed:  failed,
-		History: cmdR,
+	b, err := json.Marshal(historyEntry{
+		UUID:   ji.UUID,
+		Failed: cmdR.Failed,
+		History: history{
+			Filename:          ji.File,
+			DateTimeCompleted: time.Now(),
+			Warnings:          cmdR.Warnings,
+			Errors:            cmdR.Errors,
+		},
 	})
 	if err != nil {
 		return err
 	}
+
 	request.Header.Add("X-Encodarr-History-Entry", string(b))
 
 	response, err := http.DefaultClient.Do(request)
@@ -96,7 +102,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 
 	strJobInfo := resp.Header.Get("X-Encodarr-Job-Info")
 
-	var jobInfo Job
+	var jobInfo job
 	err = json.Unmarshal([]byte(strJobInfo), &jobInfo)
 	if err != nil {
 		return runner.JobInfo{}, err
@@ -115,6 +121,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 	return runner.JobInfo{
 		CommandArgs: genFFmpegCmd(fPath, "output.mkv", jobInfo.Parameters),
 		UUID:        jobInfo.UUID,
+		File:        jobInfo.Path,
 		MediaInfo:   jobInfo.RawMediaInfo,
 	}, err
 }
@@ -143,23 +150,36 @@ func (a *ApiV1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatu
 	return err
 }
 
-// Job represents a job in the Encodarr ecosystem.
-type Job struct {
+// job represents a job in the Encodarr ecosystem.
+type job struct {
 	UUID         string           `json:"uuid"`
 	Path         string           `json:"path"`
-	Parameters   JobParameters    `json:"parameters"`
+	Parameters   jobParameters    `json:"parameters"`
 	RawMediaInfo runner.MediaInfo `json:"media_info"`
 }
 
-// JobParameters represents the actions that need to be taken against a job.
-type JobParameters struct {
+// jobParameters represents the actions that need to be taken against a job.
+type jobParameters struct {
 	Encode bool   `json:"encode"` // true when the file's video stream needs to be encoded
 	Stereo bool   `json:"stereo"` // true when the file is missing a stereo audio track
 	Codec  string `json:"codec"`  // the ffmpeg compatible video codec
 }
 
+type historyEntry struct {
+	UUID    string  `json:"uuid"`
+	Failed  bool    `json:"failed"`
+	History history `json:"history"`
+}
+
+type history struct {
+	Filename          string    `json:"file"`
+	DateTimeCompleted time.Time `json:"datetime_completed"`
+	Warnings          []string  `json:"warnings"`
+	Errors            []string  `json:"errors"`
+}
+
 // genFFmpegCmd creates the correct ffmpeg arguments for the input/output filenames and the job parameters.
-func genFFmpegCmd(inputFname, outputFname string, params JobParameters) []string {
+func genFFmpegCmd(inputFname, outputFname string, params jobParameters) []string {
 	// TODO: Encode and add stereo audio track in one step
 	var s []string
 	if params.Stereo {
