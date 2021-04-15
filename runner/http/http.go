@@ -15,7 +15,14 @@ import (
 	"time"
 
 	"github.com/BrenekH/encodarr/runner"
+	"github.com/BrenekH/logange"
 )
+
+var logger logange.Logger
+
+func init() {
+	logger = logange.NewLogger("http")
+}
 
 type ApiV1 struct{}
 
@@ -35,31 +42,31 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 
 			file, err := os.Open(filename)
 			if err != nil {
-				panic(err)
+				logger.Critical(err.Error())
 			}
 			defer file.Close()
 
 			part, err := writer.CreateFormFile("file", filepath.Base(file.Name()))
 			if err != nil {
-				panic(err)
+				logger.Critical(err.Error())
 			}
 
 			_, err = io.Copy(part, file)
 			if err != nil {
-				panic(err)
+				logger.Critical(err.Error())
 			}
 		}()
 
 		request, err = http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", r)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		request.Header.Add("Content-Type", writer.FormDataContentType())
 	} else {
 		request, err = http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", &bytes.Buffer{})
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
@@ -80,19 +87,13 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 	request.Header.Add("X-Encodarr-History-Entry", string(b))
 
 	response, err := http.DefaultClient.Do(request)
-
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer response.Body.Close()
 
 	_, err = ioutil.ReadAll(response.Body)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return nil
+	return err
 }
 
 func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) {
@@ -124,7 +125,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 		return runner.JobInfo{}, err
 	}
 
-	fmt.Printf("Received job for %v\n", jobInfo.Path)
+	logger.Info(fmt.Sprintf("Received job for %v", jobInfo.Path))
 
 	_, err = io.Copy(f, resp.Body)
 	return runner.JobInfo{

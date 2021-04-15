@@ -1,7 +1,5 @@
 package cmd_runner
 
-// TODO: Remove panics in favor of actual logging.
-
 import (
 	"fmt"
 	"os/exec"
@@ -10,31 +8,36 @@ import (
 	"time"
 
 	"github.com/BrenekH/encodarr/runner"
+	"github.com/BrenekH/logange"
 )
 
 var (
 	fpsRe   *regexp.Regexp
 	timeRe  *regexp.Regexp
 	speedRe *regexp.Regexp
+
+	logger logange.Logger
 )
 
 func init() {
-	// Create Regexes and panic if they fail to compile.
+	logger = logange.NewLogger("cmd_runner")
+
+	// Create Regexes and exit (logger.Critical) if they fail to compile.
 	// This allows them to be used for every regex search instead of needing to recompile everytime.
 	var err error
 	fpsRe, err = regexp.Compile(`fps= *([0-9\.]*)`)
 	if err != nil {
-		panic(err)
+		logger.Critical(err.Error())
 	}
 
 	timeRe, err = regexp.Compile(`time= *([0-9:\.]*)`)
 	if err != nil {
-		panic(err)
+		logger.Critical(err.Error())
 	}
 
 	speedRe, err = regexp.Compile(`speed= *([0-9\.]*)`)
 	if err != nil {
-		panic(err)
+		logger.Critical(err.Error())
 	}
 }
 
@@ -66,7 +69,11 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 
 	dur, err := strconv.ParseInt(ji.MediaInfo.General.Duration, 10, 64)
 	if err != nil {
-		panic(err)
+		logger.Error(err.Error())
+		r.errors = append(r.errors, err.Error())
+		r.done = true
+		r.failed = true
+		return
 	}
 
 	// ji.MediaInfo.General.Duration is in milliseconds
@@ -81,14 +88,15 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 	r.startTime = time.Now()
 
 	go func() {
-		fmt.Println("Starting FFmpeg command")
+		logger.Info("Starting FFmpeg command")
 		c.Start()
 
 		for {
 			n, _ := errPipe.Read(b)
 			line := string(b[:n])
-			// fmt.Println(err, n)
-			// fmt.Println(line)
+
+			logger.Trace(fmt.Sprintf("%v %v", err, n))
+			logger.Trace(line)
 
 			parseFFmpegLine(line, &r.fps, &r.time, &r.speed)
 
@@ -108,12 +116,12 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 		}
 
 		r.done = true
-		fmt.Println("FFmpeg command finished")
+		logger.Info("FFmpeg command finished")
 	}()
 }
 
 func (r *CmdRunner) Status() runner.JobStatus {
-	currentFileTime, err := parseColonToDuration(r.time)
+	currentFileTime, err := parseColonTimeToDuration(r.time)
 	if err != nil {
 		currentFileTime = time.Duration(0)
 	}
@@ -151,16 +159,22 @@ func parseFFmpegLine(line string, fps *float64, time *string, speed *float64) {
 	// FPS
 	if pFps, err := extractFps(line); err != nil {
 		fps = &pFps
+	} else {
+		logger.Trace(err.Error())
 	}
 
 	// Time
 	if pTime, err := extractTime(line); err != nil {
 		time = &pTime
+	} else {
+		logger.Trace(err.Error())
 	}
 
 	// Speed
 	if pSpeed, err := extractSpeed(line); err != nil {
 		speed = &pSpeed
+	} else {
+		logger.Trace(err.Error())
 	}
 }
 
@@ -203,9 +217,9 @@ func extractSpeed(line string) (speed float64, err error) {
 	return
 }
 
-// parseColonToDuration takes a "HH:MM:SS" and converts it to a time.Duration.
+// parseColonTimeToDuration takes a "HH:MM:SS" and converts it to a time.Duration.
 // The hour portion does not have to be <= 24.
-func parseColonToDuration(s string) (time.Duration, error) {
+func parseColonTimeToDuration(s string) (time.Duration, error) {
 	var hrs, mins, secs int64
 
 	_, err := fmt.Sscanf(s, "%d:%d:%d", &hrs, &mins, &secs)

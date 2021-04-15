@@ -15,6 +15,7 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 		ji, err := c.SendNewJobRequest(ctx)
 		if err != nil {
 			logger.Error(err.Error())
+			continue
 		}
 
 		// Start job with request info
@@ -56,7 +57,7 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 
 		// Make sure that the Web UI properly states that we are copying the result to the Controller.
 		// Setting Percentage to 100 also makes sure that the Runner card appears at the top of the page.
-		c.SendStatus(ctx, ji.UUID, JobStatus{
+		err = c.SendStatus(ctx, ji.UUID, JobStatus{
 			Stage:                       "Copying to Controller",
 			Percentage:                  "100",
 			JobElapsedTime:              cmdResults.JobElapsedTime.String(),
@@ -64,6 +65,9 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 			StageElapsedTime:            "N/A",
 			StageEstimatedTimeRemaining: "N/A",
 		})
+		if err != nil {
+			logger.Warn(err.Error())
+		}
 
 		// Send job complete
 		err = c.SendJobComplete(ctx, ji, cmdResults)
