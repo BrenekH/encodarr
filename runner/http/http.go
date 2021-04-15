@@ -20,39 +20,48 @@ import (
 type ApiV1 struct{}
 
 func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR runner.CommandResults) error {
-	filename := "output.mkv"
+	var request *http.Request
+	var err error
 
-	r, w := io.Pipe()
-	writer := multipart.NewWriter(w)
+	if !cmdR.Failed {
+		filename := "output.mkv"
 
-	go func() {
-		defer w.Close()
-		defer writer.Close()
+		r, w := io.Pipe()
+		writer := multipart.NewWriter(w)
 
-		file, err := os.Open(filename)
+		go func() {
+			defer w.Close()
+			defer writer.Close()
 
+			file, err := os.Open(filename)
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			part, err := writer.CreateFormFile("file", filepath.Base(file.Name()))
+			if err != nil {
+				panic(err)
+			}
+
+			_, err = io.Copy(part, file)
+			if err != nil {
+				panic(err)
+			}
+		}()
+
+		request, err = http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", r)
 		if err != nil {
 			panic(err)
 		}
-		defer file.Close()
 
-		part, err := writer.CreateFormFile("file", filepath.Base(file.Name()))
+		request.Header.Add("Content-Type", writer.FormDataContentType())
+	} else {
+		request, err = http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", &bytes.Buffer{})
 		if err != nil {
 			panic(err)
 		}
-
-		_, err = io.Copy(part, file)
-		if err != nil {
-			panic(err)
-		}
-	}()
-
-	request, err := http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", r)
-	if err != nil {
-		panic(err)
 	}
-
-	request.Header.Add("Content-Type", writer.FormDataContentType())
 
 	b, err := json.Marshal(historyEntry{
 		UUID:   ji.UUID,
@@ -119,7 +128,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 
 	_, err = io.Copy(f, resp.Body)
 	return runner.JobInfo{
-		CommandArgs: genFFmpegCmd(fPath, "output.mkv", jobInfo.Parameters),
+		CommandArgs: genFFmpegCmd(fPath+".nope", "output.mkv", jobInfo.Parameters),
 		UUID:        jobInfo.UUID,
 		File:        jobInfo.Path,
 		MediaInfo:   jobInfo.RawMediaInfo,

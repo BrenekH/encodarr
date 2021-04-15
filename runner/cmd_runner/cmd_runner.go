@@ -44,6 +44,9 @@ type CmdRunner struct {
 	fileDuration time.Duration
 	startTime    time.Time
 	done         bool
+	failed       bool
+	warnings     []string
+	errors       []string
 	fps          float64
 	time         string
 	speed        float64
@@ -54,11 +57,18 @@ func (r *CmdRunner) Done() bool {
 }
 
 func (r *CmdRunner) Start(ji runner.JobInfo) {
+	// These variables need to be reset on every run because they only apply to one run,
+	// but the CmdRunner persists over many command runs.
 	r.done = false
+	r.failed = false
+	r.warnings = []string{}
+	r.errors = []string{}
+
 	dur, err := strconv.ParseInt(ji.MediaInfo.General.Duration, 10, 64)
 	if err != nil {
 		panic(err)
 	}
+
 	// ji.MediaInfo.General.Duration is in milliseconds
 	r.fileDuration = time.Duration(dur) * time.Millisecond
 
@@ -97,7 +107,15 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 			}
 		}
 
-		c.Wait()
+		err = c.Wait()
+		if err != nil {
+			r.failed = true
+			if exiterr, ok := err.(*exec.ExitError); ok {
+				r.errors = append(r.errors, fmt.Sprintf("FFmpeg returned exit code: %v", exiterr.ExitCode()))
+			} else {
+				r.errors = append(r.errors, err.Error())
+			}
+		}
 
 		r.done = true
 		fmt.Println("FFmpeg command finished")
@@ -121,12 +139,11 @@ func (r *CmdRunner) Status() runner.JobStatus {
 }
 
 func (r *CmdRunner) Results() runner.CommandResults {
-	//! The Command Runner doesn't know the actual file name so it will need to be injected by the caller
 	return runner.CommandResults{
-		Failed:         false,
+		Failed:         r.failed,
 		JobElapsedTime: time.Since(r.startTime).Round(time.Second),
-		Warnings:       []string{},
-		Errors:         []string{},
+		Warnings:       r.warnings,
+		Errors:         r.errors,
 	}
 }
 
