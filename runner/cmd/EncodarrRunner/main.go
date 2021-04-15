@@ -68,11 +68,15 @@ func Run(ctx *context.Context, c runner.Communicator, r runner.CommandRunner) {
 		statusLastSent := time.Unix(0, 0)
 		statusInterval := time.Duration(500 * time.Millisecond)
 		sleepAmount := time.Duration(50 * time.Millisecond)
+
 		for !r.Done() {
+			// Rate limit how often we send status updates
 			if time.Since(statusLastSent) < statusInterval {
 				time.Sleep(sleepAmount)
 				continue
 			}
+			statusLastSent = time.Now()
+
 			// Get status from job
 			status := r.Status()
 
@@ -86,15 +90,27 @@ func Run(ctx *context.Context, c runner.Communicator, r runner.CommandRunner) {
 				break
 			}
 		}
-
-		// Send job complete
-		err = c.SendJobComplete(ctx)
-		if err != nil {
-			logger.Error(err.Error())
-		}
-
+		// If the context is finished, we want to avoid sending a misleading Job Complete request
 		if IsContextFinished(ctx) {
 			break
+		}
+
+		// Collect results from Command Runner
+		cmdResults, failed, totalTime := r.Results()
+
+		c.SendStatus(ctx, ji.UUID, runner.JobStatus{
+			Stage:                       "Copying to Controller",
+			Percentage:                  "100",
+			JobElapsedTime:              totalTime,
+			FPS:                         "N/A",
+			StageElapsedTime:            "N/A",
+			StageEstimatedTimeRemaining: "N/A",
+		})
+
+		// Send job complete
+		err = c.SendJobComplete(ctx, ji, failed, cmdResults)
+		if err != nil {
+			logger.Error(err.Error())
 		}
 	}
 }

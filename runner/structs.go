@@ -1,5 +1,7 @@
 package runner
 
+import "time"
+
 type JobInfo struct {
 	UUID        string
 	CommandArgs []string
@@ -13,6 +15,19 @@ type JobStatus struct {
 	FPS                         string `json:"fps"`
 	StageElapsedTime            string `json:"stage_elapsed_time"`
 	StageEstimatedTimeRemaining string `json:"stage_estimated_time_remaining"`
+}
+
+type HistoryEntry struct {
+	UUID    string         `json:"uuid"`
+	Failed  bool           `json:"failed"`
+	History CommandResults `json:"history"`
+}
+
+type CommandResults struct {
+	Filename          string    `json:"file"`
+	DateTimeCompleted time.Time `json:"datetime_completed"`
+	Warnings          []string  `json:"warnings"`
+	Errors            []string  `json:"errors"`
 }
 
 // MediaInfo represents the MediaInfo from a file.

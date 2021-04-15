@@ -18,33 +18,51 @@ import (
 
 type ApiV1 struct{}
 
-func (a *ApiV1) SendJobComplete(ctx *context.Context) error {
+func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, failed bool, cmdR runner.CommandResults) error {
 	filename := "output.mkv"
 
-	file, err := os.Open(filename)
+	r, w := io.Pipe()
+	writer := multipart.NewWriter(w)
 
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
+	go func() {
+		defer w.Close()
+		defer writer.Close()
 
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile("file", filepath.Base(file.Name()))
+		file, err := os.Open(filename)
 
-	if err != nil {
-		panic(err)
-	}
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
 
-	io.Copy(part, file)
-	writer.Close()
-	request, err := http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", body)
+		part, err := writer.CreateFormFile("file", filepath.Base(file.Name()))
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = io.Copy(part, file)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	request, err := http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", r)
 
 	if err != nil {
 		panic(err)
 	}
 
 	request.Header.Add("Content-Type", writer.FormDataContentType())
+
+	b, err := json.Marshal(runner.HistoryEntry{
+		UUID:    ji.UUID,
+		Failed:  failed,
+		History: cmdR,
+	})
+	if err != nil {
+		return err
+	}
+	request.Header.Add("X-Encodarr-History-Entry", string(b))
 
 	response, err := http.DefaultClient.Do(request)
 
