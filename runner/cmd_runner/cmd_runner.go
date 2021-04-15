@@ -90,17 +90,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 			// fmt.Println(err, n)
 			// fmt.Println(line)
 
-			fps, time, speed, err := parseFFmpegLine(line)
-
-			if err == nil {
-				r.fps = fps
-				r.time = time
-				r.speed = speed
-			} else {
-				// This information is too spammy for warning or erroring. Trace or debug would be more appropriate (probably debug).
-				// fmt.Printf("Line: %v\n", line)
-				// fmt.Println(err)
-			}
+			parseFFmpegLine(line, &r.fps, &r.time, &r.speed)
 
 			if n == 0 {
 				break
@@ -123,7 +113,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 }
 
 func (r *CmdRunner) Status() runner.JobStatus {
-	currentFileTime, err := parseFFmpegTime(r.time)
+	currentFileTime, err := parseColonToDuration(r.time)
 	if err != nil {
 		currentFileTime = time.Duration(0)
 	}
@@ -154,11 +144,27 @@ func NewCmdRunner() CmdRunner {
 	}
 }
 
-// parseFFmpegLine parses out the fps, time, and speed information from a standard FFmpeg statistics line.
-// There might be a speed up that involves changing the line parameter(and maybe the return results) to a pointer
-// (avoids copying the value for a new frame), but the jury is still out on that one.
-func parseFFmpegLine(line string) (fps float64, time string, speed float64, err error) {
+// parseFFmpegLine parses the fps, time, and speed information from a standard FFmpeg statistics line
+// and updates the provided pointers if the parsing doesn't return an error.
+//lint:ignore SA4009 The purpose of this code is to set and not read.
+func parseFFmpegLine(line string, fps *float64, time *string, speed *float64) {
 	// FPS
+	if pFps, err := extractFps(line); err != nil {
+		fps = &pFps
+	}
+
+	// Time
+	if pTime, err := extractTime(line); err != nil {
+		time = &pTime
+	}
+
+	// Speed
+	if pSpeed, err := extractSpeed(line); err != nil {
+		speed = &pSpeed
+	}
+}
+
+func extractFps(line string) (fps float64, err error) {
 	fpsReMatch := fpsRe.FindStringSubmatch(line)
 	if len(fpsReMatch) > 1 {
 		fps, err = strconv.ParseFloat(fpsReMatch[1], 64)
@@ -166,20 +172,24 @@ func parseFFmpegLine(line string) (fps float64, time string, speed float64, err 
 			return
 		}
 	} else {
-		err = fmt.Errorf("parseFFmpegLine: fps regex returned too little groups (need at least 2)")
+		err = fmt.Errorf("extractFps: fps regex returned too little groups (need at least 2)")
 		return
 	}
+	return
+}
 
-	// Time
+func extractTime(line string) (time string, err error) {
 	timeReMatch := timeRe.FindStringSubmatch(line)
 	if len(timeReMatch) > 1 {
 		time = timeReMatch[1]
 	} else {
-		err = fmt.Errorf("parseFFmpegLine: time regex returned too little groups (need at least 2)")
+		err = fmt.Errorf("extractTime: time regex returned too little groups (need at least 2)")
 		return
 	}
+	return
+}
 
-	// Speed
+func extractSpeed(line string) (speed float64, err error) {
 	speedReMatch := speedRe.FindStringSubmatch(line)
 	if len(speedReMatch) > 1 {
 		speed, err = strconv.ParseFloat(speedReMatch[1], 64)
@@ -187,16 +197,15 @@ func parseFFmpegLine(line string) (fps float64, time string, speed float64, err 
 			return
 		}
 	} else {
-		err = fmt.Errorf("parseFFmpegLine: speed regex returned too little groups (need at least 2)")
+		err = fmt.Errorf("extractSpeed: speed regex returned too little groups (need at least 2)")
 		return
 	}
-
 	return
 }
 
-// parseFFmpegTime takes a "HH:MM:SS" and converts it to a time.Duration.
+// parseColonToDuration takes a "HH:MM:SS" and converts it to a time.Duration.
 // The hour portion does not have to be <= 24.
-func parseFFmpegTime(s string) (time.Duration, error) {
+func parseColonToDuration(s string) (time.Duration, error) {
 	var hrs, mins, secs int64
 
 	_, err := fmt.Sscanf(s, "%d:%d:%d", &hrs, &mins, &secs)
