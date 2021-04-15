@@ -128,7 +128,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 
 	_, err = io.Copy(f, resp.Body)
 	return runner.JobInfo{
-		CommandArgs: genFFmpegCmd(fPath+".nope", "output.mkv", jobInfo.Parameters),
+		CommandArgs: genFFmpegCmd(fPath, "output.mkv", jobInfo.Parameters),
 		UUID:        jobInfo.UUID,
 		File:        jobInfo.Path,
 		MediaInfo:   jobInfo.RawMediaInfo,
