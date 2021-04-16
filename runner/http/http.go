@@ -42,6 +42,7 @@ func NewApiV1(tempDir, runnerName, controllerIP, controllerPort string) (ApiV1, 
 		Dir:          finalDir,
 		RunnerName:   runnerName,
 		ControllerIP: fmt.Sprintf("http://%v:%v", controllerIP, controllerPort),
+		httpClient:   http.DefaultClient,
 	}, nil
 }
 
@@ -50,6 +51,7 @@ type ApiV1 struct {
 	Dir          string
 	RunnerName   string
 	ControllerIP string
+	httpClient   RequestDoer
 }
 
 func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR runner.CommandResults) error {
@@ -112,7 +114,7 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 
 	request.Header.Add("X-Encodarr-History-Entry", string(b))
 
-	response, err := http.DefaultClient.Do(request)
+	response, err := a.httpClient.Do(request)
 	if err != nil {
 		return err
 	}
@@ -133,7 +135,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 
 	req.Header.Set("X-Encodarr-Runner-Name", a.RunnerName)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := a.httpClient.Do(req)
 	if err != nil {
 		return runner.JobInfo{}, err
 	}
@@ -187,7 +189,7 @@ func (a *ApiV1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatu
 		return err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := a.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
