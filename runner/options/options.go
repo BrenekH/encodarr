@@ -35,6 +35,8 @@ var controllerIP string = "localhost"
 var controllerPortConst optionConst = optionConst{"ENCODARR_RUNNER_CONTROLLER_PORT", "controller-port"}
 var controllerPort string = "8123"
 
+var inTestMode bool = strings.HasSuffix(os.Args[0], ".test") || strings.HasSuffix(os.Args[0], ".test.exe")
+
 var inputsParsed bool = false
 
 var logger logange.Logger
@@ -47,7 +49,7 @@ func init() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	configDir = cDir + fmt.Sprintf("/encodarr/runner-%v/config", time.Now().String())
+	configDir = cDir + fmt.Sprintf("/encodarr/runner/%v/config", time.Now().Format("2006-01-02-15-04-05.000"))
 
 	// Initialize default Runner name
 	hostname, err := os.Hostname()
@@ -89,7 +91,9 @@ func parseInputs() {
 	stringVarFromEnv(&controllerPort, controllerPortConst.EnvVar)
 	stringVar(&controllerPort, controllerPortConst.CmdLine, "")
 
-	makeConfigDir()
+	if !inTestMode {
+		makeConfigDir()
+	}
 
 	parseCL()
 
@@ -156,11 +160,15 @@ func ControllerPort() string {
 	return controllerPort
 }
 
+func InTestMode() bool {
+	return inTestMode
+}
+
 // makeConfigDir creates the options.configDir
 func makeConfigDir() {
 	err := os.MkdirAll(configDir, 0644)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("options.makeConfigDir: %v\n", err)
 		logger.Critical(fmt.Sprintf("Failed to create config directory '%v' because of error: %v", configDir, err.Error()))
 	}
 }
