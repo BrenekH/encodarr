@@ -5,6 +5,8 @@ import "time"
 type JobInfo struct {
 	UUID        string
 	File        string
+	InFile      string
+	OutFile     string
 	CommandArgs []string
 	MediaInfo   MediaInfo
 }

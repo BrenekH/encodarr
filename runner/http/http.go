@@ -130,10 +130,13 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 	logger.Info(fmt.Sprintf("Received job for %v", jobInfo.Path))
 
 	_, err = io.Copy(f, resp.Body)
+
 	return runner.JobInfo{
 		CommandArgs: genFFmpegCmd(fPath, "output.mkv", jobInfo.Parameters),
 		UUID:        jobInfo.UUID,
 		File:        jobInfo.Path,
+		InFile:      fPath,
+		OutFile:     "output.mkv",
 		MediaInfo:   jobInfo.RawMediaInfo,
 	}, err
 }

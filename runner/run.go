@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"os"
 	"time"
 )
 
@@ -57,11 +58,13 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 		}
 		// If we are detected as unresponsive, skip sending the job complete request.
 		if unresponsive {
+			cleanup(ji)
 			continue
 		}
 
 		// If the context is finished, we want to avoid sending a misleading Job Complete request
 		if IsContextFinished(ctx) {
+			cleanup(ji)
 			break
 		}
 
@@ -87,6 +90,8 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 		if err != nil {
 			logger.Error(err.Error())
 		}
+
+		cleanup(ji)
 	}
 }
 
@@ -98,5 +103,16 @@ func IsContextFinished(ctx *context.Context) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+// cleanup uses os.Remove to delete JobInfo.InFile and JobInfo.OutFile.
+func cleanup(ji JobInfo) {
+	if err := os.Remove(ji.InFile); err != nil {
+		logger.Warn(err.Error())
+	}
+
+	if err := os.Remove(ji.OutFile); err != nil {
+		logger.Warn(err.Error())
 	}
 }
