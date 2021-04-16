@@ -113,8 +113,7 @@ In addition, the paths to data that are mounted to `/config` in the container sh
 ### Startup Configuration
 
 Startup values configured either through environment variables, or command line arguments.
-All of the command line variants expect a value after a space (`--port 8123`) expect the Runner `--debug` flag.
-It is a boolean flag.
+All of the command line variants expect a value after a space (`--port 8123`).
 
 #### Controller
 
@@ -129,15 +128,21 @@ In a container, this is pre-set to `/config`.
 
 #### Runner
 
-`ENCODARR_DEBUG`, `--debug` enables outputting debug messages to the log.
-If the environment variable is set to `True`, then debug messages are turned on.
-(default: `False`)
+`ENCODARR_CONFIG_DIR`, `--config-dir` sets the directory that the configuration files are saved to.
+This includes the log file.
+In a container, this is pre-set to `/config`.
+(default: `<platform user config directory>/encodarr/runner-<time of runner startup>/config`)
 
-`ENCODARR_LOG_FILE` sets the location of the runner log file.
-(default: `/config/runner.log`)
+`ENCODARR_TEMP_DIR`, `--temp-dir` sets the directory that the media files are saved to when they are being worked on.
+If you want to protect your flash memory(SSDs and SD Cards), you can set this to be on a hard drive.
+(default: `<platform user temp directory>`)
+
+`ENCODARR_LOG_LEVEL`, `--log-level` sets the level of output from the logging system to both the log file and the terminal output.
+Possible values are: `trace`, `debug`, `info`, `warn` (or `warning`, they are identical), `error`, `critical`.
+(default: `info`)
 
 `ENCODARR_RUNNER_NAME`, `--name` sets the name to be shown in the Web UI when referring to this runner.
-(default: `Runner-<random 3 digit number>`)
+(default: `<machine hostname>-<random number>`)
 
 `ENCODARR_RUNNER_CONTROLLER_IP`, `--controller-ip` sets the IP for connecting to the Controller.
 (default: `localhost`)

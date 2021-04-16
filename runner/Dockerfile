@@ -15,7 +15,8 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o runner .
 # Run stage
 FROM ubuntu:20.04
 
-ENV TZ=Etc/GMT
+ENV TZ=Etc/GMT \
+ENCODARR_CONFIG_DIR="/config"
 
 WORKDIR /usr/src/app
 

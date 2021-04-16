@@ -10,6 +10,7 @@ import (
 	"github.com/BrenekH/encodarr/runner"
 	"github.com/BrenekH/encodarr/runner/cmd_runner"
 	"github.com/BrenekH/encodarr/runner/http"
+	"github.com/BrenekH/encodarr/runner/options"
 	"github.com/BrenekH/logange"
 )
 
@@ -35,7 +36,13 @@ func main() {
 	}()
 
 	cmdRun := cmd_runner.NewCmdRunner()
-	apiV1, err := http.NewApiV1(os.TempDir())
+
+	apiV1, err := http.NewApiV1(
+		options.TempDir(),
+		options.RunnerName(),
+		options.ControllerIP(),
+		options.ControllerPort(),
+	)
 	if err != nil {
 		logger.Critical(err.Error())
 	}

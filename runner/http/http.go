@@ -26,7 +26,7 @@ func init() {
 // NewApiV1 returns an instantiated ApiV1 struct after creating
 // a proper temporary directory inside of the provided tempDir argument.
 // tempDir will almost always be the result of os.TempDir().
-func NewApiV1(tempDir string) (ApiV1, error) {
+func NewApiV1(tempDir, runnerName, controllerIP, controllerPort string) (ApiV1, error) {
 	dir := tempDir + "/Encodarr/Runner"
 
 	if err := os.MkdirAll(dir, 0664); err != nil {
@@ -39,13 +39,17 @@ func NewApiV1(tempDir string) (ApiV1, error) {
 	}
 
 	return ApiV1{
-		Dir: finalDir,
+		Dir:          finalDir,
+		RunnerName:   runnerName,
+		ControllerIP: fmt.Sprintf("http://%v:%v", controllerIP, controllerPort),
 	}, nil
 }
 
 // ApiV1 is a struct which implements the runner.Communicator interface using HTTP.
 type ApiV1 struct {
-	Dir string
+	Dir          string
+	RunnerName   string
+	ControllerIP string
 }
 
 func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR runner.CommandResults) error {
@@ -79,14 +83,14 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 			}
 		}()
 
-		request, err = http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", r)
+		request, err = http.NewRequestWithContext(*ctx, "POST", fmt.Sprintf("%v/api/runner/v1/job/complete", a.ControllerIP), r)
 		if err != nil {
 			return err
 		}
 
 		request.Header.Add("Content-Type", writer.FormDataContentType())
 	} else {
-		request, err = http.NewRequestWithContext(*ctx, "POST", "http://localhost:8123/api/runner/v1/job/complete", &bytes.Buffer{})
+		request, err = http.NewRequestWithContext(*ctx, "POST", fmt.Sprintf("%v/api/runner/v1/job/complete", a.ControllerIP), &bytes.Buffer{})
 		if err != nil {
 			return err
 		}
@@ -122,12 +126,12 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 }
 
 func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) {
-	req, err := http.NewRequestWithContext(*ctx, http.MethodGet, "http://localhost:8123/api/runner/v1/job/request", nil)
+	req, err := http.NewRequestWithContext(*ctx, http.MethodGet, fmt.Sprintf("%v/api/runner/v1/job/request", a.ControllerIP), nil)
 	if err != nil {
 		return runner.JobInfo{}, err
 	}
 
-	req.Header.Set("X-Encodarr-Runner-Name", "Develop")
+	req.Header.Set("X-Encodarr-Runner-Name", a.RunnerName)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -178,7 +182,7 @@ func (a *ApiV1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatu
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(*ctx, http.MethodPost, "http://localhost:8123/api/runner/v1/job/status", bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(*ctx, http.MethodPost, fmt.Sprintf("%v/api/runner/v1/job/status", a.ControllerIP), bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
