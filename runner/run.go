@@ -26,6 +26,8 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 		statusInterval := time.Duration(500 * time.Millisecond)
 		sleepAmount := time.Duration(50 * time.Millisecond)
 
+		unresponsive := false
+
 		for !r.Done() {
 			// Rate limit how often we send status updates
 			if time.Since(statusLastSent) < statusInterval {
@@ -40,13 +42,24 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner) {
 			// Send status to Controller
 			err = c.SendStatus(ctx, ji.UUID, status)
 			if err != nil {
-				logger.Error(err.Error())
+				if err == ErrUnresponsive {
+					logger.Warn(err.Error())
+					unresponsive = true
+					break
+				} else {
+					logger.Error(err.Error())
+				}
 			}
 
 			if IsContextFinished(ctx) {
 				break
 			}
 		}
+		// If we are detected as unresponsive, skip sending the job complete request.
+		if unresponsive {
+			continue
+		}
+
 		// If the context is finished, we want to avoid sending a misleading Job Complete request
 		if IsContextFinished(ctx) {
 			break

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -92,7 +91,10 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 	}
 	defer response.Body.Close()
 
-	_, err = ioutil.ReadAll(response.Body)
+	if response.StatusCode == 409 {
+		return runner.ErrUnresponsive
+	}
+
 	return err
 }
 
@@ -154,8 +156,14 @@ func (a *ApiV1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatu
 	}
 
 	resp, err := http.DefaultClient.Do(req)
-	resp.Body.Close() // We need to close the response body to make sure resources are cleaned up
-	// TODO: Detect if the Controller considers this Runner unresponsive
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close() // We need to close the response body to make sure resources are cleaned up
+
+	if resp.StatusCode == 409 {
+		return runner.ErrUnresponsive
+	}
 
 	return err
 }
