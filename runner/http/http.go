@@ -23,14 +23,37 @@ func init() {
 	logger = logange.NewLogger("http")
 }
 
-type ApiV1 struct{}
+// NewApiV1 returns an instantiated ApiV1 struct after creating
+// a proper temporary directory inside of the provided tempDir argument.
+// tempDir will almost always be the result of os.TempDir().
+func NewApiV1(tempDir string) (ApiV1, error) {
+	dir := tempDir + "/Encodarr/Runner"
+
+	if err := os.MkdirAll(dir, 0664); err != nil {
+		return ApiV1{}, err
+	}
+
+	finalDir, err := os.MkdirTemp(dir, "*")
+	if err != nil {
+		return ApiV1{}, err
+	}
+
+	return ApiV1{
+		Dir: finalDir,
+	}, nil
+}
+
+// ApiV1 is a struct which implements the runner.Communicator interface using HTTP.
+type ApiV1 struct {
+	Dir string
+}
 
 func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR runner.CommandResults) error {
 	var request *http.Request
 	var err error
 
 	if !cmdR.Failed {
-		filename := "output.mkv"
+		filename := a.Dir + "/output.mkv"
 
 		r, w := io.Pipe()
 		writer := multipart.NewWriter(w)
@@ -120,7 +143,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 		return runner.JobInfo{}, err
 	}
 
-	fPath := "input" + path.Ext(jobInfo.Path)
+	fPath := a.Dir + "/input" + path.Ext(jobInfo.Path)
 
 	f, err := os.Create(fPath)
 	if err != nil {
@@ -131,12 +154,13 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 
 	_, err = io.Copy(f, resp.Body)
 
+	outputFname := a.Dir + "/output.mkv"
 	return runner.JobInfo{
-		CommandArgs: genFFmpegCmd(fPath, "output.mkv", jobInfo.Parameters),
+		CommandArgs: genFFmpegCmd(fPath, outputFname, jobInfo.Parameters),
 		UUID:        jobInfo.UUID,
 		File:        jobInfo.Path,
 		InFile:      fPath,
-		OutFile:     "output.mkv",
+		OutFile:     outputFname,
 		MediaInfo:   jobInfo.RawMediaInfo,
 	}, err
 }

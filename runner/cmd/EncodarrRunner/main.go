@@ -35,5 +35,10 @@ func main() {
 	}()
 
 	cmdRun := cmd_runner.NewCmdRunner()
-	runner.Run(&ctx, &http.ApiV1{}, &cmdRun)
+	apiV1, err := http.NewApiV1(os.TempDir())
+	if err != nil {
+		logger.Critical(err.Error())
+	}
+
+	runner.Run(&ctx, &apiV1, &cmdRun)
 }
