@@ -149,6 +149,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 	if err != nil {
 		return runner.JobInfo{}, err
 	}
+	defer f.Close()
 
 	logger.Info(fmt.Sprintf("Received job for %v", jobInfo.Path))
 
