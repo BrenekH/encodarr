@@ -26,6 +26,7 @@ func TestParseColonTimeToDuration(t *testing.T) {
 		{name: "Combined", input: "03:17:56", expected: time.Duration(3*time.Hour + 17*time.Minute + 56*time.Second), errExpected: false},
 		{name: "3 Digit Times", input: "100:200:300", expected: time.Duration(100*time.Hour + 200*time.Minute + 300*time.Second), errExpected: false},
 
+		// Errors
 		{name: "Missing \"Hour\" Spot", input: "35:00", expected: time.Duration(35 * time.Minute), errExpected: true},
 		{name: "Extra Chars", input: "hi10:10:10", expected: time.Duration(10*time.Hour + 10*time.Minute + 10*time.Second), errExpected: true},
 		{name: "Resembles Valid Input", input: "HH:MM:SS", errExpected: true},
@@ -66,7 +67,7 @@ func TestParseFFmpegLine(t *testing.T) {
 			outSpeed: 1.17,
 		},
 
-		{name: "Only FPS", inLine: "fps= 4.5 ", outFps: 4.5, outTime: "", outSpeed: 0.0},
+		{name: "Only Fps", inLine: "fps= 4.5 ", outFps: 4.5, outTime: "", outSpeed: 0.0},
 		{name: "Only Time", inLine: "time= 08:12:03 ", outFps: 0.0, outTime: "08:12:03", outSpeed: 0.0},
 		{name: "Only Speed", inLine: "speed= 0.420", outFps: 0.0, outTime: "", outSpeed: .42},
 
@@ -122,7 +123,17 @@ func TestExtractFps(t *testing.T) {
 		inLine      string
 		expected    float64
 		errExpected bool
-	}{}
+	}{
+		{name: "Basic", inLine: "fps= 500.1 ", expected: 500.1, errExpected: false},
+		{name: "No Spaces", inLine: "fps=10.2 ", expected: 10.2, errExpected: false},
+		{name: "Absurd Amount of Spaces", inLine: "fps=                10.2 ", expected: 10.2, errExpected: false},
+		{name: "Full Line", inLine: "frame=  105 fps= 28 q=28.0 size=     256kB time=00:00:04.30 bitrate= 486.7kbits/s dup=22 drop=0 speed=1.17x",
+			expected: 28.0, errExpected: false},
+
+		// Errors
+		{name: "Missing Space", inLine: "fps= 23.09", expected: 0.0, errExpected: true},
+		{name: "Is a String", inLine: "fps= hello", expected: 0.0, errExpected: true},
+	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -132,6 +143,8 @@ func TestExtractFps(t *testing.T) {
 				t.Errorf("expected an error from %v", test.inLine)
 			} else if test.errExpected && outErr != nil {
 				return
+			} else if !test.errExpected && outErr != nil {
+				t.Errorf("unexpected error '%v' from %v", outErr, test.inLine)
 			}
 
 			if out != test.expected {
@@ -157,6 +170,8 @@ func TestExtractTime(t *testing.T) {
 				t.Errorf("expected an error from %v", test.inLine)
 			} else if test.errExpected && outErr != nil {
 				return
+			} else if !test.errExpected && outErr != nil {
+				t.Errorf("unexpected error '%v' from %v", outErr, test.inLine)
 			}
 
 			if out != test.expected {
@@ -182,6 +197,8 @@ func TestExtractSpeed(t *testing.T) {
 				t.Errorf("expected an error from %v", test.inLine)
 			} else if test.errExpected && outErr != nil {
 				return
+			} else if !test.errExpected && outErr != nil {
+				t.Errorf("unexpected error '%v' from %v", outErr, test.inLine)
 			}
 
 			if out != test.expected {
