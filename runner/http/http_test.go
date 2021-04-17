@@ -13,7 +13,7 @@ import (
 )
 
 func TestApiV1SendStatusUnresponsiveDetection(t *testing.T) {
-	apiV1, err := NewApiV1(options.ConfigDir(), "", "", "")
+	apiV1, err := NewApiV1(options.TempDir(), "", "", "")
 	if err != nil {
 		t.Errorf("Unexpected error creating apiV1: %v", err)
 	}
