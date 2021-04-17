@@ -58,7 +58,20 @@ func TestParseFFmpegLine(t *testing.T) {
 		outFps   float64
 		outTime  string
 		outSpeed float64
-	}{}
+	}{
+		{name: "Minimal Data", inLine: "fps= 4.5 time= 08:12:03 speed= 0.420", outFps: 4.5, outTime: "08:12:03", outSpeed: 0.42},
+		{name: "Full FFmpeg Line", inLine: "frame=  105 fps= 28 q=28.0 size=     256kB time=00:00:04.30 bitrate= 486.7kbits/s dup=22 drop=0 speed=1.17x",
+			outFps:   28.0,
+			outTime:  "00:00:04.30",
+			outSpeed: 1.17,
+		},
+
+		{name: "Only FPS", inLine: "fps= 4.5 ", outFps: 4.5, outTime: "", outSpeed: 0.0},
+		{name: "Only Time", inLine: "time= 08:12:03 ", outFps: 0.0, outTime: "08:12:03", outSpeed: 0.0},
+		{name: "Only Speed", inLine: "speed= 0.420", outFps: 0.0, outTime: "", outSpeed: .42},
+
+		{name: "No Actionable Data", inLine: "Hello, World!", outFps: 0.0, outTime: "", outSpeed: 0.0},
+	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -81,6 +94,26 @@ func TestParseFFmpegLine(t *testing.T) {
 			}
 		})
 	}
+
+	// This test can't be run with the general loop because we can't
+	// set the value of a var passed into parseFFmpegLine in that system.
+	// I could add that ability, but I'd rather not tailor the entire struct
+	// just for one test.
+	t.Run("Zero Speed Doesn't Modify Value", func(t *testing.T) {
+		var (
+			tFps   float64
+			tTime  string
+			tSpeed float64
+		)
+
+		tSpeed = 1.0
+
+		parseFFmpegLine("speed= 0.0", &tFps, &tTime, &tSpeed)
+
+		if tSpeed != 1.0 {
+			t.Errorf("expected speed to be 1.0 but instead it was %v", tSpeed)
+		}
+	})
 }
 
 func TestExtractFps(t *testing.T) {
