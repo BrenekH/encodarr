@@ -11,6 +11,8 @@ import (
 	"github.com/BrenekH/logange"
 )
 
+// The regexes are defined here instead of util.go,
+// so that their instantiation in init() can be in the same file as the var declerations.
 var (
 	fpsRe   *regexp.Regexp
 	timeRe  *regexp.Regexp
@@ -19,6 +21,7 @@ var (
 	logger logange.Logger
 )
 
+// To avoid init function run order confusion I only want one in this package.
 func init() {
 	logger = logange.NewLogger("cmd_runner")
 
