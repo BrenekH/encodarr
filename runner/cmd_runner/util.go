@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// parseColonTimeToDuration takes a "HH:MM:SS" and converts it to a time.Duration.
+// parseColonTimeToDuration takes an "HH:MM:SS" string and converts it to a time.Duration.
 // The hour portion does not have to be <= 24.
 func parseColonTimeToDuration(s string) (time.Duration, error) {
 	var hrs, mins, secs int64
