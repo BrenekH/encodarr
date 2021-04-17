@@ -160,7 +160,18 @@ func TestExtractTime(t *testing.T) {
 		inLine      string
 		expected    string
 		errExpected bool
-	}{}
+	}{
+		{name: "Basic", inLine: "time= 08:12:30 ", expected: "08:12:30", errExpected: false},
+		{name: "No Spaces", inLine: "time=08:12:30 ", expected: "08:12:30", errExpected: false},
+		{name: "Absurd Amount of Spaces", inLine: "time=                08:12:30 ", expected: "08:12:30", errExpected: false},
+		{name: "Full Line", inLine: "frame=  105 fps= 28 q=28.0 size=     256kB time=00:00:04.30 bitrate= 486.7kbits/s dup=22 drop=0 speed=1.17x",
+			expected: "00:00:04.30", errExpected: false},
+
+		// Errors
+		{name: "Missing Space", inLine: "time= 08:12:30", expected: "", errExpected: true},
+		{name: "Is an Invalid String", inLine: "time= hello", expected: "", errExpected: true},
+		{name: "Truncated", inLine: "time= 08:1", expected: "", errExpected: true},
+	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -187,7 +198,17 @@ func TestExtractSpeed(t *testing.T) {
 		inLine      string
 		expected    float64
 		errExpected bool
-	}{}
+	}{
+		{name: "Zero", inLine: "speed= 0.0", expected: 0.0, errExpected: false},
+		{name: "Basic", inLine: "speed= 2.001x", expected: 2.001, errExpected: false},
+		{name: "No Spaces", inLine: "speed=0.230x", expected: 0.23, errExpected: false},
+		{name: "Absurd Amount of Spaces", inLine: "speed=                0.23x", expected: 0.23, errExpected: false},
+		{name: "Full Line", inLine: "frame=  105 fps= 28 q=28.0 size=     256kB time=00:00:04.30 bitrate= 486.7kbits/s dup=22 drop=0 speed=1.17x",
+			expected: 1.17, errExpected: false},
+
+		// Errors
+		{name: "Is a String", inLine: "speed= hello", expected: 0.0, errExpected: true},
+	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
