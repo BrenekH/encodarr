@@ -29,7 +29,7 @@ jobs:
           CGO_ENABLED: 0
           ENCODARR_CONFIG_DIR: ${{ runner.temp }}
           ENCODARR_TEMP_DIR: ${{ github.workspace }}/temp
-        run: go test ./...
+        run: mkdir -p $ENCODARR_TEMP_DIR && go test ./...
 
   build:
     runs-on: ${{ matrix.os }}
