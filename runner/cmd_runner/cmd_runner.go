@@ -103,7 +103,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 		c.Start()
 
 		for {
-			n, _ := errPipe.Read(b)
+			n, err := errPipe.Read(b)
 			line := string(b[:n])
 
 			logger.Trace(fmt.Sprintf("%v %v", err, n))
@@ -112,6 +112,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 			parseFFmpegLine(line, &r.fps, &r.time, &r.speed)
 
 			if n == 0 {
+				// This could cause an issue for pausing and resuming FFmpeg (for scheduling)
 				break
 			}
 		}
