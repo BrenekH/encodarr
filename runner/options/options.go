@@ -166,7 +166,7 @@ func InTestMode() bool {
 
 // makeConfigDir creates the options.configDir
 func makeConfigDir() {
-	err := os.MkdirAll(configDir, 0644)
+	err := os.MkdirAll(configDir, 0777)
 	if err != nil {
 		fmt.Printf("options.makeConfigDir: %v\n", err)
 		logger.Critical(fmt.Sprintf("Failed to create config directory '%v' because of error: %v", configDir, err.Error()))

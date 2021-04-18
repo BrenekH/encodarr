@@ -29,7 +29,7 @@ func init() {
 func NewApiV1(tempDir, runnerName, controllerIP, controllerPort string) (ApiV1, error) {
 	dir := tempDir + "/Encodarr/Runner"
 
-	if err := os.MkdirAll(dir, 0664); err != nil {
+	if err := os.MkdirAll(dir, 0777); err != nil {
 		return ApiV1{}, err
 	}
 
