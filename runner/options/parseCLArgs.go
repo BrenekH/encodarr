@@ -21,6 +21,7 @@ var flags []flagger
 // stringVar replaces flag.StringVar, but without the default value.
 // That functionality is provided by the rest of the options package.
 func stringVar(p *string, name, usage string) {
+	// TODO: Test
 	flags = append(flags, StringFlag{
 		name:    name,
 		usage:   usage,
@@ -46,7 +47,7 @@ func parseCL() {
 	}
 }
 
-type StringFlag struct {
+type StringFlag struct { // TODO: Test struct methods
 	name    string
 	usage   string
 	pointer *string

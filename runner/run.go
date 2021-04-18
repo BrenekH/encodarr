@@ -8,6 +8,8 @@ import (
 
 // Run runs the basic loop of the Runner
 func Run(ctx *context.Context, c Communicator, r CommandRunner) {
+	// TODO: Test (Add "test mode" which forces only the for loop to only run once(or maybe however much the argument specifies))
+
 	for {
 		if IsContextFinished(ctx) {
 			break

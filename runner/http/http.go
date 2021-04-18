@@ -55,6 +55,8 @@ type ApiV1 struct {
 }
 
 func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR runner.CommandResults) error {
+	// TODO: Test (inject dependencies for reading from the filesystem)
+
 	var request *http.Request
 	var err error
 
@@ -128,6 +130,8 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 }
 
 func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) {
+	// TODO: Test (inject dependencies for writing to the filesystem)
+
 	req, err := http.NewRequestWithContext(*ctx, http.MethodGet, fmt.Sprintf("%v/api/runner/v1/job/request", a.ControllerIP), nil)
 	if err != nil {
 		return runner.JobInfo{}, err

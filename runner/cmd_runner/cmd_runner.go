@@ -71,6 +71,8 @@ func (r *CmdRunner) Done() bool {
 }
 
 func (r *CmdRunner) Start(ji runner.JobInfo) {
+	// TODO: Test (Add injected dependencies for packages (os/exec))
+
 	// These variables need to be reset on every run because they only apply to one run,
 	// but the CmdRunner persists over many command runs.
 	r.done = false
@@ -133,6 +135,8 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 }
 
 func (r *CmdRunner) Status() runner.JobStatus {
+	// TODO: Test (Add injected dependencies for packages (time (Just the Since function, the Duration type is fine)))
+
 	currentFileTime, err := parseColonTimeToDuration(r.time)
 	if err != nil {
 		currentFileTime = time.Duration(0)
@@ -149,6 +153,8 @@ func (r *CmdRunner) Status() runner.JobStatus {
 }
 
 func (r *CmdRunner) Results() runner.CommandResults {
+	// TODO: Test (Add injected dependencies for packages (time ))
+
 	return runner.CommandResults{
 		Failed:         r.failed,
 		JobElapsedTime: time.Since(r.startTime).Round(time.Second),

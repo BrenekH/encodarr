@@ -12,7 +12,9 @@ import (
 	"github.com/BrenekH/encodarr/runner/options"
 )
 
-func TestApiV1SendStatusUnresponsiveDetection(t *testing.T) {
+func TestApiV1SendStatus(t *testing.T) {
+	// TODO: Test more than just responding to a 409 status code
+
 	apiV1, err := NewApiV1(options.TempDir(), "", "", "")
 	if err != nil {
 		t.Errorf("Unexpected error creating apiV1: %v", err)

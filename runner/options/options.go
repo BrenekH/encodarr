@@ -103,6 +103,8 @@ func parseInputs() {
 // stringVarFromEnv applies the string value found from environment variables to the passed variable
 // but only if the returned value is not an empty string
 func stringVarFromEnv(s *string, key string) {
+	// TODO: Test
+
 	v := os.Getenv(key)
 	logger.Debug(fmt.Sprintf("Got `%v` from `%v`", v, key))
 	if v != "" {
