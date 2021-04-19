@@ -47,5 +47,5 @@ func main() {
 		logger.Critical(err.Error())
 	}
 
-	runner.Run(&ctx, &apiV1, &cmdRun)
+	runner.Run(&ctx, &apiV1, &cmdRun, false)
 }

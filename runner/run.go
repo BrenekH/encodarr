@@ -7,13 +7,21 @@ import (
 )
 
 // Run runs the basic loop of the Runner
-func Run(ctx *context.Context, c Communicator, r CommandRunner) {
-	// TODO: Test (Add "test mode" which forces only the for loop to only run once(or maybe however much the argument specifies))
+func Run(ctx *context.Context, c Communicator, r CommandRunner, testMode bool) {
+	looped := false
 
 	for {
+		if testMode && looped {
+			break
+		}
+		if testMode {
+			looped = true
+		}
+
 		if IsContextFinished(ctx) {
 			break
 		}
+
 		// Send new job request
 		ji, err := c.SendNewJobRequest(ctx)
 		if err != nil {
