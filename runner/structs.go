@@ -8,7 +8,7 @@ type JobInfo struct {
 	InFile      string
 	OutFile     string
 	CommandArgs []string
-	MediaInfo   MediaInfo
+	MediaInfo   MediaInfo // TODO: Replace with media duration parameter (or something similar)
 }
 
 type JobStatus struct {
@@ -26,6 +26,8 @@ type CommandResults struct {
 	Warnings       []string
 	Errors         []string
 }
+
+// TODO: Move MediaInfo struct to http package for unmarshalling json
 
 // MediaInfo represents the MediaInfo from a file.
 type MediaInfo struct {
