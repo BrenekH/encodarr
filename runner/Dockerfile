@@ -9,7 +9,7 @@ WORKDIR /go/src/encodarr/runner
 COPY . .
 
 # Disable CGO so that we have a static binary
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o runner .
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o runner cmd/EncodarrRunner/main.go
 
 
 # Run stage
