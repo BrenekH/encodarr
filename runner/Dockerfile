@@ -28,6 +28,4 @@ COPY --from=builder /go/src/encodarr/runner/runner ./runner
 
 RUN chmod 777 ./runner
 
-EXPOSE 8123
-
 CMD ["./runner"]
