@@ -110,12 +110,12 @@ func TestRun(t *testing.T) {
 
 	t.Run("JobInfo from SendNewJobRequest is Received Properly by Start", func(t *testing.T) {
 		ji := JobInfo{
-			UUID:        "uuid-4",
-			File:        "/library/1/my_file.mkv",
-			InFile:      "/tmp/in.mkv",
-			OutFile:     "/tmp/out.mkv",
-			CommandArgs: []string{"-v:c", "hevc"},
-			MediaInfo:   MediaInfo{},
+			UUID:          "uuid-4",
+			File:          "/library/1/my_file.mkv",
+			InFile:        "/tmp/in.mkv",
+			OutFile:       "/tmp/out.mkv",
+			CommandArgs:   []string{"-v:c", "hevc"},
+			MediaDuration: 1000,
 		}
 		mCmdRunner := mockCmdRunner{
 			done:          false,

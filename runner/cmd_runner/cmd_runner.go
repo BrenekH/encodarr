@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/BrenekH/encodarr/runner"
@@ -80,17 +79,8 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 	r.warnings = []string{}
 	r.errors = []string{}
 
-	dur, err := strconv.ParseInt(ji.MediaInfo.General.Duration, 10, 64)
-	if err != nil {
-		logger.Error(err.Error())
-		r.errors = append(r.errors, err.Error())
-		r.done = true
-		r.failed = true
-		return
-	}
-
 	// ji.MediaInfo.General.Duration is in milliseconds
-	r.fileDuration = time.Duration(dur) * time.Millisecond
+	r.fileDuration = time.Duration(ji.MediaDuration) * time.Millisecond
 
 	a := append(r.BaseArgs, ji.CommandArgs...)
 	c := exec.Command(r.Executable, a...)
@@ -119,7 +109,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 			}
 		}
 
-		err = c.Wait()
+		err := c.Wait()
 		if err != nil {
 			r.failed = true
 			if exiterr, ok := err.(*exec.ExitError); ok {

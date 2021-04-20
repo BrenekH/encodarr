@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/BrenekH/encodarr/runner"
@@ -164,15 +165,24 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 	logger.Info(fmt.Sprintf("Received job for %v", jobInfo.Path))
 
 	_, err = io.Copy(f, resp.Body)
+	if err != nil {
+		return runner.JobInfo{}, err
+	}
 
 	outputFname := a.Dir + "/output.mkv"
+
+	dur, err := strconv.ParseInt(jobInfo.RawMediaInfo.General.Duration, 10, 64)
+	if err != nil {
+		return runner.JobInfo{}, err
+	}
+
 	return runner.JobInfo{
-		CommandArgs: genFFmpegCmd(fPath, outputFname, jobInfo.Parameters),
-		UUID:        jobInfo.UUID,
-		File:        jobInfo.Path,
-		InFile:      fPath,
-		OutFile:     outputFname,
-		MediaInfo:   jobInfo.RawMediaInfo,
+		CommandArgs:   genFFmpegCmd(fPath, outputFname, jobInfo.Parameters),
+		UUID:          jobInfo.UUID,
+		File:          jobInfo.Path,
+		InFile:        fPath,
+		OutFile:       outputFname,
+		MediaDuration: dur,
 	}, err
 }
 
@@ -208,10 +218,10 @@ func (a *ApiV1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatu
 
 // job represents a job in the Encodarr ecosystem.
 type job struct {
-	UUID         string           `json:"uuid"`
-	Path         string           `json:"path"`
-	Parameters   jobParameters    `json:"parameters"`
-	RawMediaInfo runner.MediaInfo `json:"media_info"`
+	UUID         string        `json:"uuid"`
+	Path         string        `json:"path"`
+	Parameters   jobParameters `json:"parameters"`
+	RawMediaInfo MediaInfo     `json:"media_info"`
 }
 
 // jobParameters represents the actions that need to be taken against a job.
