@@ -44,6 +44,8 @@ func NewApiV1(tempDir, runnerName, controllerIP, controllerPort string) (ApiV1, 
 		RunnerName:   runnerName,
 		ControllerIP: fmt.Sprintf("http://%v:%v", controllerIP, controllerPort),
 		httpClient:   http.DefaultClient,
+		fS:           OsFS{},
+		currentTime:  TimeNow{},
 	}, nil
 }
 
@@ -53,11 +55,11 @@ type ApiV1 struct {
 	RunnerName   string
 	ControllerIP string
 	httpClient   RequestDoer
+	fS           FSer
+	currentTime  CurrentTimer
 }
 
 func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR runner.CommandResults) error {
-	// TODO: Test (inject dependencies for reading from the filesystem)
-
 	var request *http.Request
 	var err error
 
@@ -71,7 +73,7 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 			defer w.Close()
 			defer writer.Close()
 
-			file, err := os.Open(filename)
+			file, err := a.fS.Open(filename)
 			if err != nil {
 				logger.Critical(err.Error())
 			}
@@ -106,7 +108,7 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 		Failed: cmdR.Failed,
 		History: history{
 			Filename:          ji.File,
-			DateTimeCompleted: time.Now(),
+			DateTimeCompleted: a.currentTime.Now(),
 			Warnings:          cmdR.Warnings,
 			Errors:            cmdR.Errors,
 		},
@@ -131,8 +133,6 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 }
 
 func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) {
-	// TODO: Test (inject dependencies for writing to the filesystem)
-
 	req, err := http.NewRequestWithContext(*ctx, http.MethodGet, fmt.Sprintf("%v/api/runner/v1/job/request", a.ControllerIP), nil)
 	if err != nil {
 		return runner.JobInfo{}, err
@@ -156,7 +156,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 
 	fPath := a.Dir + "/input" + path.Ext(jobInfo.Path)
 
-	f, err := os.Create(fPath)
+	f, err := a.fS.Create(fPath)
 	if err != nil {
 		return runner.JobInfo{}, err
 	}

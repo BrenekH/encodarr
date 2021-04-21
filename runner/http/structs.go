@@ -1,5 +1,29 @@
 package http
 
+import (
+	"os"
+	"time"
+)
+
+// OsFS is FSer that uses the os package to fulfill the
+// interface requirements.
+type OsFS struct{}
+
+func (o OsFS) Create(name string) (Filer, error) {
+	return os.Create(name)
+}
+
+func (o OsFS) Open(name string) (Filer, error) {
+	return os.Open(name)
+}
+
+// TimeNow uses time.Now to satisfy the CurrentTimer interface.
+type TimeNow struct{}
+
+func (t TimeNow) Now() time.Time {
+	return time.Now()
+}
+
 // MediaInfo represents the MediaInfo from a file.
 type MediaInfo struct {
 	General General `json:"general,omitempty"`
