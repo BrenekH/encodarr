@@ -34,7 +34,7 @@ func TestSendJobComplete(t *testing.T) {
 		}{
 			{
 				name:     "Empty",
-				expected: `{"uuid":"","failed":false,"history":{"file":"","datetime_completed":"1969-12-31T17:00:00-07:00","warnings":[],"errors":[]}}`,
+				expected: `{"uuid":"","failed":false,"history":{"file":"","datetime_completed":"1970-01-01T00:00:00Z","warnings":[],"errors":[]}}`,
 				inJI: runner.JobInfo{
 					UUID:          "",
 					File:          "",
@@ -49,7 +49,7 @@ func TestSendJobComplete(t *testing.T) {
 					Warnings:       []string{},
 					Errors:         []string{},
 				},
-				inDate: time.Unix(0, 0),
+				inDate: time.Unix(0, 0).UTC(),
 			},
 			{
 				name:     "Populated",
