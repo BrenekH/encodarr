@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	netHTTP "net/http"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -161,15 +162,134 @@ func TestSendJobComplete(t *testing.T) {
 }
 
 func TestSendNewJobRequest(t *testing.T) {
-	apiV1, err := NewApiV1(options.TempDir(), "", "", "")
+	apiV1, err := NewApiV1("/tmp", "test", "", "")
 	if err != nil {
 		t.Errorf("Unexpected error creating apiV1: %v", err)
 		return
 	}
+	// To prevent collisions, NewApiV1 creates a random directory inside the provided TempDir.
+	// We set the directory manually to circumvent this behavior.
+	apiV1.Dir = "/tmp"
+
+	// Mock out the file system and HTTP client so that no system calls are made.
 	apiV1.fS = &mockFS{}
 	apiV1.httpClient = &mockHTTPClient{}
 
-	// TODO: Test SendNewJobRequest
+	t.Run("JobInfo is Properly Derived From the Response Header", func(t *testing.T) {
+		tests := []struct {
+			name     string
+			inStr    string
+			expected runner.JobInfo
+		}{
+			{
+				name:  "Filled in (Encode to HEVC)",
+				inStr: `{"uuid": "uuid-4", "path": "/media/testFile.mp4", "parameters": {"encode": true, "stereo": false, "codec": "hevc"}, "media_info": {"general": {"duration": "0"}}}`,
+				expected: runner.JobInfo{
+					UUID:          "uuid-4",
+					File:          "/media/testFile.mp4",
+					InFile:        "/tmp/input.mp4",
+					OutFile:       "/tmp/output.mkv",
+					CommandArgs:   []string{"-i", "/tmp/input.mp4", "-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", "hevc", "/tmp/output.mkv"},
+					MediaDuration: 0,
+				},
+			},
+		}
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				hC := mockHTTPClient{
+					DoResponse: netHTTP.Response{
+						StatusCode: 200,
+						Body:       io.NopCloser(&bytes.Buffer{}),
+						Header:     map[string][]string{"X-Encodarr-Job-Info": {test.inStr}},
+					},
+				}
+				apiV1.httpClient = &hC
+
+				ctx := context.Background()
+				outJI, outErr := apiV1.SendNewJobRequest(&ctx)
+
+				if outErr != nil {
+					t.Errorf("unexpected error: %v", outErr)
+				}
+
+				if !reflect.DeepEqual(outJI, test.expected) {
+					t.Errorf("expected %v but got %v", test.expected, outJI)
+				}
+			})
+		}
+	})
+
+	t.Run("Runner Name is Set", func(t *testing.T) {
+		hC := mockHTTPClient{
+			DoResponse: netHTTP.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(&bytes.Buffer{}),
+				Header:     map[string][]string{"X-Encodarr-Job-Info": {`{"media_info": {"general": {"duration": "0"}}}`}},
+			},
+		}
+		apiV1.httpClient = &hC
+
+		ctx := context.Background()
+		_, outErr := apiV1.SendNewJobRequest(&ctx)
+
+		if outErr != nil {
+			t.Errorf("unexpected error: %v", outErr)
+		}
+
+		runnerName := hC.LastRequest.Header.Get("X-Encodarr-Runner-Name")
+		if runnerName != apiV1.RunnerName {
+			t.Errorf("expected %v but got %v", apiV1.RunnerName, runnerName)
+		}
+	})
+
+	t.Run("Saved File Check", func(t *testing.T) {
+		hC := mockHTTPClient{
+			DoResponse: netHTTP.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(&bytes.Buffer{}),
+				Header:     map[string][]string{"X-Encodarr-Job-Info": {`{"media_info": {"general": {"duration": "0"}}}`}},
+			},
+		}
+		fS := mockFS{}
+		apiV1.httpClient = &hC
+		apiV1.fS = &fS
+
+		ctx := context.Background()
+		outJI, outErr := apiV1.SendNewJobRequest(&ctx)
+
+		if outErr != nil {
+			t.Errorf("unexpected error: %v", outErr)
+		}
+
+		if len(fS.createdFiles) < 1 {
+			t.Errorf("expected at least one file to created using fS.Create")
+		} else {
+			lastIndex := len(fS.createdFiles) - 1
+			if outJI.InFile != fS.createdFiles[lastIndex] {
+				t.Errorf("expected %v but got %v", fS.createdFiles[lastIndex], outJI.InFile)
+			}
+		}
+	})
+
+	t.Run("Ignores 409 Status Code", func(t *testing.T) {
+		apiV1.httpClient = &mockHTTPClient{
+			DoResponse: netHTTP.Response{
+				StatusCode: 409,
+				Body:       io.NopCloser(&bytes.Buffer{}),
+				Header:     map[string][]string{"X-Encodarr-Job-Info": {`{"media_info": {"general": {"duration": "0"}}}`}},
+			},
+		}
+
+		ctx := context.Background()
+		_, outErr := apiV1.SendNewJobRequest(&ctx)
+
+		if outErr != nil {
+			t.Errorf("expected nil but got %v", outErr)
+		}
+
+		apiV1.httpClient = &mockHTTPClient{}
+	})
 }
 
 func TestApiV1SendStatus(t *testing.T) {

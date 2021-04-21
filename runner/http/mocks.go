@@ -29,18 +29,31 @@ func (m *mockCurrentTime) Now() time.Time {
 }
 
 // mockFS is a mock struct for the FSer interface.
-type mockFS struct{}
+type mockFS struct {
+	createdFiles []string
+	openedFiles  []string
+}
 
 func (m *mockFS) Create(name string) (Filer, error) {
-	return &mockFiler{}, nil
+	if m.createdFiles == nil {
+		m.createdFiles = make([]string, 1)
+	}
+	m.createdFiles = append(m.createdFiles, name)
+	return &mockFiler{name}, nil
 }
 
 func (m *mockFS) Open(name string) (Filer, error) {
-	return &mockFiler{}, nil
+	if m.openedFiles == nil {
+		m.openedFiles = make([]string, 1)
+	}
+	m.openedFiles = append(m.openedFiles, name)
+	return &mockFiler{name}, nil
 }
 
 // mockFiler is a mock struct for the Filer interface.
-type mockFiler struct{}
+type mockFiler struct {
+	name string
+}
 
 func (m *mockFiler) Close() error { return nil }
 
@@ -53,5 +66,5 @@ func (m *mockFiler) Write(p []byte) (n int, err error) {
 }
 
 func (m *mockFiler) Name() string {
-	return "mockFile.mkv"
+	return m.name
 }
