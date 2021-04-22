@@ -76,8 +76,6 @@ func (r *CmdRunner) Done() bool {
 }
 
 func (r *CmdRunner) Start(ji runner.JobInfo) {
-	// TODO: Test (Add injected dependencies for packages (os/exec))
-
 	// These variables need to be reset on every run because they only apply to one run,
 	// but the CmdRunner persists over many command runs.
 	r.done = false
@@ -85,7 +83,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 	r.warnings = []string{}
 	r.errors = []string{}
 
-	// ji.MediaInfo.General.Duration is in milliseconds
+	// ji.MediaDuration is in milliseconds
 	r.fileDuration = time.Duration(ji.MediaDuration) * time.Millisecond
 
 	a := append(r.BaseArgs, ji.CommandArgs...)
