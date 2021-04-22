@@ -109,8 +109,53 @@ func TestResults(t *testing.T) {
 		startTime time.Time
 		warnings  []string
 		errors    []string
-		expected  runner.CommandResults
-	}{}
+
+		timeNow  time.Time
+		expected runner.CommandResults
+	}{
+		{
+			name:      "No Warnings or Errors",
+			failed:    false,
+			startTime: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
+			warnings:  []string{},
+			errors:    []string{},
+			timeNow:   time.Date(2000, time.January, 1, 0, 20, 0, 0, time.UTC),
+			expected: runner.CommandResults{
+				Failed:         false,
+				JobElapsedTime: time.Duration(20) * time.Minute,
+				Warnings:       []string{},
+				Errors:         []string{},
+			},
+		},
+		{
+			name:      "Only Warnings (failed = false)",
+			failed:    false,
+			startTime: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
+			warnings:  []string{"Unsupported subtitle codec for container: mkv"},
+			errors:    []string{},
+			timeNow:   time.Date(2000, time.January, 1, 0, 20, 0, 0, time.UTC),
+			expected: runner.CommandResults{
+				Failed:         false,
+				JobElapsedTime: time.Duration(20) * time.Minute,
+				Warnings:       []string{"Unsupported subtitle codec for container: mkv"},
+				Errors:         []string{},
+			},
+		},
+		{
+			name:      "Job Failed (failed = true, errors)",
+			failed:    true,
+			startTime: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
+			warnings:  []string{},
+			errors:    []string{"FFmpeg returned a non-zero exit code: 1"},
+			timeNow:   time.Date(2000, time.January, 1, 0, 20, 0, 0, time.UTC),
+			expected: runner.CommandResults{
+				Failed:         true,
+				JobElapsedTime: time.Duration(20) * time.Minute,
+				Warnings:       []string{},
+				Errors:         []string{"FFmpeg returned a non-zero exit code: 1"},
+			},
+		},
+	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -120,6 +165,8 @@ func TestResults(t *testing.T) {
 			cR.startTime = test.startTime
 			cR.warnings = test.warnings
 			cR.errors = test.errors
+
+			cR.timeSince = &mockSincer{t: test.timeNow}
 
 			results := cR.Results()
 
