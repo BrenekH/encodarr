@@ -50,6 +50,7 @@ func NewCmdRunner() CmdRunner {
 		BaseArgs:   []string{"-hide_banner", "-loglevel", "warning", "-stats", "-y"},
 
 		timeSince: TimeSince{},
+		cmdr:      ExecCommander{},
 	}
 }
 
@@ -67,6 +68,7 @@ type CmdRunner struct {
 	speed        float64
 
 	timeSince Sincer
+	cmdr      Commander
 }
 
 func (r *CmdRunner) Done() bool {
@@ -87,7 +89,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 	r.fileDuration = time.Duration(ji.MediaDuration) * time.Millisecond
 
 	a := append(r.BaseArgs, ji.CommandArgs...)
-	c := exec.Command(r.Executable, a...)
+	c := r.cmdr.Command(r.Executable, a...)
 
 	errPipe, _ := c.StderrPipe()
 	b := make([]byte, 1024)
@@ -96,7 +98,10 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 
 	go func() {
 		logger.Info("Starting FFmpeg command")
-		c.Start()
+		err := c.Start()
+		if err != nil {
+			logger.Error(err.Error())
+		}
 
 		for {
 			n, err := errPipe.Read(b)
@@ -113,7 +118,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 			}
 		}
 
-		err := c.Wait()
+		err = c.Wait()
 		if err != nil {
 			r.failed = true
 			if exiterr, ok := err.(*exec.ExitError); ok {
