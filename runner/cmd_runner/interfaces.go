@@ -2,7 +2,6 @@ package cmd_runner
 
 import (
 	"io"
-	"os/exec"
 	"time"
 )
 
@@ -13,7 +12,7 @@ type Sincer interface {
 
 // Commander is an interface that allows for mocking out the os/exec package for testing.
 type Commander interface {
-	Command(name string, arg ...string) *exec.Cmd
+	Command(name string, args ...string) Cmder
 }
 
 // Cmder is an interface for mocking out the exec.Cmd struct.

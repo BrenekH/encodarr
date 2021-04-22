@@ -2,7 +2,6 @@ package cmd_runner
 
 import (
 	"fmt"
-	"os/exec"
 	"regexp"
 	"time"
 
@@ -119,7 +118,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 		err = c.Wait()
 		if err != nil {
 			r.failed = true
-			if exiterr, ok := err.(*exec.ExitError); ok {
+			if exiterr, ok := err.(interface{ ExitCode() int }); ok {
 				r.errors = append(r.errors, fmt.Sprintf("FFmpeg returned exit code: %v", exiterr.ExitCode()))
 			} else {
 				r.errors = append(r.errors, err.Error())

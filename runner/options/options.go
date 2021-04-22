@@ -1,4 +1,4 @@
-// Package options is a centralized location for all supported command-line/environment variable options for Encodarr
+// options is a centralized location to read all supported command-line/environment variable options for Encodarr Runner
 package options
 
 import (

@@ -1,6 +1,7 @@
 package cmd_runner
 
 import (
+	"context"
 	"reflect"
 	"testing"
 	"time"
@@ -29,13 +30,82 @@ func TestDone(t *testing.T) {
 }
 
 func TestStart(t *testing.T) {
-	// Case: done, failed, warnings, errors are reset when the command starts
-	// Case: Commander.Command is called with appropriate args
+	t.Run("Critical Per-Job Variables are Reset", func(t *testing.T) {
+		cR := NewCmdRunner()
+		cR.cmdr = &mockCommander{}
+
+		cR.done = true
+		cR.failed = true
+		cR.warnings = []string{"hello", "test"}
+		cR.errors = []string{"hello", "test"}
+
+		cR.Start(runner.JobInfo{})
+
+		if cR.done {
+			t.Errorf("done was supposed to be reset to false")
+		}
+
+		if cR.failed {
+			t.Errorf("failed was supposed to be reset to false")
+		}
+
+		if !reflect.DeepEqual(cR.warnings, []string{}) {
+			t.Errorf("warnings was supposed to be reset to an empty slice")
+		}
+
+		if !reflect.DeepEqual(cR.errors, []string{}) {
+			t.Errorf("errors was supposed to be reset to an empty slice")
+		}
+	})
+
+	t.Run("Check Args Passed to Commander.Command", func(t *testing.T) {
+		mCmdr := mockCommander{}
+		cR := NewCmdRunner()
+		cR.cmdr = &mCmdr
+
+		cR.Start(runner.JobInfo{
+			CommandArgs: []string{"-i", "input.mp4", "output.mkv"},
+		})
+
+		expected := []string{"-hide_banner", "-loglevel", "warning", "-stats", "-y", "-i", "input.mp4", "output.mkv"}
+		if !reflect.DeepEqual(mCmdr.lastCallArgs, expected) {
+			t.Errorf("expected Commander.Command to be called with %v, but got %v instead", expected, mCmdr)
+		}
+	})
 }
 
 func TestStartResults(t *testing.T) {
-	// Case: Zero exit code causes Results to set Failed to false
-	// Case: Non-zero exit code causes Results to set Failed to true
+	t.Run("Exit Code 0, Failed is false", func(t *testing.T) {
+		cR := NewCmdRunner()
+		cR.cmdr = &mockCommander{cmder: mockCmder{statusCode: 0}}
+
+		cR.Start(runner.JobInfo{})
+
+		results := cR.Results()
+		if results.Failed {
+			t.Errorf("expected failed to be false, not true")
+		}
+	})
+
+	t.Run("Exit Code 1, Failed is true", func(t *testing.T) {
+		cR := NewCmdRunner()
+		cR.cmdr = &mockCommander{cmder: mockCmder{statusCode: 1}}
+
+		cR.Start(runner.JobInfo{})
+
+		// Because there is a goroutine inside cR.Start that has to finish before the results are ready,
+		// we just get to wait for it to be complete.
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
+		defer cancel()
+		if failedToSetDone := waitCmdRunner(&ctx, &cR); failedToSetDone {
+			t.Errorf("test CmdRunner failed to set the done variable within 10 seconds")
+		}
+
+		results := cR.Results()
+		if !results.Failed {
+			t.Errorf("expected failed to be true, not false")
+		}
+	})
 }
 
 func TestStatus(t *testing.T) {
@@ -174,5 +244,20 @@ func TestResults(t *testing.T) {
 				t.Errorf("expected %v but got %v", test.expected, results)
 			}
 		})
+	}
+}
+
+// waitCmdRunner is a helper function that simply waits until the passed
+// CmdRunner indicates it is done or the context is up.
+//
+// The boolean return value indicates whether or not the CmdRunner failed to set the done variable.
+func waitCmdRunner(ctx *context.Context, cR *CmdRunner) bool {
+	for {
+		if runner.IsContextFinished(ctx) {
+			return true
+		}
+		if cR.Done() {
+			return false
+		}
 	}
 }
