@@ -48,6 +48,8 @@ func NewCmdRunner() CmdRunner {
 	return CmdRunner{
 		Executable: "ffmpeg",
 		BaseArgs:   []string{"-hide_banner", "-loglevel", "warning", "-stats", "-y"},
+
+		timeSince: TimeSince{},
 	}
 }
 
@@ -63,6 +65,8 @@ type CmdRunner struct {
 	fps          float64
 	time         string
 	speed        float64
+
+	timeSince Sincer
 }
 
 func (r *CmdRunner) Done() bool {
@@ -125,8 +129,6 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 }
 
 func (r *CmdRunner) Status() runner.JobStatus {
-	// TODO: Test (Add injected dependencies for packages (time (Just the Since function, the Duration type is fine)))
-
 	currentFileTime, err := parseColonTimeToDuration(r.time)
 	if err != nil {
 		currentFileTime = time.Duration(0)
@@ -135,19 +137,17 @@ func (r *CmdRunner) Status() runner.JobStatus {
 	return runner.JobStatus{
 		Stage:                       "Running FFmpeg",
 		Percentage:                  fmt.Sprintf("%.2f", (float64(currentFileTime)/float64(r.fileDuration))*100),
-		JobElapsedTime:              fmt.Sprintf("%v", time.Since(r.startTime).Round(time.Second).String()),
+		JobElapsedTime:              fmt.Sprintf("%v", r.timeSince.Since(r.startTime).Round(time.Second).String()),
 		FPS:                         fmt.Sprintf("%v", r.fps),
-		StageElapsedTime:            fmt.Sprintf("%v", time.Since(r.startTime).Round(time.Second).String()),
+		StageElapsedTime:            fmt.Sprintf("%v", r.timeSince.Since(r.startTime).Round(time.Second).String()),
 		StageEstimatedTimeRemaining: fmt.Sprintf("%v", time.Duration(float64(r.fileDuration-currentFileTime)/r.speed).Round(time.Second).String()),
 	}
 }
 
 func (r *CmdRunner) Results() runner.CommandResults {
-	// TODO: Test (Add injected dependencies for packages (time ))
-
 	return runner.CommandResults{
 		Failed:         r.failed,
-		JobElapsedTime: time.Since(r.startTime).Round(time.Second),
+		JobElapsedTime: r.timeSince.Since(r.startTime).Round(time.Second),
 		Warnings:       r.warnings,
 		Errors:         r.errors,
 	}
