@@ -10,7 +10,7 @@ import (
 )
 
 // Version represents the current version of the Encodarr Controller
-const Version string = "0.0.1-alpha.1"
+var Version string = "development"
 
 // Settings is used to represent how settings are saved to a file
 type Settings struct {
