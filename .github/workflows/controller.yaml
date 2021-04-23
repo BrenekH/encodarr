@@ -151,8 +151,7 @@ jobs:
           context: ./controller
           push: true
           platforms: linux/amd64,linux/arm64,linux/arm/v7
-          build-args:
-            - LDFLAGS_VERSION: ${{ env.LDFLAGS_VERSION }}
+          build-args: LDFLAGS_VERSION=${{ env.LDFLAGS_VERSION }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
