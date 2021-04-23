@@ -13,6 +13,7 @@ import (
 // flagger defines a type agnostic interface to parse out flags.
 type flagger interface {
 	Name() string
+	Description() string
 	Usage() string
 	Parse(string) error
 }
@@ -21,11 +22,12 @@ var flags []flagger
 
 // stringVar replaces flag.StringVar, but without the default value.
 // That functionality is provided by the rest of the options package.
-func stringVar(p *string, name, usage string) {
+func stringVar(p *string, name, description, usage string) {
 	flags = append(flags, StringFlag{
-		name:    name,
-		usage:   usage,
-		pointer: p,
+		name:        name,
+		description: description,
+		usage:       usage,
+		pointer:     p,
 	})
 }
 
@@ -36,7 +38,17 @@ func parseCL() {
 
 	for k, v := range args {
 		if v == "--help" {
-			// TODO: Print help message
+			helpStr := fmt.Sprintf("Encodarr Runner %v Help\n\n", Version)
+
+			for _, f := range flags {
+				helpStr += fmt.Sprintf(" --%v - %v\n   Usage: \"%v\"\n\n",
+					f.Name(),
+					f.Description(),
+					f.Usage(),
+				)
+			}
+
+			fmt.Println(strings.TrimRight(helpStr, "\n"))
 			os.Exit(0)
 		} else if v == "--version" {
 			fmt.Printf("Encodarr Runner %v %v/%v", Version, runtime.GOOS, runtime.GOARCH)
@@ -57,14 +69,19 @@ func parseCL() {
 }
 
 type StringFlag struct {
-	name    string
-	usage   string
-	pointer *string
+	name        string
+	description string
+	usage       string
+	pointer     *string
 }
 
 func (f StringFlag) Parse(s string) error {
 	*f.pointer = s
 	return nil
+}
+
+func (f StringFlag) Description() string {
+	return f.description
 }
 
 func (f StringFlag) Name() string {

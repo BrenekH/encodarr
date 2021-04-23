@@ -16,26 +16,28 @@ import (
 var Version string = "development"
 
 type optionConst struct {
-	EnvVar  string
-	CmdLine string
+	EnvVar      string
+	CmdLine     string
+	Description string
+	Usage       string
 }
 
-var configDirConst optionConst = optionConst{"ENCODARR_CONFIG_DIR", "config-dir"}
+var configDirConst optionConst = optionConst{"ENCODARR_CONFIG_DIR", "config-dir", "Sets the location of the directory where configuration files are saved.", "--config-dir <directory>"}
 var configDir string = ""
 
-var tempDirConst optionConst = optionConst{"ENCODARR_TEMP_DIR", "temp-dir"}
+var tempDirConst optionConst = optionConst{"ENCODARR_TEMP_DIR", "temp-dir", "Sets the location where media files are saved when they are being worked on.", "--temp-dir <directory>"}
 var tempDir string = os.TempDir()
 
-var logLevelConst optionConst = optionConst{"ENCODARR_LOG_LEVEL", "log-level"}
+var logLevelConst optionConst = optionConst{"ENCODARR_LOG_LEVEL", "log-level", "Sets the level of logging to both the console and the logging file.", "--log-level <trace|debug|info|warn|warning|error|critical>"}
 var logLevel string = "INFO"
 
-var runnerNameConst optionConst = optionConst{"ENCODARR_RUNNER_NAME", "name"}
+var runnerNameConst optionConst = optionConst{"ENCODARR_RUNNER_NAME", "name", "Sets the name shown in the Web UI.", "--name <runner-name>"}
 var runnerName string = ""
 
-var controllerIPConst optionConst = optionConst{"ENCODARR_RUNNER_CONTROLLER_IP", "controller-ip"}
+var controllerIPConst optionConst = optionConst{"ENCODARR_RUNNER_CONTROLLER_IP", "controller-ip", "Sets the IP for connecting to a Controller.", "--controller-ip <ip>"}
 var controllerIP string = "localhost"
 
-var controllerPortConst optionConst = optionConst{"ENCODARR_RUNNER_CONTROLLER_PORT", "controller-port"}
+var controllerPortConst optionConst = optionConst{"ENCODARR_RUNNER_CONTROLLER_PORT", "controller-port", "Sets the port for connecting to a Controller.", "--controller-port <port>"}
 var controllerPort string = "8123"
 
 var inTestMode bool = strings.HasSuffix(os.Args[0], ".test") || strings.HasSuffix(os.Args[0], ".test.exe")
@@ -72,27 +74,27 @@ func parseInputs() {
 
 	// Config directory
 	stringVarFromEnv(&configDir, configDirConst.EnvVar)
-	stringVar(&configDir, configDirConst.CmdLine, "")
+	stringVar(&configDir, configDirConst.CmdLine, configDirConst.Description, configDirConst.Usage)
 
 	// Temporary directory
 	stringVarFromEnv(&tempDir, tempDirConst.EnvVar)
-	stringVar(&tempDir, tempDirConst.CmdLine, "")
+	stringVar(&tempDir, tempDirConst.CmdLine, tempDirConst.Description, tempDirConst.Usage)
 
 	// Log level
 	stringVarFromEnv(&logLevel, logLevelConst.EnvVar)
-	stringVar(&logLevel, logLevelConst.CmdLine, "")
+	stringVar(&logLevel, logLevelConst.CmdLine, logLevelConst.Description, logLevelConst.Usage)
 
 	// Runner name
 	stringVarFromEnv(&runnerName, runnerNameConst.EnvVar)
-	stringVar(&runnerName, runnerNameConst.CmdLine, "")
+	stringVar(&runnerName, runnerNameConst.CmdLine, runnerNameConst.Description, runnerNameConst.Usage)
 
 	// Controller IP
 	stringVarFromEnv(&controllerIP, controllerIPConst.EnvVar)
-	stringVar(&controllerIP, controllerIPConst.CmdLine, "")
+	stringVar(&controllerIP, controllerIPConst.CmdLine, controllerIPConst.Description, controllerIPConst.Usage)
 
 	// Controller Port
 	stringVarFromEnv(&controllerPort, controllerPortConst.EnvVar)
-	stringVar(&controllerPort, controllerPortConst.CmdLine, "")
+	stringVar(&controllerPort, controllerPortConst.CmdLine, controllerPortConst.Description, controllerPortConst.Usage)
 
 	if !inTestMode {
 		makeConfigDir()
