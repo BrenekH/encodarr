@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/BrenekH/encodarr/controller/config"
+	"github.com/BrenekH/encodarr/controller/options"
 )
 
 var webVersions []string = make([]string, 1)
@@ -67,7 +67,7 @@ func runnerAPIVersions(w http.ResponseWriter, r *http.Request) {
 }
 
 func controllerVersion(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(config.Version))
+	w.Write([]byte(options.Version))
 }
 
 func registerAPIHandlers() {

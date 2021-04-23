@@ -109,10 +109,12 @@ func postJobStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func postJobComplete(w http.ResponseWriter, r *http.Request) {
+	logger.Debug(fmt.Sprintf("Received /api/runner/v1/job/complete from %v", r.RemoteAddr))
 	switch r.Method {
 	case http.MethodPost:
 		h := r.Header.Get("X-Encodarr-History-Entry")
 		if h == "" {
+			logger.Debug("Received invalid history entry")
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Invalid header 'X-Encodarr-History-Entry'"))
@@ -128,7 +130,7 @@ func postJobComplete(w http.ResponseWriter, r *http.Request) {
 
 		if !jcr.Failed {
 			fileReader, fileHeader, err := r.FormFile("file")
-			_ = fileHeader // File header could be useful for naming later
+			_ = fileHeader //! File header could be useful for naming later
 			if err != nil {
 				serverError(w, r, fmt.Sprintf("Error accessing form file: %v", err))
 				return

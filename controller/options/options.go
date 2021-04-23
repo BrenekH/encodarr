@@ -9,15 +9,20 @@ import (
 	"github.com/BrenekH/logange"
 )
 
+// Version represents the current version of the Encodarr Controller
+var Version string = "development"
+
 type optionConst struct {
-	EnvVar  string
-	CmdLine string
+	EnvVar      string
+	CmdLine     string
+	Description string
+	Usage       string
 }
 
-var portConst optionConst = optionConst{"ENCODARR_PORT", "port"}
+var portConst optionConst = optionConst{"ENCODARR_PORT", "port", "Sets the port of the HTTP server.", "--port <port>"}
 var port string = "8123"
 
-var configDirConst optionConst = optionConst{"ENCODARR_CONFIG_DIR", "config-dir"}
+var configDirConst optionConst = optionConst{"ENCODARR_CONFIG_DIR", "config-dir", "Sets the location that configuration files are saved to.", "--config-dir <directory>"}
 var configDir string = ""
 
 var inputsParsed bool = false
@@ -42,11 +47,11 @@ func parseInputs() {
 
 	// HTTP Server port
 	stringVarFromEnv(&port, portConst.EnvVar)
-	stringVar(&port, portConst.CmdLine, "")
+	stringVar(&port, portConst.CmdLine, portConst.Description, portConst.Usage)
 
 	// Config directory
 	stringVarFromEnv(&configDir, configDirConst.EnvVar)
-	stringVar(&configDir, configDirConst.CmdLine, "")
+	stringVar(&configDir, configDirConst.CmdLine, configDirConst.Description, configDirConst.Usage)
 
 	makeConfigDir()
 

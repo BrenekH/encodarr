@@ -45,7 +45,7 @@ export default class AboutSection extends React.Component<{}, IAboutSectionState
 		return (<>
 			<h5>About Encodarr</h5>
 
-			<p><b>License:</b> This project is licensed under the Mozilla Public License 2.0 a copy of which can be found <a href="https://github.com/BrenekH/encodarr/blob/master/LICENSE" target="_blank" rel="noreferrer">here</a>)</p>
+			<p><b>License:</b> This project is licensed under the Mozilla Public License 2.0 a copy of which can be found <a href="https://github.com/BrenekH/encodarr/blob/master/LICENSE" target="_blank" rel="noreferrer">here</a></p>
 
 			<p><b>Controller Version:</b> {this.state.controller_version}</p>
 			<p className="list-title"><b>Supported API Versions:</b></p>

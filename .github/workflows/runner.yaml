@@ -8,8 +8,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.6', '3.7', '3.8', '3.9']
+        os: ['ubuntu-latest']
+        go-version: ['1.16']
 
     defaults:
       run:
@@ -18,28 +18,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v2
         with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
+          go-version: ${{ matrix.go-version }}
 
-      - name: Install Python dependencies
-        run: python -m pip install -r requirements.txt
-
-      - name: Install Pytest
-        run: python -m pip install pytest
-
-      - name: Test using Pytest
-        run: python -m pytest
+      - name: Run tests
+        env:
+          # We aim to be CGO free to improve compatibility. Disabling it in the CI should help with that goal.
+          CGO_ENABLED: 0
+          ENCODARR_CONFIG_DIR: ${{ runner.temp }}
+          ENCODARR_TEMP_DIR: ${{ runner.temp }}
+        run: mkdir -p "${ENCODARR_TEMP_DIR}/Encodarr/Runner" && go test ./...
 
   build:
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.9']
+        os: ['ubuntu-latest']
+        go-version: ['1.16']
+        go-os-arch: ['linux/amd64', 'linux/arm64', 'linux/arm', 'windows/amd64', 'darwin/amd64', 'darwin/arm64']
 
     defaults:
       run:
@@ -48,26 +47,49 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v2
         with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
+          go-version: ${{ matrix.go-version }}
 
-      - name: Install Python dependencies
-        run: python -m pip install -r requirements.txt
+      - name: Generate Env Vars
+        env:
+          IFS: "/"
+        run: |
+          echo "COMP_GOOS=$(echo ${{ matrix.go-os-arch }} | cut -d/ -f1 -)" >> $GITHUB_ENV
+          echo "COMP_GOARCH=$(echo ${{ matrix.go-os-arch }} | cut -d/ -f2 -)" >> $GITHUB_ENV
 
-      - name: Install PyInstaller
-        run: python -m pip install PyInstaller
+      - name: Set suffix (windows)
+        if: contains(matrix.go-os-arch, 'windows')
+        run: echo "EXEC_SUFFIX=.exe" >> $GITHUB_ENV
 
-      - name: Create Executable
-        run: python -m PyInstaller --name "encodarr-runner-${{ runner.os }}-amd64" --onefile main.py
+      - name: Set suffix (literally everything else)
+        if: "!contains(matrix.go-os-arch, 'windows')"
+        run: echo "EXEC_SUFFIX=$("")" >> $GITHUB_ENV
+
+      - name: Set version for ldflags (tag ref)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: echo "LDFLAGS_VERSION=$(echo ${GITHUB_REF:10})" >> $GITHUB_ENV
+
+      - name: Set version for ldflags (non-tag ref)
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        # Makes the embedded version "{branch-name}-development"
+        run: echo "LDFLAGS_VERSION=$(echo ${GITHUB_REF:11})-development" >> $GITHUB_ENV
+
+      - name: Build executable
+        env:
+          # We aim to be CGO free to improve compatibility. Disabling it in the CI should help with enforcing that goal.
+          CGO_ENABLED: 0
+          GOARM: 7
+          GOOS: ${{ env.COMP_GOOS }}
+          GOARCH: ${{ env.COMP_GOARCH }}
+        run: go build -o encodarr-runner-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }} -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${{ env.LDFLAGS_VERSION }}'" ./cmd/EncodarrRunner/main.go
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: encodarr-runner-${{ runner.os }}-amd64
-          path: ${{ github.workspace }}/runner/dist/*
+          name: encodarr-runner-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }}
+          path: ${{ github.workspace }}/runner/encodarr-runner-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }}
 
   deploy-container-images-tags:
     runs-on: ubuntu-latest
@@ -96,6 +118,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-runner-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-runner-buildx-
+
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -109,14 +139,34 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set version for ldflags (tag ref)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: echo "LDFLAGS_VERSION=$(echo ${GITHUB_REF:10})" >> $GITHUB_ENV
+
+      - name: Set version for ldflags (non-tag ref)
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        # Makes the embedded version "{branch-name}-development"
+        run: echo "LDFLAGS_VERSION=$(echo ${GITHUB_REF:11})-development" >> $GITHUB_ENV
+
       - name: Build and push container images/tags
         uses: docker/build-push-action@v2
         with:
           context: ./runner
           push: true
           platforms: linux/amd64,linux/arm64,linux/arm/v7
+          build-args: LDFLAGS_VERSION=${{ env.LDFLAGS_VERSION }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Move cache
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   upload-binaries-to-gh-releases:
     runs-on: ubuntu-latest

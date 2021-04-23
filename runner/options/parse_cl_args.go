@@ -38,7 +38,7 @@ func parseCL() {
 
 	for k, v := range args {
 		if v == "--help" {
-			helpStr := fmt.Sprintf("Encodarr Controller %v Help\n\n", Version)
+			helpStr := fmt.Sprintf("Encodarr Runner %v Help\n\n", Version)
 
 			for _, f := range flags {
 				helpStr += fmt.Sprintf(" --%v - %v\n   Usage: \"%v\"\n\n",
@@ -51,7 +51,7 @@ func parseCL() {
 			fmt.Println(strings.TrimRight(helpStr, "\n"))
 			os.Exit(0)
 		} else if v == "--version" {
-			fmt.Printf("Encodarr Controller %v %v/%v", Version, runtime.GOOS, runtime.GOARCH)
+			fmt.Printf("Encodarr Runner %v %v/%v", Version, runtime.GOOS, runtime.GOARCH)
 			os.Exit(0)
 		}
 
