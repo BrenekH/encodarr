@@ -1,15 +1,31 @@
-FROM ubuntu:20.04
+# Build stage
+FROM golang:1.16-buster AS builder
 
-ENV TZ=America/Boise
+ARG TARGETOS
+ARG TARGETARCH
 
-RUN apt-get update -qq && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata ffmpeg python3-pip
-
-WORKDIR /usr/src/app
-
-COPY requirements.txt ./
-
-RUN python3 -m pip install --no-cache-dir -r requirements.txt
+WORKDIR /go/src/encodarr/runner
 
 COPY . .
 
-CMD ["python3", "main.py"]
+# Disable CGO so that we have a static binary
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o runner cmd/EncodarrRunner/main.go
+
+
+# Run stage
+FROM ubuntu:20.04
+
+ENV TZ=Etc/GMT \
+ENCODARR_CONFIG_DIR="/config"
+
+WORKDIR /usr/src/app
+
+RUN chmod 777 /usr/src/app \
+ && apt-get update -qq \
+ && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata ffmpeg
+
+COPY --from=builder /go/src/encodarr/runner/runner ./runner
+
+RUN chmod 777 ./runner
+
+CMD ["./runner"]

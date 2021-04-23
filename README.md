@@ -8,7 +8,8 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/brenekh/encodarr-runner?label=runner%20docker%20pulls)
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/brenekh/encodarr-controller/latest?label=controller%20image%20size)
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/brenekh/encodarr-runner/latest?label=runner%20image%20size)
-![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=controller%2Fgo.mod)
+![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=controller%2Fgo.mod&label=Controller%20Go%20Version)
+![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=runner%2Fgo.mod&label=Runner%20Go%20Version)
 [![Controller CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml)
 [![Runner CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml)
 
@@ -16,13 +17,19 @@
 
 Encodarr is a self-hosted web application that encodes video files to a target format using distributed computing.
 
+<!-- TODO: Add information on the architecture (high level). Stuff like many Runners connect to a single Controller. -->
+
 ## Why use Encodarr?
-<!-- TODO: Why use Encodarr? (other than easy to setup) -->
+<!-- TODO: Why use Encodarr? (other than easy to setup and cross-platform) -->
 
 ### Easy to Setup
 
 Encodarr bypasses the need to share media across the network by instead transmitting the file to be operated on to the Runners.
 This means that Encodarr is much easier to setup than other solutions.
+
+### Cross-platform
+
+Both the Controller and Runner can be cross-compiled for any system [supported by the Go toolchain](https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63) including Raspberry Pis and M1 Macs.
 
 ## Dependencies
 
@@ -81,6 +88,7 @@ Docker run:
 docker run -d \
   --name Encodarr-Runner \
   -v <path to runner data>:/config:rw \
+  -e TZ=Europe/London
   -e "ENCODARR_RUNNER_NAME=Runner 1" \
   -e ENCODARR_RUNNER_CONTROLLER_IP=<Controller IP> \
   -e ENCODARR_RUNNER_CONTROLLER_PORT=8123 \
@@ -99,6 +107,7 @@ services:
     volumes:
       - <path to runner data>:/config:rw
     environment:
+      - TZ=Europe/London
       - ENCODARR_RUNNER_NAME=Runner 1
       - ENCODARR_RUNNER_CONTROLLER_IP=<Controller IP>
       - ENCODARR_RUNNER_CONTROLLER_PORT=8123
@@ -113,8 +122,7 @@ In addition, the paths to data that are mounted to `/config` in the container sh
 ### Startup Configuration
 
 Startup values configured either through environment variables, or command line arguments.
-All of the command line variants expect a value after a space (`--port 8123`) expect the Runner `--debug` flag.
-It is a boolean flag.
+All of the command line variants expect a value after a space (`--port 8123`).
 
 #### Controller
 
@@ -129,15 +137,21 @@ In a container, this is pre-set to `/config`.
 
 #### Runner
 
-`ENCODARR_DEBUG`, `--debug` enables outputting debug messages to the log.
-If the environment variable is set to `True`, then debug messages are turned on.
-(default: `False`)
+`ENCODARR_CONFIG_DIR`, `--config-dir` sets the directory that the configuration files are saved to.
+This includes the log file.
+In a container, this is pre-set to `/config`.
+(default: `<platform user config directory>/encodarr/runner-<time of runner startup>/config`)
 
-`ENCODARR_LOG_FILE` sets the location of the runner log file.
-(default: `/config/runner.log`)
+`ENCODARR_TEMP_DIR`, `--temp-dir` sets the directory that the media files are saved to when they are being worked on.
+If you want to protect your flash memory(SSDs and SD Cards), you can set this to be on a hard drive.
+(default: `<platform user temp directory>`)
+
+`ENCODARR_LOG_LEVEL`, `--log-level` sets the level of output from the logging system to both the log file and the terminal output.
+Possible values are: `trace`, `debug`, `info`, `warn` (or `warning`, they are identical), `error`, `critical`.
+(default: `info`)
 
 `ENCODARR_RUNNER_NAME`, `--name` sets the name to be shown in the Web UI when referring to this runner.
-(default: `Runner-<random 3 digit number>`)
+(default: `<machine hostname>-<random number>`)
 
 `ENCODARR_RUNNER_CONTROLLER_IP`, `--controller-ip` sets the IP for connecting to the Controller.
 (default: `localhost`)
