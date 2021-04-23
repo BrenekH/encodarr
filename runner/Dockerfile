@@ -3,13 +3,14 @@ FROM golang:1.16-buster AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
+ARG LDFLAGS_VERSION=development
 
 WORKDIR /go/src/encodarr/runner
 
 COPY . .
 
 # Disable CGO so that we have a static binary
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o runner cmd/EncodarrRunner/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o runner -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${LDFLAGS_VERSION}'" cmd/EncodarrRunner/main.go
 
 
 # Run stage

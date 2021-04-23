@@ -72,7 +72,8 @@ jobs:
 
       - name: Set version for ldflags (non-tag ref)
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: echo "LDFLAGS_VERSION=development" >> $GITHUB_ENV
+        # Makes the embedded version "{branch-name}-development"
+        run: echo "LDFLAGS_VERSION=$(echo ${GITHUB_REF:11})-development" >> $GITHUB_ENV
 
       - name: Build executable
         env:
@@ -143,7 +144,8 @@ jobs:
 
       - name: Set version for ldflags (non-tag ref)
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: echo "LDFLAGS_VERSION=development" >> $GITHUB_ENV
+        # Makes the embedded version "{branch-name}-development"
+        run: echo "LDFLAGS_VERSION=$(echo ${GITHUB_REF:11})-development" >> $GITHUB_ENV
 
       - name: Build and push container images/tags
         uses: docker/build-push-action@v2

@@ -12,6 +12,9 @@ import (
 	"github.com/BrenekH/logange"
 )
 
+// Version represents the current version of the Encodarr Runner
+var Version string = "development"
+
 type optionConst struct {
 	EnvVar  string
 	CmdLine string
