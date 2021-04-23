@@ -9,9 +9,6 @@ import (
 	"github.com/BrenekH/encodarr/controller/options"
 )
 
-// Version represents the current version of the Encodarr Controller
-var Version string = "development"
-
 // Settings is used to represent how settings are saved to a file
 type Settings struct {
 	HealthCheckInterval uint64

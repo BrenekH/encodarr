@@ -10,7 +10,7 @@ WORKDIR /go/src/encodarr/controller
 COPY . .
 
 # Disable CGO so that we have a static binary, set the platform for multi-arch builds, and embed the Version.
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o encodarr -ldflags="-X 'github.com/BrenekH/encodarr/controller/config.Version=${LDFLAGS_VERSION}'" .
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o encodarr -ldflags="-X 'github.com/BrenekH/encodarr/controller/options.Version=${LDFLAGS_VERSION}'" .
 
 
 # Run stage

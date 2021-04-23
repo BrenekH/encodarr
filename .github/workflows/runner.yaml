@@ -83,7 +83,7 @@ jobs:
           GOARM: 7
           GOOS: ${{ env.COMP_GOOS }}
           GOARCH: ${{ env.COMP_GOARCH }}
-        run: go build -o encodarr-runner-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }} ./cmd/EncodarrRunner/main.go
+        run: go build -o encodarr-runner-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }} -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${{ env.LDFLAGS_VERSION }}'" ./cmd/EncodarrRunner/main.go
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2

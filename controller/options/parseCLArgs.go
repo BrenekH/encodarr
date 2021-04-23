@@ -6,6 +6,7 @@ package options
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -34,9 +35,18 @@ func parseCL() {
 	var args []string = os.Args[1:]
 
 	for k, v := range args {
+		if v == "--help" {
+			// TODO: Print help message
+			os.Exit(0)
+		} else if v == "--version" {
+			fmt.Printf("Encodarr Controller %v %v/%v", Version, runtime.GOOS, runtime.GOARCH)
+			os.Exit(0)
+		}
+
 		for _, f := range flags {
 			if strings.Replace(v, "--", "", 1) == f.Name() {
 				if i := k + 1; i >= len(args) {
+					fmt.Printf("Can not parse %v, EOL reached", v)
 					logger.Critical(fmt.Sprintf("Can not parse %v, EOL reached", v))
 				} else {
 					f.Parse(args[k+1])
