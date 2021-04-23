@@ -69,6 +69,15 @@ func completedHandler(r JobCompleteRequest, wg *sync.WaitGroup) {
 		return
 	}
 
+	if r.Failed {
+		// Save the History and exit because we don't want to delete the original file when we don't have a replacement
+		err = r.History.Save()
+		if err != nil {
+			logger.Error(fmt.Sprintf("Error saving history: %v", err.Error()))
+		}
+		return
+	}
+
 	filename := dJob.Job.Path
 
 	if config.Global.SmallerFiles {
