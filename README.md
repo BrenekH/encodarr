@@ -174,8 +174,6 @@ This project holds all maintainers, contributors, and participants to the standa
 
 ## Future Plans
 
-* Rewrite Runner from Python to Go (following Clean Architecture guidelines)
-
 * Rewrite Controller to conform to Clean Architecture guidelines
 
 * Instead of configuring with dropdowns and checkboxes, use a plugin system
