@@ -26,6 +26,7 @@ func Run(ctx *context.Context, c Communicator, r CommandRunner, testMode bool) {
 		ji, err := c.SendNewJobRequest(ctx)
 		if err != nil {
 			logger.Error(err.Error())
+			time.Sleep(time.Second)
 			continue
 		}
 
