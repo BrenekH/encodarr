@@ -15,7 +15,7 @@
 
 ## What is Encodarr?
 
-Encodarr is a self-hosted web application that encodes video files to a target format using distributed computing.
+Encodarr is a self-hosted web application that encodes video files to a target format using distributed computing to spread the workload across many machines.
 
 <!-- TODO: Add information on the architecture (high level). Stuff like many Runners connect to a single Controller. -->
 
@@ -166,7 +166,8 @@ Possible values are: `trace`, `debug`, `info`, `warn` (or `warning`, they are id
 > If you do verify please let me know in the [Discussions](https://github.com/BrenekH/encodarr/discussions) page, but if they don't please open a [new issue](https://github.com/BrenekH/encodarr/issues/new/choose).
 
 If you want to contribute to this project, head over to [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
-Do note that the project is going to be rewritten soon to more closely follow clean architecture guidelines, so contributing to the `master` or `development` branches is not recommended at this time.
+Do note that the Controller is going to be rewritten soon to more closely follow clean architecture guidelines, so contributing to it on the `master` or `development` branches is not recommended at this time.
+However, contributions for the Runner or React frontend are welcome.
 
 ## Code of Conduct
 

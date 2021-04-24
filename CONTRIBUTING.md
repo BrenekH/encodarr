@@ -22,8 +22,8 @@ Unit tests can be ran using `go test ./...`.
 
 ## Runner
 
-The Runner can be run after dependencies are installed from the `requirements.txt` file (`python -m pip install -r requirements.txt`), using a simple `python main.py`.
-Tests are run with PyTest using the `pytest` command (PyTest will need to be installed first).
+Like the Controller, the Runner can be built locally and ran using the standard Go build commands, `go build cmd/EncodarrRunner/main.go` and `go run cmd/EncodarrRunner/main.go`, from within the `runner` folder.
+Unit tests can be ran using `go test ./...`.
 
 ## Frontend
 
@@ -37,16 +37,15 @@ To perform both actions with one command on Linux systems, use `npm run build &&
 ## Docker
 
 Both the Controller and the Runner have `Dockerfile`s in their folders that can be built into container images using `docker build .` from the appropriate directory.
-It is recommended to not bother with containers when developing, only using them for final builds.
 
 ## Continuous Integration and Continuous Deployment
 
-This repository uses GitHub Actions to continously test commits and deploy them to Docker Hub and the GitHub Container Registry.
+This repository uses GitHub Actions to continuously test commits and deploy them to Docker Hub and the GitHub Container Registry.
 
 Stand-alone builds as a result of action workflows can be found in the artifacts section of the workflow run's page.
 Artifacts are kept for 90 days, after which they are removed.
 
-When a Git tag is pushed to the repo, special actions are ran that deploy the code as a release both to the docker registries and the [GitHub Releases page](https://github.com/BrenekH/encodarr/releases).
+When a Git tag is pushed to the repo, special actions are run that deploy the code as a release, both to the docker registries(Docker Hub and GitHub Container Registry) and the [GitHub Releases page](https://github.com/BrenekH/encodarr/releases).
 
 ## Code of Conduct
 
