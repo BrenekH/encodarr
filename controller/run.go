@@ -13,7 +13,7 @@ func Run(ctx *context.Context, ds DataStorer, hc HealthChecker, lm LibraryManage
 		// GetUserInput returns any settings that the user has changed. Other input may be available in the future, so plan for that.
 		ui.GetUserInput()
 
-		// Launches a goroutine for library that is due for a file system check.
+		// Launches a goroutine for libraries that are due for a file system check.
 		lm.StartFSChecks(ctx)
 
 		// Loops through the dispatched jobs, and determines if any are unresponsive.
