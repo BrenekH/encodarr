@@ -12,10 +12,6 @@ type HealthChecker interface {
 // The LibraryManager interface describes how a struct wishing to deal with user's
 // libraries should interact with the Run function.
 type LibraryManager interface {
-	// GetNewJob returns a job that may be dispatched as well as deletes it from any
-	// data stores.
-	GetNewJob() Job
-
 	// ImportCompletedJobs imports the provided jobs into the system.
 	ImportCompletedJobs([]Job)
 
@@ -25,6 +21,10 @@ type LibraryManager interface {
 	// LibraryQueues returns a slice of LibraryQueue to indicate the current status of
 	// the queues.
 	LibraryQueues() []LibraryQueue
+
+	// PopNewJob returns a job that may be dispatched as well as deletes it from any
+	// data stores.
+	PopNewJob() Job
 
 	// UpdateLibrarySettings loops through the provided map of new settings and applies
 	// them to the appropriate libraries.
@@ -60,11 +60,11 @@ type UserInterfacer interface {
 	// for an incoming request.
 	SetLibrarySettings([]LibrarySettings)
 
+	// SetLibraryQueues takes the provided slice and stores it so that if a request
+	// to view the queues is received, the response can be quickly sent.
+	SetLibraryQueues([]LibraryQueue)
+
 	// SetWaitingRunners stores an updated value that should be sent if a request to view
 	// the waiting Runner is received.
 	SetWaitingRunners(runnerNames []string)
-
-	// UpdateLibraryQueues takes the provided slice and stores it so that if a request
-	// to view the queues is received, the response can be quickly sent.
-	UpdateLibraryQueues([]LibraryQueue)
 }
