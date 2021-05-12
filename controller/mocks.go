@@ -1,7 +1,14 @@
 package controller
 
+import "context"
+
 type MockHealthChecker struct {
-	runCalled bool
+	runCalled   bool
+	startCalled bool
+}
+
+func (m *MockHealthChecker) Start(ctx *context.Context) {
+	m.startCalled = true
 }
 
 func (m *MockHealthChecker) Run() (uuidsToNull []UUID) {
@@ -15,6 +22,11 @@ type MockLibraryManager struct {
 	libQueuesCalled         bool
 	popJobCalled            bool
 	updateLibSettingsCalled bool
+	startCalled             bool
+}
+
+func (m *MockLibraryManager) Start(ctx *context.Context) {
+	m.startCalled = true
 }
 
 func (m *MockLibraryManager) ImportCompletedJobs([]Job) {
@@ -46,6 +58,11 @@ type MockRunnerCommunicator struct {
 	needNewJobCalled     bool
 	nullUUIDsCalled      bool
 	waitingRunnersCalled bool
+	startCalled          bool
+}
+
+func (m *MockRunnerCommunicator) Start(ctx *context.Context) {
+	m.startCalled = true
 }
 
 func (m *MockRunnerCommunicator) CompletedJobs() (j []Job) {
@@ -77,6 +94,11 @@ type MockUserInterfacer struct {
 	setLibSettingsCalled    bool
 	setLibQueuesCalled      bool
 	setWaitingRunnersCalled bool
+	startCalled             bool
+}
+
+func (m *MockUserInterfacer) Start(ctx *context.Context) {
+	m.startCalled = true
 }
 
 func (m *MockUserInterfacer) NewLibrarySettings() (ls map[string]LibrarySettings) {

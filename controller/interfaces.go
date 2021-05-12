@@ -1,5 +1,7 @@
 package controller
 
+import "context"
+
 // The HealthChecker interface describes how a struct wishing to decide if a job's
 // last update was long enough ago to mark the Runner doing it as unresponsive
 // should interact with the Run function.
@@ -7,6 +9,8 @@ type HealthChecker interface {
 	// Run loops through the provided slice of dispatched jobs and checks if any have
 	// surpassed the allowed time between updates.
 	Run() (uuidsToNull []UUID)
+
+	Start(ctx *context.Context)
 }
 
 // The LibraryManager interface describes how a struct wishing to deal with user's
@@ -29,6 +33,8 @@ type LibraryManager interface {
 	// UpdateLibrarySettings loops through the provided map of new settings and applies
 	// them to the appropriate libraries.
 	UpdateLibrarySettings(map[string]LibrarySettings)
+
+	Start(ctx *context.Context)
 }
 
 // The RunnerCommunicator interface describes how a struct wishing to communicate
@@ -51,6 +57,8 @@ type RunnerCommunicator interface {
 
 	// WaitingRunners returns the names of all the Runners which are waiting for a job.
 	WaitingRunners() (runnerNames []string)
+
+	Start(ctx *context.Context)
 }
 
 // The UserInterfacer interface describes how a struct wishing to interact
@@ -70,4 +78,6 @@ type UserInterfacer interface {
 	// SetWaitingRunners stores an updated value that should be sent if a request to view
 	// the waiting Runner is received.
 	SetWaitingRunners(runnerNames []string)
+
+	Start(ctx *context.Context)
 }

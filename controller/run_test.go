@@ -16,11 +16,17 @@ func TestRunFuncsCalled(t *testing.T) {
 	Run(&ctx, &mockHealthChecker, &mockLibraryManager, &mockRunnerCommunicator, &mockUserInterfacer, true)
 
 	// Check that HealthChecker methods were run
+	if !mockHealthChecker.startCalled {
+		t.Errorf("HealthChecker.Start() wasn't called")
+	}
 	if !mockHealthChecker.runCalled {
 		t.Errorf("HealthChecker.Run() wasn't called")
 	}
 
 	// Check that LibraryManager methods were run
+	if !mockLibraryManager.startCalled {
+		t.Errorf("LibraryManager.Start() wasn't called")
+	}
 	if !mockLibraryManager.importCalled {
 		t.Errorf("LibraryManager.ImportCompletedJobs() wasn't called")
 	}
@@ -38,6 +44,9 @@ func TestRunFuncsCalled(t *testing.T) {
 	}
 
 	// Check that RunnerCommunicator methods were run
+	if !mockRunnerCommunicator.startCalled {
+		t.Errorf("RunnerCommunicator.Start() wasn't called")
+	}
 	if !mockRunnerCommunicator.completedJobsCalled {
 		t.Errorf("RunnerCommunicator.CompletedJobs() wasn't called")
 	}
@@ -55,6 +64,9 @@ func TestRunFuncsCalled(t *testing.T) {
 	}
 
 	// Check that UserInterfacer methods were run
+	if !mockUserInterfacer.startCalled {
+		t.Errorf("UserInterfacer.Start() wasn't called")
+	}
 	if !mockUserInterfacer.newLibSettingsCalled {
 		t.Errorf("UserInterfacer.NewLibrarySettings() wasn't called")
 	}
