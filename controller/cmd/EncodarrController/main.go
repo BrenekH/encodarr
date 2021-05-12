@@ -8,9 +8,11 @@ import (
 	"syscall"
 
 	"github.com/BrenekH/encodarr/controller"
+	"github.com/BrenekH/encodarr/controller/globals"
 )
 
 func main() {
+	log.Printf("Starting Encodarr Controller %v\n", globals.Version)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	signals := make(chan os.Signal, 1)
@@ -18,7 +20,7 @@ func main() {
 
 	go func() {
 		sig := <-signals
-		log.Printf("Received stop signal: %v", sig)
+		log.Printf("Received stop signal: %v\n", sig)
 		// logger.Info(fmt.Sprintf("Received stop signal: %v", sig)) // logange.Logger
 		cancel()
 	}()
