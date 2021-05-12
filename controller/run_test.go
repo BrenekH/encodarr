@@ -44,6 +44,9 @@ func TestRunFuncsCalled(t *testing.T) {
 	if !mockRunnerCommunicator.newJobCalled {
 		t.Errorf("RunnerCommunicator.NewJob() wasn't called")
 	}
+	if !mockRunnerCommunicator.needNewJobCalled {
+		t.Errorf("RunnerCommunicator.NeedNewJob() wasn't called")
+	}
 	if !mockRunnerCommunicator.nullUUIDsCalled {
 		t.Errorf("RunnerCommunicator.NullifyUUIDs() wasn't called")
 	}

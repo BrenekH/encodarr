@@ -41,6 +41,9 @@ type RunnerCommunicator interface {
 	// NewJob takes the provided job and sends it to a waiting Runner.
 	NewJob(Job)
 
+	// NeedNewJob returns a boolean indicating whether or not a new job is required.
+	NeedNewJob() bool
+
 	// NullifyUUIDs takes the provided slice of UUIDs and marks them
 	// so that if a Runner sends a request with a nullified UUID, it gets notified
 	// that it is considered unresponsive and should acquire a new job.

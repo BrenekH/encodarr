@@ -43,6 +43,7 @@ func (m *MockLibraryManager) UpdateLibrarySettings(map[string]LibrarySettings) {
 type MockRunnerCommunicator struct {
 	completedJobsCalled  bool
 	newJobCalled         bool
+	needNewJobCalled     bool
 	nullUUIDsCalled      bool
 	waitingRunnersCalled bool
 }
@@ -54,6 +55,11 @@ func (m *MockRunnerCommunicator) CompletedJobs() (j []Job) {
 
 func (m *MockRunnerCommunicator) NewJob(Job) {
 	m.newJobCalled = true
+}
+
+func (m *MockRunnerCommunicator) NeedNewJob() bool {
+	m.needNewJobCalled = true
+	return true
 }
 
 func (m *MockRunnerCommunicator) NullifyUUIDs([]UUID) {

@@ -42,8 +42,7 @@ func Run(ctx *context.Context, hc HealthChecker, lm LibraryManager, rc RunnerCom
 		ui.SetWaitingRunners(wr)
 
 		// Send new job to the RunnerCommunicator if there is a waiting Runner
-		//? This seems like hacky way to detect if the RunnerCommunicator needs a job. Probably should change to a dedicated function.
-		if len(wr) > 0 {
+		if rc.NeedNewJob() {
 			nj := lm.PopNewJob()
 			rc.NewJob(nj)
 		}
