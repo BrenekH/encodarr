@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	log.Printf("Starting Encodarr Controller %v\n", globals.Version)
+	log.Printf("Starting Encodarr Controller version %v\n", globals.Version)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	signals := make(chan os.Signal, 1)
