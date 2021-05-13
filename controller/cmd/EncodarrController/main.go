@@ -9,6 +9,8 @@ import (
 
 	"github.com/BrenekH/encodarr/controller"
 	"github.com/BrenekH/encodarr/controller/globals"
+	"github.com/BrenekH/encodarr/controller/job_health"
+	"github.com/BrenekH/encodarr/controller/sqlite"
 )
 
 func main() {
@@ -25,11 +27,18 @@ func main() {
 		cancel()
 	}()
 
+	sqliteDatabase, err := sqlite.NewSQLiteDatabase(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hcDBAdapter := sqlite.NewHealthCheckerAdapater(&sqliteDatabase)
+	healthChecker := job_health.NewChecker(&hcDBAdapter)
+
 	// TODO: Replace mocks with actual implemented structs
-	mockHealthChecker := controller.MockHealthChecker{}
 	mockLibraryManager := controller.MockLibraryManager{}
 	mockRunnerCommunicator := controller.MockRunnerCommunicator{}
 	mockUserInterfacer := controller.MockUserInterfacer{}
 
-	controller.Run(&ctx, &mockHealthChecker, &mockLibraryManager, &mockRunnerCommunicator, &mockUserInterfacer, false)
+	controller.Run(&ctx, &healthChecker, &mockLibraryManager, &mockRunnerCommunicator, &mockUserInterfacer, false)
 }
