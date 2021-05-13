@@ -6,6 +6,6 @@ import (
 
 type SQLiteDataStore struct{}
 
-func NewSQLiteDataStore(file string) SQLiteDataStore {
+func NewSQLiteDataStore(configDir string) SQLiteDataStore {
 	return SQLiteDataStore{}
 }
