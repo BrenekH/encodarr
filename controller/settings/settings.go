@@ -105,15 +105,14 @@ func NewSettingsStore(configDir string) (SettingsStore, error) {
 	// Setup a SettingsStore struct with sensible defaults
 	s := defaultSettings()
 
-	var err error
-	s.file, err = os.OpenFile(configDir+"/settings.json", os.O_RDWR|os.O_CREATE, 0755)
+	f, err := os.OpenFile(configDir+"/settings.json", os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		return s, err
 	}
 
 	// Save to the file if the file is empty
 	var b []byte
-	b, err = io.ReadAll(s.file)
+	b, err = io.ReadAll(f)
 	if err != nil {
 		return s, err
 	}
@@ -123,6 +122,9 @@ func NewSettingsStore(configDir string) (SettingsStore, error) {
 			return s, err
 		}
 	}
+	f.Seek(0, 0)
+
+	s.file = f
 
 	err = s.Load()
 	return s, err

@@ -10,6 +10,7 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 	"github.com/BrenekH/encodarr/controller/globals"
 	"github.com/BrenekH/encodarr/controller/job_health"
+	"github.com/BrenekH/encodarr/controller/settings"
 	"github.com/BrenekH/encodarr/controller/sqlite"
 )
 
@@ -32,8 +33,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	settingsStore, err := settings.NewSettingsStore(".")
+	if err != nil {
+		log.Fatalf("NewSettingsStore Error: %v", err)
+	}
+
 	hcDBAdapter := sqlite.NewHealthCheckerAdapater(&sqliteDatabase)
-	healthChecker := job_health.NewChecker(&hcDBAdapter)
+	healthChecker := job_health.NewChecker(&hcDBAdapter, &settingsStore)
 
 	// TODO: Replace mocks with actual implemented structs
 	mockLibraryManager := controller.MockLibraryManager{}
