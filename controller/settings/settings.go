@@ -111,6 +111,19 @@ func NewSettingsStore(configDir string) (SettingsStore, error) {
 		return s, err
 	}
 
+	// Save to the file if the file is empty
+	var b []byte
+	b, err = io.ReadAll(s.file)
+	if err != nil {
+		return s, err
+	}
+	if len(b) == 0 {
+		err = s.Save()
+		if err != nil {
+			return s, err
+		}
+	}
+
 	err = s.Load()
 	return s, err
 }
