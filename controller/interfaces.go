@@ -81,3 +81,22 @@ type UserInterfacer interface {
 
 	Start(ctx *context.Context)
 }
+
+// The SettingsStorer defines how a struct which stores the settings in some manner
+// should interact with other components of the application.
+type SettingsStorer interface {
+	Load() error
+	Save() error
+	Close() error
+
+	// Getters and Setters
+
+	HealthCheckInterval() uint64
+	SetHealthCheckInterval(uint64)
+
+	HealthCheckTimeout() uint64
+	SetHealthCheckTimeout(uint64)
+
+	LogVerbosity() string
+	SetLogVerbosity(string)
+}
