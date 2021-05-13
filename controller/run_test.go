@@ -80,3 +80,12 @@ func TestRunFuncsCalled(t *testing.T) {
 		t.Errorf("UserInterfacer.SetWaitingRunners() wasn't called")
 	}
 }
+
+// Test to write
+//   - rc.NullifyUUIDs() is called with the return value of hc.Run()
+//   - ui.SetLibrarySettings() is called with the return value of lm.LibrarySettings()
+//   - lm.UpdateLibrarySettings() is called with the return value of ui.NewLibrarySettings()
+//   - ui.SetLibraryQueues() is called with the return value of lm.LibraryQueues()
+//   - ui.SetWaitingRunners() is called with the return value of rc.WaitingRunners()
+//   - rc.NewJob() is called with the return value of lm.PopNewJob() only when rc.NeedNewJob() returns true
+//   - lm.ImportCompletedJobs() is called with the return value of rc.CompletedJobs()
