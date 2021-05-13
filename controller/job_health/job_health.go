@@ -13,6 +13,7 @@ func NewChecker(ds controller.HealthCheckerDataStorer, ss controller.SettingsSto
 		ss: ss,
 
 		lastCheckTime: time.Unix(0, 0),
+		nowSincer:     TimeNowSince{},
 	}
 }
 
@@ -21,18 +22,19 @@ type Checker struct {
 	ss controller.SettingsStorer
 
 	lastCheckTime time.Time
+	nowSincer     NowSincer
 }
 
 // Run loops through the provided slice of dispatched jobs and checks if any have
 // surpassed the allowed time between updates, if the Health Check timing interval has expired.
 func (c *Checker) Run() (uuidsToNull []controller.UUID) {
-	if time.Since(c.lastCheckTime) >= time.Duration(c.ss.HealthCheckInterval()) {
-		c.lastCheckTime = time.Now()
+	if c.nowSincer.Since(c.lastCheckTime) >= time.Duration(c.ss.HealthCheckInterval()) {
+		c.lastCheckTime = c.nowSincer.Now()
 
 		djs := c.ds.DispatchedJobs()
 
 		for _, v := range djs {
-			if time.Since(v.LastUpdated) >= time.Duration(c.ss.HealthCheckTimeout()) {
+			if c.nowSincer.Since(v.LastUpdated) >= time.Duration(c.ss.HealthCheckTimeout()) {
 				uuidsToNull = append(uuidsToNull, v.UUID)
 			}
 		}
