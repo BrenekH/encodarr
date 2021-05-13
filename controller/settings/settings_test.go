@@ -8,7 +8,7 @@ import (
 
 func TestFileReadCalled(t *testing.T) {
 	ss := defaultSettings()
-	mRWC := mockReadWriteCloser{}
+	mRWC := mockReadWriteSeekCloser{}
 	ss.file = &mRWC
 
 	if err := ss.Load(); err != nil {
@@ -22,7 +22,7 @@ func TestFileReadCalled(t *testing.T) {
 
 func TestFileWriteCalled(t *testing.T) {
 	ss := defaultSettings()
-	mRWC := mockReadWriteCloser{}
+	mRWC := mockReadWriteSeekCloser{}
 	ss.file = &mRWC
 
 	if err := ss.Save(); err != nil {
@@ -36,7 +36,7 @@ func TestFileWriteCalled(t *testing.T) {
 
 func TestFileCloseCalled(t *testing.T) {
 	ss := defaultSettings()
-	mRWC := mockReadWriteCloser{}
+	mRWC := mockReadWriteSeekCloser{}
 	ss.file = &mRWC
 
 	if err := ss.Close(); err != nil {
@@ -50,7 +50,7 @@ func TestFileCloseCalled(t *testing.T) {
 
 func TestCloseSetsClosed(t *testing.T) {
 	ss := defaultSettings()
-	mRWC := mockReadWriteCloser{}
+	mRWC := mockReadWriteSeekCloser{}
 	ss.file = &mRWC
 
 	if err := ss.Close(); err != nil {
@@ -64,7 +64,7 @@ func TestCloseSetsClosed(t *testing.T) {
 
 func TestErrorReturnedAfterFileIsClosed(t *testing.T) {
 	ss := defaultSettings()
-	mRWC := mockReadWriteCloser{}
+	mRWC := mockReadWriteSeekCloser{}
 	ss.file = &mRWC
 
 	if err := ss.Close(); err != nil {

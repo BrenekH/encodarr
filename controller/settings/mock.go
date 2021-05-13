@@ -5,15 +5,16 @@ import (
 	"io"
 )
 
-type mockReadWriteCloser struct {
+type mockReadWriteSeekCloser struct {
 	readCalled  bool
 	writeCalled bool
+	seekCalled  bool
 	closeCalled bool
 
 	bR *bytes.Reader
 }
 
-func (m *mockReadWriteCloser) Read(p []byte) (n int, err error) {
+func (m *mockReadWriteSeekCloser) Read(p []byte) (int, error) {
 	if !m.readCalled {
 		m.bR = bytes.NewReader([]byte("{}"))
 	}
@@ -21,12 +22,20 @@ func (m *mockReadWriteCloser) Read(p []byte) (n int, err error) {
 	return m.bR.Read(p)
 }
 
-func (m *mockReadWriteCloser) Write(p []byte) (n int, err error) {
+func (m *mockReadWriteSeekCloser) Write(p []byte) (int, error) {
 	m.writeCalled = true
 	return io.Discard.Write(p)
 }
 
-func (m *mockReadWriteCloser) Close() error {
+func (m *mockReadWriteSeekCloser) Seek(offset int64, whence int) (int64, error) {
+	m.seekCalled = true
+	if !m.readCalled {
+		return 0, nil
+	}
+	return m.bR.Seek(offset, whence)
+}
+
+func (m *mockReadWriteSeekCloser) Close() error {
 	m.closeCalled = true
 	return nil
 }

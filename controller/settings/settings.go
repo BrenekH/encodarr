@@ -10,12 +10,17 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
+type ReadWriteSeekCloser interface {
+	io.ReadWriteCloser
+	io.Seeker
+}
+
 type SettingsStore struct {
 	healthCheckInterval uint64
 	healthCheckTimeout  uint64
 	logVerbosity        string
 
-	file   io.ReadWriteCloser
+	file   ReadWriteSeekCloser
 	closed bool
 }
 
@@ -32,6 +37,7 @@ func (s *SettingsStore) Load() error {
 		return controller.ErrClosed
 	}
 
+	s.file.Seek(0, io.SeekStart)
 	b, err := io.ReadAll(s.file)
 	if err != nil {
 		return err
@@ -105,14 +111,15 @@ func NewSettingsStore(configDir string) (SettingsStore, error) {
 	// Setup a SettingsStore struct with sensible defaults
 	s := defaultSettings()
 
-	f, err := os.OpenFile(configDir+"/settings.json", os.O_RDWR|os.O_CREATE, 0755)
+	var err error
+	s.file, err = os.OpenFile(configDir+"/settings.json", os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		return s, err
 	}
 
 	// Save to the file if the file is empty
 	var b []byte
-	b, err = io.ReadAll(f)
+	b, err = io.ReadAll(s.file)
 	if err != nil {
 		return s, err
 	}
@@ -122,9 +129,6 @@ func NewSettingsStore(configDir string) (SettingsStore, error) {
 			return s, err
 		}
 	}
-	f.Seek(0, 0)
-
-	s.file = f
 
 	err = s.Load()
 	return s, err
