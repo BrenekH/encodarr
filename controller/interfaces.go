@@ -100,3 +100,8 @@ type SettingsStorer interface {
 	LogVerbosity() string
 	SetLogVerbosity(string)
 }
+
+type HealthCheckerDataStorer interface {
+	DispatchedJobs() []DispatchedJob
+	DeleteJob(uuid UUID)
+}
