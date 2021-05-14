@@ -3,6 +3,8 @@ package job_health
 import (
 	"testing"
 	"time"
+
+	"github.com/BrenekH/encodarr/controller"
 )
 
 // Run calls time.Since() and SettingsStorer.HealthCheckInterval()
@@ -74,6 +76,74 @@ func TestHealthCheckRunsUnderCorrectConditions(t *testing.T) {
 	}
 }
 
-// TODO: Implement
-// Tests to create
-//   - Various scenarios around dispatched jobs LastUpdated field being higher or lower than HealthCheckTimeout
+// Various scenarios around dispatched jobs LastUpdated field being higher or lower than HealthCheckTimeout
+func TestCorrectNullingBehavior(t *testing.T) {
+	tests := []struct {
+		name                    string
+		healthCheckTimeout      uint64
+		jobLastUpdatedDur       time.Duration // Sets what time.Since returns as the duration on the second call
+		expectUUIDToBeNullified bool
+	}{
+		{
+			name:                    "DJob.LastUpdated is smaller than the timeout",
+			healthCheckTimeout:      uint64(time.Second * 32),
+			jobLastUpdatedDur:       time.Second * 16,
+			expectUUIDToBeNullified: false,
+		},
+		{
+			name:                    "DJob.LastUpdated is equal to the timeout",
+			healthCheckTimeout:      uint64(time.Second * 32),
+			jobLastUpdatedDur:       time.Second * 32,
+			expectUUIDToBeNullified: true,
+		},
+		{
+			name:                    "DJob.LastUpdated is larger than the timeout",
+			healthCheckTimeout:      uint64(time.Second * 32),
+			jobLastUpdatedDur:       time.Second * 48,
+			expectUUIDToBeNullified: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ds := mockDataStorer{
+				dJobs: []controller.DispatchedJob{
+					{
+						UUID:        "test",
+						Runner:      "TestRunner",
+						Job:         controller.Job{},
+						Status:      controller.JobStatus{},
+						LastUpdated: time.Unix(0, 0),
+					},
+				},
+			}
+			ss := mockSettingsStorer{
+				healthCheckInt:     uint64(time.Second * 1),
+				healthCheckTimeout: test.healthCheckTimeout,
+			}
+			c := NewChecker(&ds, &ss)
+
+			mNS := mockNowSincer{
+				sinceResp:  time.Second * 2,
+				sinceResp2: test.jobLastUpdatedDur,
+			}
+			c.nowSincer = &mNS
+
+			nulledUUIDs := c.Run()
+
+			if !ds.dJobsCalled {
+				t.Errorf("expected DataStorer.DispatchedJobs() to be called")
+				return
+			}
+
+			if mNS.sinceTimesCalled != 2 {
+				t.Errorf("expected NowSincer.Since() to be called twice but it was called %v times", mNS.sinceTimesCalled)
+				return
+			}
+
+			if len(nulledUUIDs) > 0 && !test.expectUUIDToBeNullified {
+				t.Errorf("received a nullified UUID when one wasn't expected")
+			}
+		})
+	}
+}
