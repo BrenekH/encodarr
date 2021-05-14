@@ -24,10 +24,15 @@ func (m *mockNowSincer) Since(time.Time) time.Duration {
 	return m.sinceResp
 }
 
-type mockDataStorer struct{}
+type mockDataStorer struct {
+	dJobsCalled bool
+}
 
-func (m *mockDataStorer) DispatchedJobs() (djs []controller.DispatchedJob) { return }
-func (m *mockDataStorer) DeleteJob(uuid controller.UUID)                   {}
+func (m *mockDataStorer) DispatchedJobs() (djs []controller.DispatchedJob) {
+	m.dJobsCalled = true
+	return
+}
+func (m *mockDataStorer) DeleteJob(uuid controller.UUID) {}
 
 type mockSettingsStorer struct {
 	healthCheckIntCalled bool
