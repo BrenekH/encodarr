@@ -21,12 +21,12 @@ func (w *WebHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	// Add handlers to w.httpServer
 }
 
-func (w *WebHTTPApiV1) NewLibrarySettings() (m map[string]controller.LibrarySettings) {
+func (w *WebHTTPApiV1) NewLibrarySettings() (m map[string]controller.Library) {
 	w.logger.Critical("Not implemented")
 	return
 }
 
-func (w *WebHTTPApiV1) SetLibrarySettings([]controller.LibrarySettings) {
+func (w *WebHTTPApiV1) SetLibrarySettings([]controller.Library) {
 	w.logger.Critical("Not implemented")
 }
 

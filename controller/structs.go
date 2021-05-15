@@ -12,8 +12,18 @@ type Job struct {
 	Metadata struct{} `json:"metadata"` // TODO: Define metadata as its own struct
 }
 
-// LibrarySettings represents the settings of a single library.
-type LibrarySettings struct{}
+// Library represents a single library.
+type Library struct {
+	ID              int           `json:"id"`
+	Folder          string        `json:"folder"`
+	Priority        int           `json:"priority"`
+	FsCheckInterval time.Duration `json:"fs_check_interval"`
+	Queue           LibraryQueue  `json:"queue"`
+	PathMasks       []string      `json:"path_masks"`
+
+	// TODO: Figure out how to replace PluginPipeline
+	// Pipeline        PluginPipeline `json:"pipeline"`
+}
 
 // LibraryQueue represents a singular queue belonging to one library.
 type LibraryQueue struct{}

@@ -23,7 +23,7 @@ type LibraryManager interface {
 	ImportCompletedJobs([]Job)
 
 	// LibrarySettings returns the current settings of all libraries
-	LibrarySettings() []LibrarySettings
+	LibrarySettings() []Library
 
 	// LibraryQueues returns a slice of LibraryQueue to indicate the current status of
 	// the queues.
@@ -35,7 +35,7 @@ type LibraryManager interface {
 
 	// UpdateLibrarySettings loops through the provided map of new settings and applies
 	// them to the appropriate libraries.
-	UpdateLibrarySettings(map[string]LibrarySettings)
+	UpdateLibrarySettings(map[string]Library)
 
 	Start(ctx *context.Context, wg *sync.WaitGroup)
 }
@@ -68,11 +68,11 @@ type RunnerCommunicator interface {
 // with the user should interact with the Run function.
 type UserInterfacer interface {
 	// NewLibrarySettings returns a map of all updated library settings as set by the user.
-	NewLibrarySettings() map[string]LibrarySettings
+	NewLibrarySettings() map[string]Library
 
 	// SetLibrarySettings takes the provided slice of LibrarySettings and stores it
 	// for an incoming request.
-	SetLibrarySettings([]LibrarySettings)
+	SetLibrarySettings([]Library)
 
 	// SetLibraryQueues takes the provided slice and stores it so that if a request
 	// to view the queues is received, the response can be quickly sent.
@@ -107,6 +107,10 @@ type SettingsStorer interface {
 type HealthCheckerDataStorer interface {
 	DispatchedJobs() []DispatchedJob
 	DeleteJob(uuid UUID) error
+}
+
+type LibraryManagerDataStorer interface {
+	Libraries() []Library
 }
 
 type Logger interface {

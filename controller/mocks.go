@@ -36,7 +36,7 @@ func (m *mockLibraryManager) ImportCompletedJobs([]Job) {
 	m.importCalled = true
 }
 
-func (m *mockLibraryManager) LibrarySettings() (ls []LibrarySettings) {
+func (m *mockLibraryManager) LibrarySettings() (ls []Library) {
 	m.libSettingsCalled = true
 	return
 }
@@ -51,7 +51,7 @@ func (m *mockLibraryManager) PopNewJob() (j Job) {
 	return
 }
 
-func (m *mockLibraryManager) UpdateLibrarySettings(map[string]LibrarySettings) {
+func (m *mockLibraryManager) UpdateLibrarySettings(map[string]Library) {
 	m.updateLibSettingsCalled = true
 }
 
@@ -104,12 +104,12 @@ func (m *mockUserInterfacer) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	m.startCalled = true
 }
 
-func (m *mockUserInterfacer) NewLibrarySettings() (ls map[string]LibrarySettings) {
+func (m *mockUserInterfacer) NewLibrarySettings() (ls map[string]Library) {
 	m.newLibSettingsCalled = true
 	return
 }
 
-func (m *mockUserInterfacer) SetLibrarySettings([]LibrarySettings) {
+func (m *mockUserInterfacer) SetLibrarySettings([]Library) {
 	m.setLibSettingsCalled = true
 }
 
