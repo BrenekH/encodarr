@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -12,10 +13,37 @@ import (
 	"github.com/BrenekH/encodarr/controller/job_health"
 	"github.com/BrenekH/encodarr/controller/settings"
 	"github.com/BrenekH/encodarr/controller/sqlite"
+	"github.com/BrenekH/logange"
 )
 
 func main() {
-	log.Printf("Starting Encodarr Controller version %v\n", globals.Version)
+	configDir := "."
+
+	// Setup main logger
+	mainLogger := logange.NewLogger("main")
+
+	formatter := logange.StandardFormatter{FormatString: "${datetime}|${name}|${lineno}|${levelname}|${message}\n"}
+
+	// Setup the root logger to print info
+	rootStdoutHandler := logange.NewStdoutHandler()
+	rootStdoutHandler.SetFormatter(formatter)
+	rootStdoutHandler.SetLevel(logange.LevelInfo)
+
+	logange.RootLogger.AddHandler(&rootStdoutHandler)
+
+	// Root logging to a file
+	rootFileHandler, err := logange.NewFileHandler(fmt.Sprintf("%v/controller.log", configDir))
+	if err != nil {
+		log.Printf("Error creating rootFileHandler: %v", err)
+		os.Exit(10)
+		return
+	}
+	rootFileHandler.SetFormatter(formatter)
+	rootFileHandler.SetLevel(logange.LevelInfo)
+
+	logange.RootLogger.AddHandler(&rootFileHandler)
+
+	mainLogger.Info("Starting Encodarr Controller version %v\n", globals.Version)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	signals := make(chan os.Signal, 1)
@@ -23,19 +51,18 @@ func main() {
 
 	go func() {
 		sig := <-signals
-		log.Printf("Received stop signal: %v\n", sig)
-		// logger.Info(fmt.Sprintf("Received stop signal: %v", sig)) // logange.Logger
+		mainLogger.Info("Received stop signal: %v", sig)
 		cancel()
 	}()
 
-	sqliteDatabase, err := sqlite.NewSQLiteDatabase(".")
+	sqliteDatabase, err := sqlite.NewSQLiteDatabase(configDir)
 	if err != nil {
-		log.Fatal(err)
+		mainLogger.Critical("%v", err)
 	}
 
-	settingsStore, err := settings.NewSettingsStore(".")
+	settingsStore, err := settings.NewSettingsStore(configDir)
 	if err != nil {
-		log.Fatalf("NewSettingsStore Error: %v", err)
+		mainLogger.Critical("NewSettingsStore Error: %v", err)
 	}
 
 	hcDBAdapter := sqlite.NewHealthCheckerAdapater(&sqliteDatabase)

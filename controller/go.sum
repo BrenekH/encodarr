@@ -1,3 +1,5 @@
+github.com/BrenekH/logange v0.5.0 h1:tiDlJ5X4s3dDvWQqtYqrxQF6Hotap/bJ0rgZQJ9PRhk=
+github.com/BrenekH/logange v0.5.0/go.mod h1:688zEc1nhUoKOa0z+2c3whFyrQRB9yX68AGQS627fao=
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/google/go-cmp v0.5.3 h1:x95R7cp+rSeeqAMI2knLtQ0DKlaBhv2NrtrOvafPHRo=
