@@ -147,3 +147,5 @@ func TestCorrectNullingBehavior(t *testing.T) {
 		})
 	}
 }
+
+// TODO: Test DataStorer.DeleteJob error handling

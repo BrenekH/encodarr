@@ -35,7 +35,20 @@ func (c *Checker) Run() (uuidsToNull []controller.UUID) {
 
 		for _, v := range djs {
 			if c.nowSincer.Since(v.LastUpdated) >= time.Duration(c.ss.HealthCheckTimeout()) {
-				uuidsToNull = append(uuidsToNull, v.UUID)
+				// Since DeleteJob may be blocked by an IO error of some sort (SQLiteDB.SetMaxOpenConns should fix this issue but just in case)
+				//   attempt to delete the job up to a hundred times.
+				jobDeleted := false
+				for i := 0; i < 100; i++ {
+					if err := c.ds.DeleteJob(v.UUID); err == nil {
+						jobDeleted = true
+						break
+					}
+					time.Sleep(time.Microsecond * 2)
+				}
+
+				if jobDeleted {
+					uuidsToNull = append(uuidsToNull, v.UUID)
+				}
 			}
 		}
 	}

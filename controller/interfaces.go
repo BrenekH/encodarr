@@ -103,5 +103,5 @@ type SettingsStorer interface {
 
 type HealthCheckerDataStorer interface {
 	DispatchedJobs() []DispatchedJob
-	DeleteJob(uuid UUID)
+	DeleteJob(uuid UUID) error
 }

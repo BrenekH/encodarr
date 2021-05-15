@@ -40,7 +40,10 @@ func (m *mockDataStorer) DispatchedJobs() []controller.DispatchedJob {
 	m.dJobsCalled = true
 	return m.dJobs
 }
-func (m *mockDataStorer) DeleteJob(uuid controller.UUID) {}
+
+func (m *mockDataStorer) DeleteJob(uuid controller.UUID) (err error) {
+	return
+}
 
 type mockSettingsStorer struct {
 	healthCheckIntCalled bool

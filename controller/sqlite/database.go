@@ -16,7 +16,8 @@ func NewSQLiteDatabase(configDir string) (SQLiteDatabase, error) {
 		return SQLiteDatabase{Client: client}, err
 	}
 
-	client.SetMaxOpenConns(1) // Set max connections to 1 to prevent "database is locked" errors
+	// Set max connections to 1 to prevent "database is locked" errors
+	client.SetMaxOpenConns(1)
 
 	// Ensure all tables are in the database
 	_, err = client.Exec(schemaStmt)
