@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/BrenekH/encodarr/controller"
+	"github.com/google/uuid"
 )
 
 func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer) Manager {
+	// TODO: Take a MetadataReader and a CommandDecider as arguments
 	return Manager{
 		logger: logger,
 		ds:     ds,
@@ -23,6 +25,9 @@ type Manager struct {
 	logger controller.Logger
 	ds     controller.LibraryManagerDataStorer
 
+	metadataReader MetadataReader
+	commandDecider CommandDecider
+
 	// lastCheckedTimes is a map of Library ids and the last time that they were checked.
 	lastCheckedTimes map[int]time.Time
 
@@ -30,7 +35,7 @@ type Manager struct {
 	workerCompletedMap map[int]bool
 }
 
-func (l *Manager) Start(ctx *context.Context, wg *sync.WaitGroup) {
+func (m *Manager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -39,28 +44,28 @@ func (l *Manager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 				return
 			}
 			// Check all Libraries for required scans
-			allLibraries := l.ds.Libraries()
+			allLibraries := m.ds.Libraries()
 
 			for _, lib := range allLibraries {
-				t, ok := l.lastCheckedTimes[lib.ID]
+				t, ok := m.lastCheckedTimes[lib.ID]
 				if !ok {
-					l.lastCheckedTimes[lib.ID] = time.Unix(0, 0)
-					t = l.lastCheckedTimes[lib.ID]
+					m.lastCheckedTimes[lib.ID] = time.Unix(0, 0)
+					t = m.lastCheckedTimes[lib.ID]
 				}
 
-				previousWorkerFinished, ok := l.workerCompletedMap[lib.ID]
+				previousWorkerFinished, ok := m.workerCompletedMap[lib.ID]
 				if !ok {
-					l.workerCompletedMap[lib.ID] = true
-					previousWorkerFinished = l.workerCompletedMap[lib.ID]
+					m.workerCompletedMap[lib.ID] = true
+					previousWorkerFinished = m.workerCompletedMap[lib.ID]
 				}
 
 				if time.Since(t) > lib.FsCheckInterval && previousWorkerFinished {
-					l.logger.Debug("Initiating library (ID: %v) update", lib.ID)
-					l.lastCheckedTimes[lib.ID] = time.Now()
-					l.workerCompletedMap[lib.ID] = false
+					m.logger.Debug("Initiating library (ID: %v) update", lib.ID)
+					m.lastCheckedTimes[lib.ID] = time.Now()
+					m.workerCompletedMap[lib.ID] = false
 
 					wg.Add(1)
-					go l.updateLibraryQueue(ctx, wg, lib)
+					go m.updateLibraryQueue(ctx, wg, lib)
 				}
 			}
 			time.Sleep(time.Second)
@@ -68,14 +73,14 @@ func (l *Manager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	}()
 }
 
-func (l *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, lib controller.Library) {
+func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, lib controller.Library) {
 	defer wg.Done()
-	defer func() { l.workerCompletedMap[lib.ID] = true }()
+	defer func() { m.workerCompletedMap[lib.ID] = true }()
 
 	// Locate video files
 	discoveredVideos, err := GetVideoFilesFromDir(lib.Folder) // TODO: Abstract this function so it can be mocked out for something else during testing
 	if err != nil {
-		l.logger.Error(err.Error())
+		m.logger.Error(err.Error())
 		return
 	}
 
@@ -84,7 +89,7 @@ func (l *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 		maskedOut := false
 		for _, v := range lib.PathMasks {
 			if strings.Contains(videoFilepath, v) {
-				l.logger.Debug("%v skipped because of a mask (%v)", videoFilepath, v)
+				m.logger.Debug("%v skipped because of a mask (%v)", videoFilepath, v)
 				maskedOut = true
 				break
 			}
@@ -93,36 +98,55 @@ func (l *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 			continue
 		}
 
+		if m.ds.IsPathDispatched(videoFilepath) || lib.Queue.InQueuePath(controller.Job{Path: videoFilepath}) {
+			continue
+		}
+
 		// Read file metadata from a MetadataReader
+		fMetadata := m.metadataReader.Read(videoFilepath)
+
 		// Run a CommandDecider against the metadata to determine what FFMpeg command to run
+		runCmd, commandSlice := m.commandDecider.Decide(fMetadata)
+		if !runCmd {
+			m.logger.Debug("Skipping %v because CommandDecider returned a do not run status bool and the following command slice: %v", videoFilepath, commandSlice)
+			continue
+		}
+
 		// Save to Library queue
+		job := controller.Job{
+			UUID:     controller.UUID(uuid.NewString()),
+			Path:     videoFilepath,
+			Command:  commandSlice,
+			Metadata: fMetadata,
+		}
+		lib.Queue.Push(job)
 	}
 }
 
-func (l *Manager) ImportCompletedJobs([]controller.Job) {
-	l.logger.Critical("Not implemented")
+func (m *Manager) ImportCompletedJobs([]controller.Job) {
+	m.logger.Critical("Not implemented")
 	// TODO: Implement
 }
 
-func (l *Manager) LibrarySettings() (ls []controller.Library) {
-	l.logger.Critical("Not implemented")
-	// TODO: Implement
-	return
-}
-
-func (l *Manager) LibraryQueues() (lq []controller.LibraryQueue) {
-	l.logger.Critical("Not implemented")
+func (m *Manager) LibrarySettings() (ls []controller.Library) {
+	m.logger.Critical("Not implemented")
 	// TODO: Implement
 	return
 }
 
-func (l *Manager) PopNewJob() (j controller.Job) {
-	l.logger.Critical("Not implemented")
+func (m *Manager) LibraryQueues() (lq []controller.LibraryQueue) {
+	m.logger.Critical("Not implemented")
 	// TODO: Implement
 	return
 }
 
-func (l *Manager) UpdateLibrarySettings(map[string]controller.Library) {
-	l.logger.Critical("Not implemented")
+func (m *Manager) PopNewJob() (j controller.Job) {
+	m.logger.Critical("Not implemented")
+	// TODO: Implement
+	return
+}
+
+func (m *Manager) UpdateLibrarySettings(map[string]controller.Library) {
+	m.logger.Critical("Not implemented")
 	// TODO: Implement
 }

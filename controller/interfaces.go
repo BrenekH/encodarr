@@ -111,12 +111,12 @@ type HealthCheckerDataStorer interface {
 
 type LibraryManagerDataStorer interface {
 	Libraries() []Library
-
-	IsPathDispatched(path string) bool
+	SaveLibrary(Library)
 
 	FileEntryByPath(path string) File
-
 	SaveFileEntry(f File)
+
+	IsPathDispatched(path string) bool
 }
 
 type Logger interface {
