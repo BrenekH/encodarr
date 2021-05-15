@@ -11,7 +11,7 @@ import (
 func TestTimeSinceAndSSHealthCheckIntervalCalled(t *testing.T) {
 	ds := mockDataStorer{}
 	ss := mockSettingsStorer{}
-	c := NewChecker(&ds, &ss)
+	c := NewChecker(&ds, &ss, &mockLogger{})
 
 	mNS := mockNowSincer{}
 	c.nowSincer = &mNS
@@ -60,7 +60,7 @@ func TestHealthCheckRunsUnderCorrectConditions(t *testing.T) {
 			ss := mockSettingsStorer{
 				healthCheckInt: test.healthCheckInt,
 			}
-			c := NewChecker(&ds, &ss)
+			c := NewChecker(&ds, &ss, &mockLogger{})
 
 			mNS := mockNowSincer{
 				sinceResp: test.sinceResp,
@@ -121,7 +121,7 @@ func TestCorrectNullingBehavior(t *testing.T) {
 				healthCheckInt:     uint64(time.Second * 1),
 				healthCheckTimeout: test.healthCheckTimeout,
 			}
-			c := NewChecker(&ds, &ss)
+			c := NewChecker(&ds, &ss, &mockLogger{})
 
 			mNS := mockNowSincer{
 				sinceResp:  time.Second * 2,

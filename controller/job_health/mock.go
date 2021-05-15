@@ -68,3 +68,12 @@ func (m *mockSettingsStorer) SetHealthCheckInterval(uint64) {}
 func (m *mockSettingsStorer) SetHealthCheckTimeout(uint64)  {}
 func (m *mockSettingsStorer) LogVerbosity() (s string)      { return }
 func (m *mockSettingsStorer) SetLogVerbosity(string)        {}
+
+type mockLogger struct{}
+
+func (m *mockLogger) Trace(s string, i ...interface{})    {}
+func (m *mockLogger) Debug(s string, i ...interface{})    {}
+func (m *mockLogger) Info(s string, i ...interface{})     {}
+func (m *mockLogger) Warn(s string, i ...interface{})     {}
+func (m *mockLogger) Error(s string, i ...interface{})    {}
+func (m *mockLogger) Critical(s string, i ...interface{}) {}

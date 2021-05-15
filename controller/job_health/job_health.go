@@ -7,13 +7,15 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewChecker(ds controller.HealthCheckerDataStorer, ss controller.SettingsStorer) Checker {
+func NewChecker(ds controller.HealthCheckerDataStorer, ss controller.SettingsStorer, logger controller.Logger) Checker {
 	return Checker{
 		ds: ds,
 		ss: ss,
 
 		lastCheckTime: time.Unix(0, 0),
 		nowSincer:     TimeNowSince{},
+
+		logger: logger,
 	}
 }
 
@@ -23,6 +25,8 @@ type Checker struct {
 
 	lastCheckTime time.Time
 	nowSincer     NowSincer
+
+	logger controller.Logger
 }
 
 // Run loops through the provided slice of dispatched jobs and checks if any have
@@ -42,6 +46,8 @@ func (c *Checker) Run() (uuidsToNull []controller.UUID) {
 					if err := c.ds.DeleteJob(v.UUID); err == nil {
 						jobDeleted = true
 						break
+					} else {
+						c.logger.Warn("%v", err)
 					}
 					time.Sleep(time.Microsecond * 2)
 				}
