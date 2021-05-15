@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/BrenekH/encodarr/controller"
+	"github.com/BrenekH/encodarr/controller/file_system"
 	"github.com/BrenekH/encodarr/controller/globals"
 	"github.com/BrenekH/encodarr/controller/job_health"
 	"github.com/BrenekH/encodarr/controller/settings"
@@ -71,10 +72,12 @@ func main() {
 	healthChecker := job_health.NewChecker(&hcDBAdapter, &settingsStore, &healthCheckerLogger)
 
 	// TODO: Replace mocks with actual implemented structs
-	mockLibraryManager := controller.MockLibraryManager{}
+	// mockLibraryManager := controller.MockLibraryManager{}
+	lmLogger := logange.NewLogger("libraryManager")
+	lm := file_system.NewLibraryManager(&lmLogger)
 	mockRunnerCommunicator := controller.MockRunnerCommunicator{}
 	mockUserInterfacer := controller.MockUserInterfacer{}
 
 	runLogger := logange.NewLogger("run")
-	controller.Run(&ctx, &runLogger, &healthChecker, &mockLibraryManager, &mockRunnerCommunicator, &mockUserInterfacer, false)
+	controller.Run(&ctx, &runLogger, &healthChecker, &lm, &mockRunnerCommunicator, &mockUserInterfacer, false)
 }
