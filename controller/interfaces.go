@@ -105,3 +105,12 @@ type HealthCheckerDataStorer interface {
 	DispatchedJobs() []DispatchedJob
 	DeleteJob(uuid UUID) error
 }
+
+type Logger interface {
+	Trace(s string, i ...interface{})
+	Debug(s string, i ...interface{})
+	Info(s string, i ...interface{})
+	Warn(s string, i ...interface{})
+	Error(s string, i ...interface{})
+	Critical(s string, i ...interface{})
+}

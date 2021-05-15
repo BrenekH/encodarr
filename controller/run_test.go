@@ -8,12 +8,13 @@ import (
 func TestRunFuncsCalled(t *testing.T) {
 	ctx := context.Background()
 
+	mockLogger := MockLogger{}
 	mockHealthChecker := MockHealthChecker{}
 	mockLibraryManager := MockLibraryManager{}
 	mockRunnerCommunicator := MockRunnerCommunicator{}
 	mockUserInterfacer := MockUserInterfacer{}
 
-	Run(&ctx, &mockHealthChecker, &mockLibraryManager, &mockRunnerCommunicator, &mockUserInterfacer, true)
+	Run(&ctx, &mockLogger, &mockHealthChecker, &mockLibraryManager, &mockRunnerCommunicator, &mockUserInterfacer, true)
 
 	// Check that HealthChecker methods were run
 	if !mockHealthChecker.startCalled {

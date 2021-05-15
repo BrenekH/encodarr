@@ -117,3 +117,12 @@ func (m *MockUserInterfacer) SetLibraryQueues([]LibraryQueue) {
 func (m *MockUserInterfacer) SetWaitingRunners(runnerNames []string) {
 	m.setWaitingRunnersCalled = true
 }
+
+type MockLogger struct{}
+
+func (m *MockLogger) Trace(s string, i ...interface{})    {}
+func (m *MockLogger) Debug(s string, i ...interface{})    {}
+func (m *MockLogger) Info(s string, i ...interface{})     {}
+func (m *MockLogger) Warn(s string, i ...interface{})     {}
+func (m *MockLogger) Error(s string, i ...interface{})    {}
+func (m *MockLogger) Critical(s string, i ...interface{}) {}

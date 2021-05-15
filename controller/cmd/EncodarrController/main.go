@@ -73,5 +73,6 @@ func main() {
 	mockRunnerCommunicator := controller.MockRunnerCommunicator{}
 	mockUserInterfacer := controller.MockUserInterfacer{}
 
-	controller.Run(&ctx, &healthChecker, &mockLibraryManager, &mockRunnerCommunicator, &mockUserInterfacer, false)
+	runLogger := logange.NewLogger("run")
+	controller.Run(&ctx, &runLogger, &healthChecker, &mockLibraryManager, &mockRunnerCommunicator, &mockUserInterfacer, false)
 }
