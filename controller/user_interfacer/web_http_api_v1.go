@@ -2,6 +2,7 @@ package user_interfacer
 
 import (
 	"context"
+	"sync"
 
 	"github.com/BrenekH/encodarr/controller"
 )
@@ -14,8 +15,10 @@ type WebHTTPApiV1 struct {
 	logger controller.Logger
 }
 
-func (w *WebHTTPApiV1) Start(ctx *context.Context) {
+func (w *WebHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	w.logger.Critical("Not implemented")
+	// Run w.httpServer.Start(ctx, wg)
+	// Add handlers to w.httpServer
 }
 
 func (w *WebHTTPApiV1) NewLibrarySettings() (m map[string]controller.LibrarySettings) {

@@ -1,6 +1,9 @@
 package controller
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 // The HealthChecker interface describes how a struct wishing to decide if a job's
 // last update was long enough ago to mark the Runner doing it as unresponsive
@@ -34,7 +37,7 @@ type LibraryManager interface {
 	// them to the appropriate libraries.
 	UpdateLibrarySettings(map[string]LibrarySettings)
 
-	Start(ctx *context.Context)
+	Start(ctx *context.Context, wg *sync.WaitGroup)
 }
 
 // The RunnerCommunicator interface describes how a struct wishing to communicate
@@ -58,7 +61,7 @@ type RunnerCommunicator interface {
 	// WaitingRunners returns the names of all the Runners which are waiting for a job.
 	WaitingRunners() (runnerNames []string)
 
-	Start(ctx *context.Context)
+	Start(ctx *context.Context, wg *sync.WaitGroup)
 }
 
 // The UserInterfacer interface describes how a struct wishing to interact
@@ -79,7 +82,7 @@ type UserInterfacer interface {
 	// the waiting Runner is received.
 	SetWaitingRunners(runnerNames []string)
 
-	Start(ctx *context.Context)
+	Start(ctx *context.Context, wg *sync.WaitGroup)
 }
 
 // The SettingsStorer defines how a struct which stores the settings in some manner

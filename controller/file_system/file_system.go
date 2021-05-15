@@ -2,6 +2,8 @@ package file_system
 
 import (
 	"context"
+	"sync"
+	"time"
 
 	"github.com/BrenekH/encodarr/controller"
 )
@@ -16,15 +18,25 @@ type LibraryManager struct {
 	logger controller.Logger
 }
 
-func (l *LibraryManager) Start(ctx *context.Context) {
+func (l *LibraryManager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	l.logger.Critical("Not implemented")
-	// Check all Libraries for required scans
-	// Scan goroutine
-	//   - Locate media files
-	//   - Read file metadata from a MetadataReader
-	//   - Cache the file metadata using a DataStorer (caching could be integrated into the MetadataReader)
-	//   - Run a CommandDecider against the metadata to determine what FFMpeg command to run
-	//   - Save to Library queue
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			if controller.IsContextFinished(ctx) {
+				return
+			}
+			// Check all Libraries for required scans
+			// Scan goroutine
+			//   - Locate media files
+			//   - Read file metadata from a MetadataReader
+			//   - Cache the file metadata using a DataStorer (caching could be integrated into the MetadataReader)
+			//   - Run a CommandDecider against the metadata to determine what FFMpeg command to run
+			//   - Save to Library queue
+			time.Sleep(time.Second)
+		}
+	}()
 }
 
 func (l *LibraryManager) ImportCompletedJobs([]controller.Job) {

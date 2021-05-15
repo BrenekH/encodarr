@@ -1,14 +1,18 @@
 package controller
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 // Run is the "top-level" function for running the Encodarr Controller. It calls all of the injected
 // dependencies in order to operate.
 func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManager, rc RunnerCommunicator, ui UserInterfacer, testMode bool) {
+	wg := sync.WaitGroup{}
 	hc.Start(ctx)
-	lm.Start(ctx)
-	rc.Start(ctx)
-	ui.Start(ctx)
+	lm.Start(ctx, &wg)
+	rc.Start(ctx, &wg)
+	ui.Start(ctx, &wg)
 	looped := false
 
 	for {
@@ -55,4 +59,7 @@ func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManage
 		cj := rc.CompletedJobs()
 		lm.ImportCompletedJobs(cj)
 	}
+
+	// Wait for goroutines to shut down
+	wg.Wait()
 }

@@ -2,6 +2,7 @@ package runner_communicator
 
 import (
 	"context"
+	"sync"
 
 	"github.com/BrenekH/encodarr/controller"
 )
@@ -14,8 +15,10 @@ type RunnerHTTPApiV1 struct {
 	logger controller.Logger
 }
 
-func (r *RunnerHTTPApiV1) Start(ctx *context.Context) {
+func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	r.logger.Critical("Not Implemented")
+	// Run r.httpServer.Start(ctx, wg)
+	// Add handlers to r.httpServer
 }
 
 func (r *RunnerHTTPApiV1) CompletedJobs() (j []controller.Job) {

@@ -1,6 +1,9 @@
 package controller
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 type mockHealthChecker struct {
 	runCalled   bool
@@ -25,7 +28,7 @@ type mockLibraryManager struct {
 	startCalled             bool
 }
 
-func (m *mockLibraryManager) Start(ctx *context.Context) {
+func (m *mockLibraryManager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	m.startCalled = true
 }
 
@@ -61,7 +64,7 @@ type mockRunnerCommunicator struct {
 	startCalled          bool
 }
 
-func (m *mockRunnerCommunicator) Start(ctx *context.Context) {
+func (m *mockRunnerCommunicator) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	m.startCalled = true
 }
 
@@ -97,7 +100,7 @@ type mockUserInterfacer struct {
 	startCalled             bool
 }
 
-func (m *mockUserInterfacer) Start(ctx *context.Context) {
+func (m *mockUserInterfacer) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	m.startCalled = true
 }
 
