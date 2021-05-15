@@ -44,3 +44,9 @@ type JobStatus struct {
 	StageElapsedTime            string `json:"stage_elapsed_time"`
 	StageEstimatedTimeRemaining string `json:"stage_estimated_time_remaining"`
 }
+
+type File struct {
+	Path     string
+	ModTime  time.Time
+	Metadata struct{} // TODO: Define custom metadata struct
+}

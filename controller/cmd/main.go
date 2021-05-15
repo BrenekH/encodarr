@@ -9,9 +9,9 @@ import (
 	"syscall"
 
 	"github.com/BrenekH/encodarr/controller"
-	"github.com/BrenekH/encodarr/controller/file_system"
 	"github.com/BrenekH/encodarr/controller/globals"
 	"github.com/BrenekH/encodarr/controller/job_health"
+	"github.com/BrenekH/encodarr/controller/library"
 	"github.com/BrenekH/encodarr/controller/runner_communicator"
 	"github.com/BrenekH/encodarr/controller/settings"
 	"github.com/BrenekH/encodarr/controller/sqlite"
@@ -75,8 +75,8 @@ func main() {
 
 	sqliteLMLogger := logange.NewLogger("sqlite.LMA")
 	lmDBAdapter := sqlite.NewLibraryManagerAdapter(&sqliteDatabase, &sqliteLMLogger)
-	lmLogger := logange.NewLogger("libraryManager")
-	lm := file_system.NewLibraryManager(&lmLogger, &lmDBAdapter)
+	lmLogger := logange.NewLogger("library.Manager")
+	lm := library.NewManager(&lmLogger, &lmDBAdapter)
 
 	rcLogger := logange.NewLogger("runnerCommunicator")
 	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger)

@@ -1,15 +1,16 @@
-package file_system
+package library
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewLibraryManager(logger controller.Logger, ds controller.LibraryManagerDataStorer) LibraryManager {
-	return LibraryManager{
+func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer) Manager {
+	return Manager{
 		logger: logger,
 		ds:     ds,
 
@@ -18,7 +19,7 @@ func NewLibraryManager(logger controller.Logger, ds controller.LibraryManagerDat
 	}
 }
 
-type LibraryManager struct {
+type Manager struct {
 	logger controller.Logger
 	ds     controller.LibraryManagerDataStorer
 
@@ -29,7 +30,7 @@ type LibraryManager struct {
 	workerCompletedMap map[int]bool
 }
 
-func (l *LibraryManager) Start(ctx *context.Context, wg *sync.WaitGroup) {
+func (l *Manager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -67,41 +68,61 @@ func (l *LibraryManager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	}()
 }
 
-func (l *LibraryManager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, lib controller.Library) {
+func (l *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, lib controller.Library) {
 	defer wg.Done()
-	l.logger.Critical("Not implemented")
-	// TODO: Implement
-	// Locate media files
-	// Read file metadata from a MetadataReader
-	// Cache the file metadata using a DataStorer (caching could be integrated into the MetadataReader)
-	// Run a CommandDecider against the metadata to determine what FFMpeg command to run
-	// Save to Library queue
+	defer func() { l.workerCompletedMap[lib.ID] = true }()
+
+	// Locate video files
+	discoveredVideos, err := GetVideoFilesFromDir(lib.Folder) // TODO: Abstract this function so it can be mocked out for something else during testing
+	if err != nil {
+		l.logger.Error(err.Error())
+		return
+	}
+
+	for _, videoFilepath := range discoveredVideos {
+		// Apply Library path masks
+		maskedOut := false
+		for _, v := range lib.PathMasks {
+			if strings.Contains(videoFilepath, v) {
+				l.logger.Debug("%v skipped because of a mask (%v)", videoFilepath, v)
+				maskedOut = true
+				break
+			}
+		}
+		if maskedOut {
+			continue
+		}
+
+		// Read file metadata from a MetadataReader
+		// Run a CommandDecider against the metadata to determine what FFMpeg command to run
+		// Save to Library queue
+	}
 }
 
-func (l *LibraryManager) ImportCompletedJobs([]controller.Job) {
+func (l *Manager) ImportCompletedJobs([]controller.Job) {
 	l.logger.Critical("Not implemented")
 	// TODO: Implement
 }
 
-func (l *LibraryManager) LibrarySettings() (ls []controller.Library) {
+func (l *Manager) LibrarySettings() (ls []controller.Library) {
 	l.logger.Critical("Not implemented")
 	// TODO: Implement
 	return
 }
 
-func (l *LibraryManager) LibraryQueues() (lq []controller.LibraryQueue) {
+func (l *Manager) LibraryQueues() (lq []controller.LibraryQueue) {
 	l.logger.Critical("Not implemented")
 	// TODO: Implement
 	return
 }
 
-func (l *LibraryManager) PopNewJob() (j controller.Job) {
+func (l *Manager) PopNewJob() (j controller.Job) {
 	l.logger.Critical("Not implemented")
 	// TODO: Implement
 	return
 }
 
-func (l *LibraryManager) UpdateLibrarySettings(map[string]controller.Library) {
+func (l *Manager) UpdateLibrarySettings(map[string]controller.Library) {
 	l.logger.Critical("Not implemented")
 	// TODO: Implement
 }
