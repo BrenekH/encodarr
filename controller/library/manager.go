@@ -10,11 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer) Manager {
-	// TODO: Take a MetadataReader and a CommandDecider as arguments
+func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer, metadataReader MetadataReader) Manager {
+	// TODO: Take a CommandDecider as an argument
 	return Manager{
-		logger: logger,
-		ds:     ds,
+		logger:         logger,
+		ds:             ds,
+		metadataReader: metadataReader,
 
 		lastCheckedTimes:   make(map[int]time.Time),
 		workerCompletedMap: make(map[int]bool),
@@ -22,10 +23,10 @@ func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer
 }
 
 type Manager struct {
-	logger controller.Logger
-	ds     controller.LibraryManagerDataStorer
-
+	logger         controller.Logger
+	ds             controller.LibraryManagerDataStorer
 	metadataReader MetadataReader
+
 	commandDecider CommandDecider
 
 	// lastCheckedTimes is a map of Library ids and the last time that they were checked.
@@ -106,7 +107,7 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 		fMetadata := m.metadataReader.Read(videoFilepath)
 
 		// Run a CommandDecider against the metadata to determine what FFMpeg command to run
-		runCmd, commandSlice := m.commandDecider.Decide(fMetadata)
+		runCmd, commandSlice := m.commandDecider.Decide(fMetadata, []byte("")) // TODO: Replace empty slice of bytes with proper settings json
 		if !runCmd {
 			m.logger.Debug("Skipping %v because CommandDecider returned a do not run status bool and the following command slice: %v", videoFilepath, commandSlice)
 			continue

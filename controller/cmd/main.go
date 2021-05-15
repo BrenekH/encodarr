@@ -12,6 +12,7 @@ import (
 	"github.com/BrenekH/encodarr/controller/globals"
 	"github.com/BrenekH/encodarr/controller/job_health"
 	"github.com/BrenekH/encodarr/controller/library"
+	"github.com/BrenekH/encodarr/controller/library/mediainfo"
 	"github.com/BrenekH/encodarr/controller/runner_communicator"
 	"github.com/BrenekH/encodarr/controller/settings"
 	"github.com/BrenekH/encodarr/controller/sqlite"
@@ -68,19 +69,28 @@ func main() {
 		mainLogger.Critical("NewSettingsStore Error: %v", err)
 	}
 
+	// --------------- HealthChecker ---------------
 	sqliteHCLogger := logange.NewLogger("sqlite.HCA")
 	hcDBAdapter := sqlite.NewHealthCheckerAdapter(&sqliteDatabase, &sqliteHCLogger)
+
 	healthCheckerLogger := logange.NewLogger("JobHealth.Checker")
 	healthChecker := job_health.NewChecker(&hcDBAdapter, &settingsStore, &healthCheckerLogger)
 
+	// --------------- LibraryManager ---------------
 	sqliteLMLogger := logange.NewLogger("sqlite.LMA")
 	lmDBAdapter := sqlite.NewLibraryManagerAdapter(&sqliteDatabase, &sqliteLMLogger)
-	lmLogger := logange.NewLogger("library.Manager")
-	lm := library.NewManager(&lmLogger, &lmDBAdapter)
 
+	mediainfoMRLogger := logange.NewLogger("library/mediainfo.MetadataReader")
+	metadataReader := mediainfo.NewMetadataReader(&mediainfoMRLogger)
+
+	lmLogger := logange.NewLogger("library.Manager")
+	lm := library.NewManager(&lmLogger, &lmDBAdapter, &metadataReader)
+
+	// --------------- RunnerCommunicator ---------------
 	rcLogger := logange.NewLogger("runnerCommunicator")
 	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger)
 
+	// --------------- UserInterfacer ---------------
 	uiLogger := logange.NewLogger("userInterfacer")
 	ui := user_interfacer.NewWebHTTPApiV1(&uiLogger)
 

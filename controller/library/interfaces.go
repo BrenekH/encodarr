@@ -7,5 +7,5 @@ type MetadataReader interface {
 }
 
 type CommandDecider interface {
-	Decide(m controller.FileMetadata) (runCmd bool, cmd []string)
+	Decide(m controller.FileMetadata, cmdDeciderSettings []byte) (runCmd bool, cmd []string)
 }
