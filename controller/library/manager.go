@@ -120,6 +120,7 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 			Metadata: fMetadata,
 		}
 		lib.Queue.Push(job)
+		m.logger.Info("Added %v to Library %v's queue", videoFilepath, lib.ID)
 
 		m.ds.SaveLibrary(lib)
 	}
