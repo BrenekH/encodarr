@@ -8,76 +8,76 @@ import (
 func TestRunFuncsCalled(t *testing.T) {
 	ctx := context.Background()
 
-	mockLogger := MockLogger{}
-	mockHealthChecker := MockHealthChecker{}
-	mockLibraryManager := MockLibraryManager{}
-	mockRunnerCommunicator := MockRunnerCommunicator{}
-	mockUserInterfacer := MockUserInterfacer{}
+	mLogger := mockLogger{}
+	mHealthChecker := mockHealthChecker{}
+	mLibraryManager := mockLibraryManager{}
+	mRunnerCommunicator := mockRunnerCommunicator{}
+	mUserInterfacer := mockUserInterfacer{}
 
-	Run(&ctx, &mockLogger, &mockHealthChecker, &mockLibraryManager, &mockRunnerCommunicator, &mockUserInterfacer, true)
+	Run(&ctx, &mLogger, &mHealthChecker, &mLibraryManager, &mRunnerCommunicator, &mUserInterfacer, true)
 
 	// Check that HealthChecker methods were run
-	if !mockHealthChecker.startCalled {
+	if !mHealthChecker.startCalled {
 		t.Errorf("HealthChecker.Start() wasn't called")
 	}
-	if !mockHealthChecker.runCalled {
+	if !mHealthChecker.runCalled {
 		t.Errorf("HealthChecker.Run() wasn't called")
 	}
 
 	// Check that LibraryManager methods were run
-	if !mockLibraryManager.startCalled {
+	if !mLibraryManager.startCalled {
 		t.Errorf("LibraryManager.Start() wasn't called")
 	}
-	if !mockLibraryManager.importCalled {
+	if !mLibraryManager.importCalled {
 		t.Errorf("LibraryManager.ImportCompletedJobs() wasn't called")
 	}
-	if !mockLibraryManager.libSettingsCalled {
+	if !mLibraryManager.libSettingsCalled {
 		t.Errorf("LibraryManager.LibrarySettings() wasn't called")
 	}
-	if !mockLibraryManager.libQueuesCalled {
+	if !mLibraryManager.libQueuesCalled {
 		t.Errorf("LibraryManager.LibraryQueues() wasn't called")
 	}
-	if !mockLibraryManager.popJobCalled {
+	if !mLibraryManager.popJobCalled {
 		t.Errorf("LibraryManager.PopNewJob() wasn't called")
 	}
-	if !mockLibraryManager.updateLibSettingsCalled {
+	if !mLibraryManager.updateLibSettingsCalled {
 		t.Errorf("LibraryManager.UpdateLibrarySettings wasn't called")
 	}
 
 	// Check that RunnerCommunicator methods were run
-	if !mockRunnerCommunicator.startCalled {
+	if !mRunnerCommunicator.startCalled {
 		t.Errorf("RunnerCommunicator.Start() wasn't called")
 	}
-	if !mockRunnerCommunicator.completedJobsCalled {
+	if !mRunnerCommunicator.completedJobsCalled {
 		t.Errorf("RunnerCommunicator.CompletedJobs() wasn't called")
 	}
-	if !mockRunnerCommunicator.newJobCalled {
+	if !mRunnerCommunicator.newJobCalled {
 		t.Errorf("RunnerCommunicator.NewJob() wasn't called")
 	}
-	if !mockRunnerCommunicator.needNewJobCalled {
+	if !mRunnerCommunicator.needNewJobCalled {
 		t.Errorf("RunnerCommunicator.NeedNewJob() wasn't called")
 	}
-	if !mockRunnerCommunicator.nullUUIDsCalled {
+	if !mRunnerCommunicator.nullUUIDsCalled {
 		t.Errorf("RunnerCommunicator.NullifyUUIDs() wasn't called")
 	}
-	if !mockRunnerCommunicator.waitingRunnersCalled {
+	if !mRunnerCommunicator.waitingRunnersCalled {
 		t.Errorf("RunnerCommunicator.WaitingRunners() wasn't called")
 	}
 
 	// Check that UserInterfacer methods were run
-	if !mockUserInterfacer.startCalled {
+	if !mUserInterfacer.startCalled {
 		t.Errorf("UserInterfacer.Start() wasn't called")
 	}
-	if !mockUserInterfacer.newLibSettingsCalled {
+	if !mUserInterfacer.newLibSettingsCalled {
 		t.Errorf("UserInterfacer.NewLibrarySettings() wasn't called")
 	}
-	if !mockUserInterfacer.setLibSettingsCalled {
+	if !mUserInterfacer.setLibSettingsCalled {
 		t.Errorf("UserInterfacer.SetLibrarySettings() wasn't called")
 	}
-	if !mockUserInterfacer.setLibQueuesCalled {
+	if !mUserInterfacer.setLibQueuesCalled {
 		t.Errorf("UserInterfacer.SetLibraryQueues() wasn't called")
 	}
-	if !mockUserInterfacer.setWaitingRunnersCalled {
+	if !mUserInterfacer.setWaitingRunnersCalled {
 		t.Errorf("UserInterfacer.SetWaitingRunners() wasn't called")
 	}
 }

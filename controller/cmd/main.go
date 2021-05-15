@@ -12,8 +12,10 @@ import (
 	"github.com/BrenekH/encodarr/controller/file_system"
 	"github.com/BrenekH/encodarr/controller/globals"
 	"github.com/BrenekH/encodarr/controller/job_health"
+	"github.com/BrenekH/encodarr/controller/runner_communicator"
 	"github.com/BrenekH/encodarr/controller/settings"
 	"github.com/BrenekH/encodarr/controller/sqlite"
+	"github.com/BrenekH/encodarr/controller/user_interfacer"
 	"github.com/BrenekH/logange"
 )
 
@@ -71,13 +73,15 @@ func main() {
 	healthCheckerLogger := logange.NewLogger("JobHealth.Checker")
 	healthChecker := job_health.NewChecker(&hcDBAdapter, &settingsStore, &healthCheckerLogger)
 
-	// TODO: Replace mocks with actual implemented structs
-	// mockLibraryManager := controller.MockLibraryManager{}
 	lmLogger := logange.NewLogger("libraryManager")
 	lm := file_system.NewLibraryManager(&lmLogger)
-	mockRunnerCommunicator := controller.MockRunnerCommunicator{}
-	mockUserInterfacer := controller.MockUserInterfacer{}
+
+	rcLogger := logange.NewLogger("runnerCommunicator")
+	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger)
+
+	uiLogger := logange.NewLogger("userInterfacer")
+	ui := user_interfacer.NewWebHTTPApiV1(&uiLogger)
 
 	runLogger := logange.NewLogger("run")
-	controller.Run(&ctx, &runLogger, &healthChecker, &lm, &mockRunnerCommunicator, &mockUserInterfacer, false)
+	controller.Run(&ctx, &runLogger, &healthChecker, &lm, &rc, &ui, false)
 }

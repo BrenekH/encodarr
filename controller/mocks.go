@@ -2,21 +2,21 @@ package controller
 
 import "context"
 
-type MockHealthChecker struct {
+type mockHealthChecker struct {
 	runCalled   bool
 	startCalled bool
 }
 
-func (m *MockHealthChecker) Start(ctx *context.Context) {
+func (m *mockHealthChecker) Start(ctx *context.Context) {
 	m.startCalled = true
 }
 
-func (m *MockHealthChecker) Run() (uuidsToNull []UUID) {
+func (m *mockHealthChecker) Run() (uuidsToNull []UUID) {
 	m.runCalled = true
 	return
 }
 
-type MockLibraryManager struct {
+type mockLibraryManager struct {
 	importCalled            bool
 	libSettingsCalled       bool
 	libQueuesCalled         bool
@@ -25,34 +25,34 @@ type MockLibraryManager struct {
 	startCalled             bool
 }
 
-func (m *MockLibraryManager) Start(ctx *context.Context) {
+func (m *mockLibraryManager) Start(ctx *context.Context) {
 	m.startCalled = true
 }
 
-func (m *MockLibraryManager) ImportCompletedJobs([]Job) {
+func (m *mockLibraryManager) ImportCompletedJobs([]Job) {
 	m.importCalled = true
 }
 
-func (m *MockLibraryManager) LibrarySettings() (ls []LibrarySettings) {
+func (m *mockLibraryManager) LibrarySettings() (ls []LibrarySettings) {
 	m.libSettingsCalled = true
 	return
 }
 
-func (m *MockLibraryManager) LibraryQueues() (lq []LibraryQueue) {
+func (m *mockLibraryManager) LibraryQueues() (lq []LibraryQueue) {
 	m.libQueuesCalled = true
 	return
 }
 
-func (m *MockLibraryManager) PopNewJob() (j Job) {
+func (m *mockLibraryManager) PopNewJob() (j Job) {
 	m.popJobCalled = true
 	return
 }
 
-func (m *MockLibraryManager) UpdateLibrarySettings(map[string]LibrarySettings) {
+func (m *mockLibraryManager) UpdateLibrarySettings(map[string]LibrarySettings) {
 	m.updateLibSettingsCalled = true
 }
 
-type MockRunnerCommunicator struct {
+type mockRunnerCommunicator struct {
 	completedJobsCalled  bool
 	newJobCalled         bool
 	needNewJobCalled     bool
@@ -61,35 +61,35 @@ type MockRunnerCommunicator struct {
 	startCalled          bool
 }
 
-func (m *MockRunnerCommunicator) Start(ctx *context.Context) {
+func (m *mockRunnerCommunicator) Start(ctx *context.Context) {
 	m.startCalled = true
 }
 
-func (m *MockRunnerCommunicator) CompletedJobs() (j []Job) {
+func (m *mockRunnerCommunicator) CompletedJobs() (j []Job) {
 	m.completedJobsCalled = true
 	return
 }
 
-func (m *MockRunnerCommunicator) NewJob(Job) {
+func (m *mockRunnerCommunicator) NewJob(Job) {
 	m.newJobCalled = true
 }
 
-func (m *MockRunnerCommunicator) NeedNewJob() bool {
+func (m *mockRunnerCommunicator) NeedNewJob() bool {
 	m.needNewJobCalled = true
 	return true
 }
 
-func (m *MockRunnerCommunicator) NullifyUUIDs([]UUID) {
+func (m *mockRunnerCommunicator) NullifyUUIDs([]UUID) {
 	m.nullUUIDsCalled = true
 }
 
-func (m *MockRunnerCommunicator) WaitingRunners() (runnerNames []string) {
+func (m *mockRunnerCommunicator) WaitingRunners() (runnerNames []string) {
 	m.waitingRunnersCalled = true
 	runnerNames = append(runnerNames, "TestRunner")
 	return
 }
 
-type MockUserInterfacer struct {
+type mockUserInterfacer struct {
 	newLibSettingsCalled    bool
 	setLibSettingsCalled    bool
 	setLibQueuesCalled      bool
@@ -97,32 +97,32 @@ type MockUserInterfacer struct {
 	startCalled             bool
 }
 
-func (m *MockUserInterfacer) Start(ctx *context.Context) {
+func (m *mockUserInterfacer) Start(ctx *context.Context) {
 	m.startCalled = true
 }
 
-func (m *MockUserInterfacer) NewLibrarySettings() (ls map[string]LibrarySettings) {
+func (m *mockUserInterfacer) NewLibrarySettings() (ls map[string]LibrarySettings) {
 	m.newLibSettingsCalled = true
 	return
 }
 
-func (m *MockUserInterfacer) SetLibrarySettings([]LibrarySettings) {
+func (m *mockUserInterfacer) SetLibrarySettings([]LibrarySettings) {
 	m.setLibSettingsCalled = true
 }
 
-func (m *MockUserInterfacer) SetLibraryQueues([]LibraryQueue) {
+func (m *mockUserInterfacer) SetLibraryQueues([]LibraryQueue) {
 	m.setLibQueuesCalled = true
 }
 
-func (m *MockUserInterfacer) SetWaitingRunners(runnerNames []string) {
+func (m *mockUserInterfacer) SetWaitingRunners(runnerNames []string) {
 	m.setWaitingRunnersCalled = true
 }
 
-type MockLogger struct{}
+type mockLogger struct{}
 
-func (m *MockLogger) Trace(s string, i ...interface{})    {}
-func (m *MockLogger) Debug(s string, i ...interface{})    {}
-func (m *MockLogger) Info(s string, i ...interface{})     {}
-func (m *MockLogger) Warn(s string, i ...interface{})     {}
-func (m *MockLogger) Error(s string, i ...interface{})    {}
-func (m *MockLogger) Critical(s string, i ...interface{}) {}
+func (m *mockLogger) Trace(s string, i ...interface{})    {}
+func (m *mockLogger) Debug(s string, i ...interface{})    {}
+func (m *mockLogger) Info(s string, i ...interface{})     {}
+func (m *mockLogger) Warn(s string, i ...interface{})     {}
+func (m *mockLogger) Error(s string, i ...interface{})    {}
+func (m *mockLogger) Critical(s string, i ...interface{}) {}
