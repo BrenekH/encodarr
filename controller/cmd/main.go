@@ -69,12 +69,14 @@ func main() {
 	}
 
 	sqliteHCLogger := logange.NewLogger("sqlite.HCA")
-	hcDBAdapter := sqlite.NewHealthCheckerAdapater(&sqliteDatabase, &sqliteHCLogger)
+	hcDBAdapter := sqlite.NewHealthCheckerAdapter(&sqliteDatabase, &sqliteHCLogger)
 	healthCheckerLogger := logange.NewLogger("JobHealth.Checker")
 	healthChecker := job_health.NewChecker(&hcDBAdapter, &settingsStore, &healthCheckerLogger)
 
+	sqliteLMLogger := logange.NewLogger("sqlite.LMA")
+	lmDBAdapter := sqlite.NewLibraryManagerAdapter(&sqliteDatabase, &sqliteLMLogger)
 	lmLogger := logange.NewLogger("libraryManager")
-	lm := file_system.NewLibraryManager(&lmLogger)
+	lm := file_system.NewLibraryManager(&lmLogger, &lmDBAdapter)
 
 	rcLogger := logange.NewLogger("runnerCommunicator")
 	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger)

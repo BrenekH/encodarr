@@ -17,29 +17,35 @@ type RunnerHTTPApiV1 struct {
 
 func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	r.logger.Critical("Not Implemented")
+	// TODO: Implement
 	// Run r.httpServer.Start(ctx, wg)
 	// Add handlers to r.httpServer
 }
 
 func (r *RunnerHTTPApiV1) CompletedJobs() (j []controller.Job) {
 	r.logger.Critical("Not Implemented")
+	// TODO: Implement
 	return
 }
 
 func (r *RunnerHTTPApiV1) NewJob(controller.Job) {
 	r.logger.Critical("Not Implemented")
+	// TODO: Implement
 }
 
 func (r *RunnerHTTPApiV1) NeedNewJob() (b bool) {
 	r.logger.Critical("Not Implemented")
+	// TODO: Implement
 	return
 }
 
 func (r *RunnerHTTPApiV1) NullifyUUIDs([]controller.UUID) {
 	r.logger.Critical("Not Implemented")
+	// TODO: Implement
 }
 
 func (r *RunnerHTTPApiV1) WaitingRunners() (runnerNames []string) {
 	r.logger.Critical("Not Implemented")
+	// TODO: Implement
 	return
 }

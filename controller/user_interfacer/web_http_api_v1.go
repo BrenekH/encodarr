@@ -17,23 +17,28 @@ type WebHTTPApiV1 struct {
 
 func (w *WebHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	w.logger.Critical("Not implemented")
+	// TODO: Implement
 	// Run w.httpServer.Start(ctx, wg)
 	// Add handlers to w.httpServer
 }
 
 func (w *WebHTTPApiV1) NewLibrarySettings() (m map[string]controller.Library) {
 	w.logger.Critical("Not implemented")
+	// TODO: Implement
 	return
 }
 
 func (w *WebHTTPApiV1) SetLibrarySettings([]controller.Library) {
 	w.logger.Critical("Not implemented")
+	// TODO: Implement
 }
 
 func (w *WebHTTPApiV1) SetLibraryQueues([]controller.LibraryQueue) {
 	w.logger.Critical("Not implemented")
+	// TODO: Implement
 }
 
 func (w *WebHTTPApiV1) SetWaitingRunners(runnerNames []string) {
 	w.logger.Critical("Not implemented")
+	// TODO: Implement
 }

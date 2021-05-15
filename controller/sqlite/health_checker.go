@@ -6,7 +6,7 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewHealthCheckerAdapater(db *SQLiteDatabase, logger controller.Logger) HealthCheckerAdapter {
+func NewHealthCheckerAdapter(db *SQLiteDatabase, logger controller.Logger) HealthCheckerAdapter {
 	return HealthCheckerAdapter{db: db, logger: logger}
 }
 

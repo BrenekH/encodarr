@@ -8,9 +8,10 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewLibraryManager(logger controller.Logger) LibraryManager {
+func NewLibraryManager(logger controller.Logger, ds controller.LibraryManagerDataStorer) LibraryManager {
 	return LibraryManager{
 		logger: logger,
+		ds:     ds,
 
 		lastCheckedTimes:   make(map[int]time.Time),
 		workerCompletedMap: make(map[int]bool),
@@ -69,6 +70,7 @@ func (l *LibraryManager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 func (l *LibraryManager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, lib controller.Library) {
 	defer wg.Done()
 	l.logger.Critical("Not implemented")
+	// TODO: Implement
 	// Locate media files
 	// Read file metadata from a MetadataReader
 	// Cache the file metadata using a DataStorer (caching could be integrated into the MetadataReader)
@@ -78,23 +80,28 @@ func (l *LibraryManager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitG
 
 func (l *LibraryManager) ImportCompletedJobs([]controller.Job) {
 	l.logger.Critical("Not implemented")
+	// TODO: Implement
 }
 
 func (l *LibraryManager) LibrarySettings() (ls []controller.Library) {
 	l.logger.Critical("Not implemented")
+	// TODO: Implement
 	return
 }
 
 func (l *LibraryManager) LibraryQueues() (lq []controller.LibraryQueue) {
 	l.logger.Critical("Not implemented")
+	// TODO: Implement
 	return
 }
 
 func (l *LibraryManager) PopNewJob() (j controller.Job) {
 	l.logger.Critical("Not implemented")
+	// TODO: Implement
 	return
 }
 
 func (l *LibraryManager) UpdateLibrarySettings(map[string]controller.Library) {
 	l.logger.Critical("Not implemented")
+	// TODO: Implement
 }
