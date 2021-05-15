@@ -6,14 +6,15 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewHealthCheckerAdapater(db *SQLiteDatabase) HealthCheckerAdapter {
-	return HealthCheckerAdapter{db: db}
+func NewHealthCheckerAdapater(db *SQLiteDatabase, logger controller.Logger) HealthCheckerAdapter {
+	return HealthCheckerAdapter{db: db, logger: logger}
 }
 
 // HealthCheckerAdapter satisfies the controller.HealthCheckerDataStorer interface by turning interface
 // requests into SQL requests that are passed on to an underlying SQLiteDatabase.
 type HealthCheckerAdapter struct {
-	db *SQLiteDatabase
+	db     *SQLiteDatabase
+	logger controller.Logger
 }
 
 func (h *HealthCheckerAdapter) DispatchedJobs() []controller.DispatchedJob {
@@ -21,7 +22,7 @@ func (h *HealthCheckerAdapter) DispatchedJobs() []controller.DispatchedJob {
 
 	rows, err := h.db.Client.Query("SELECT uuid, runner, job, status, last_updated FROM dispatched_jobs;")
 	if err != nil {
-		// TODO: Log error
+		h.logger.Error("%v", err)
 		return returnSlice
 	}
 
@@ -33,19 +34,19 @@ func (h *HealthCheckerAdapter) DispatchedJobs() []controller.DispatchedJob {
 
 		err = rows.Scan(&dj.UUID, &dj.Runner, &bJ, &bS, &dj.LastUpdated)
 		if err != nil {
-			// TODO: logger.Error(err.Error())
+			h.logger.Error("%v", err)
 			continue
 		}
 
 		err = json.Unmarshal(bJ, &dj.Job)
 		if err != nil {
-			// TODO: logger.Error(err.Error())
+			h.logger.Error("%v", err)
 			continue
 		}
 
 		err = json.Unmarshal(bS, &dj.Status)
 		if err != nil {
-			// TODO: logger.Error(err.Error())
+			h.logger.Error("%v", err)
 			continue
 		}
 

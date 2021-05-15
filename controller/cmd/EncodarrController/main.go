@@ -65,7 +65,8 @@ func main() {
 		mainLogger.Critical("NewSettingsStore Error: %v", err)
 	}
 
-	hcDBAdapter := sqlite.NewHealthCheckerAdapater(&sqliteDatabase)
+	sqliteHCLogger := logange.NewLogger("HC-sqlite")
+	hcDBAdapter := sqlite.NewHealthCheckerAdapater(&sqliteDatabase, &sqliteHCLogger)
 	healthChecker := job_health.NewChecker(&hcDBAdapter, &settingsStore)
 
 	// TODO: Replace mocks with actual implemented structs
