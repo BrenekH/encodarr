@@ -85,7 +85,7 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 	}
 
 	for _, videoFilepath := range discoveredVideos {
-		// Apply Library path masks
+		// Check path against Library path masks
 		maskedOut := false
 		for _, v := range lib.PathMasks {
 			if strings.Contains(videoFilepath, v) {
@@ -120,6 +120,8 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 			Metadata: fMetadata,
 		}
 		lib.Queue.Push(job)
+
+		m.ds.SaveLibrary(lib)
 	}
 }
 
