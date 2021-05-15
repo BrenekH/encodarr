@@ -43,7 +43,7 @@ func main() {
 
 	logange.RootLogger.AddHandler(&rootFileHandler)
 
-	mainLogger.Info("Starting Encodarr Controller version %v\n", globals.Version)
+	mainLogger.Info("Starting Encodarr Controller version %v", globals.Version)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	signals := make(chan os.Signal, 1)

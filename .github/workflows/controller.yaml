@@ -82,7 +82,7 @@ jobs:
           GOARM: 7
           GOOS: ${{ env.COMP_GOOS }}
           GOARCH: ${{ env.COMP_GOARCH }}
-        run: go build -o encodarr-controller-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }} -ldflags="-X 'github.com/BrenekH/encodarr/controller/globals.Version=${{ env.LDFLAGS_VERSION }}'"
+        run: go build -o encodarr-controller-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }} -ldflags="-X 'github.com/BrenekH/encodarr/controller/globals.Version=${{ env.LDFLAGS_VERSION }}'" cmd/main.go
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
