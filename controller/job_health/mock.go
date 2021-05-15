@@ -1,6 +1,7 @@
 package job_health
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/BrenekH/encodarr/controller"
@@ -34,6 +35,8 @@ type mockDataStorer struct {
 	dJobsCalled bool
 
 	dJobs []controller.DispatchedJob
+
+	deleteErrAmount int
 }
 
 func (m *mockDataStorer) DispatchedJobs() []controller.DispatchedJob {
@@ -41,8 +44,12 @@ func (m *mockDataStorer) DispatchedJobs() []controller.DispatchedJob {
 	return m.dJobs
 }
 
-func (m *mockDataStorer) DeleteJob(uuid controller.UUID) (err error) {
-	return
+func (m *mockDataStorer) DeleteJob(uuid controller.UUID) error {
+	if m.deleteErrAmount == 0 {
+		return nil
+	}
+	m.deleteErrAmount--
+	return fmt.Errorf("random error")
 }
 
 type mockSettingsStorer struct {

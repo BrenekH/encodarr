@@ -148,4 +148,83 @@ func TestCorrectNullingBehavior(t *testing.T) {
 	}
 }
 
-// TODO: Test DataStorer.DeleteJob error handling
+func TestDSDeleteJobNoNullUUIDsIf100Errors(t *testing.T) {
+	tests := []struct {
+		name            string
+		deleteErrAmount int
+		expectNullUUID  bool
+	}{
+		{
+			name:            "No errors",
+			deleteErrAmount: 0,
+			expectNullUUID:  true,
+		},
+		{
+			name:            "Well below threshold",
+			deleteErrAmount: 50,
+			expectNullUUID:  true,
+		},
+		{
+			name:            "99 (highest amount while still getting null UUIDs)",
+			deleteErrAmount: 99,
+			expectNullUUID:  true,
+		},
+		{
+			name:            "100 (lowest amount while still not getting null UUIDs)",
+			deleteErrAmount: 100,
+			expectNullUUID:  false,
+		},
+		{
+			name:            "Well above threshold",
+			deleteErrAmount: 150,
+			expectNullUUID:  false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ds := mockDataStorer{
+				dJobs: []controller.DispatchedJob{
+					{
+						UUID:        "test",
+						Runner:      "TestRunner",
+						Job:         controller.Job{},
+						Status:      controller.JobStatus{},
+						LastUpdated: time.Unix(0, 0),
+					},
+				},
+				deleteErrAmount: test.deleteErrAmount, // 99 should fail, 100 should succeed
+			}
+			ss := mockSettingsStorer{
+				healthCheckInt:     uint64(time.Second * 1),
+				healthCheckTimeout: uint64(time.Minute * 1),
+			}
+			c := NewChecker(&ds, &ss, &mockLogger{})
+
+			mNS := mockNowSincer{
+				sinceResp:  time.Second * 2,
+				sinceResp2: time.Minute * 2,
+			}
+			c.nowSincer = &mNS
+
+			nulledUUIDs := c.Run()
+
+			if !ds.dJobsCalled {
+				t.Errorf("expected DataStorer.DispatchedJobs() to be called")
+				return
+			}
+
+			if mNS.sinceTimesCalled != 2 {
+				t.Errorf("expected NowSincer.Since() to be called twice but it was called %v times", mNS.sinceTimesCalled)
+				return
+			}
+
+			if test.expectNullUUID && len(nulledUUIDs) == 0 {
+				t.Errorf("expected a non-zero nullified UUIDs slice")
+			}
+			if len(nulledUUIDs) > 0 && !test.expectNullUUID {
+				t.Errorf("received a nullified UUID when one wasn't expected")
+			}
+		})
+	}
+}

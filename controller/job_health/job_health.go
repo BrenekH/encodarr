@@ -39,8 +39,8 @@ func (c *Checker) Run() (uuidsToNull []controller.UUID) {
 
 		for _, v := range djs {
 			if c.nowSincer.Since(v.LastUpdated) >= time.Duration(c.ss.HealthCheckTimeout()) {
-				// Since DeleteJob may be blocked by an IO error of some sort (SQLiteDB.SetMaxOpenConns should fix this issue but just in case)
-				//   attempt to delete the job up to a hundred times.
+				// Since DeleteJob may be blocked by an IO error of some sort attempt to delete
+				//   the job up to a hundred times (SQLiteDB.SetMaxOpenConns should've fixed this issue but just in case).
 				jobDeleted := false
 				for i := 0; i < 100; i++ {
 					if err := c.ds.DeleteJob(v.UUID); err == nil {
