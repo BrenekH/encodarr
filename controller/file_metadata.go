@@ -1,5 +1,7 @@
 package controller
 
+// TODO: Add json tags (`json:"name"`) to structs
+
 type FileMetadata struct {
 	General        General
 	VideoTracks    []VideoTrack
