@@ -51,12 +51,6 @@ type File struct {
 	Metadata FileMetadata
 }
 
-type FileMetadata struct {
-	// TODO: Replace struct{} with proper VideoTrack and AudioTrack structs
-	VideoTracks []struct{}
-	AudioTracks []struct{}
-}
-
 // LibraryQueue represents a singular queue belonging to one library.
 type LibraryQueue struct {
 	Items []Job
