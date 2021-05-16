@@ -12,6 +12,7 @@ import (
 	"github.com/BrenekH/encodarr/controller/globals"
 	"github.com/BrenekH/encodarr/controller/job_health"
 	"github.com/BrenekH/encodarr/controller/library"
+	"github.com/BrenekH/encodarr/controller/library/command_decider"
 	"github.com/BrenekH/encodarr/controller/library/mediainfo"
 	"github.com/BrenekH/encodarr/controller/runner_communicator"
 	"github.com/BrenekH/encodarr/controller/settings"
@@ -83,8 +84,11 @@ func main() {
 	mediainfoMRLogger := logange.NewLogger("library/mediainfo.MetadataReader")
 	metadataReader := mediainfo.NewMetadataReader(&mediainfoMRLogger)
 
+	cmdDeciderLogger := logange.NewLogger("library/command_decider.CmdDecider")
+	commandDecider := command_decider.New(&cmdDeciderLogger)
+
 	lmLogger := logange.NewLogger("library.Manager")
-	lm := library.NewManager(&lmLogger, &lmDBAdapter, &metadataReader)
+	lm := library.NewManager(&lmLogger, &lmDBAdapter, &metadataReader, &commandDecider)
 
 	// --------------- RunnerCommunicator ---------------
 	rcLogger := logange.NewLogger("runnerCommunicator")

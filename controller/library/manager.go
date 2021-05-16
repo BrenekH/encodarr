@@ -10,12 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer, metadataReader MetadataReader) Manager {
-	// TODO: Take a CommandDecider as an argument
+func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer, metadataReader MetadataReader, commandDecider CommandDecider) Manager {
 	return Manager{
 		logger:         logger,
 		ds:             ds,
 		metadataReader: metadataReader,
+		commandDecider: commandDecider,
 
 		lastCheckedTimes:   make(map[int]time.Time),
 		workerCompletedMap: make(map[int]bool),
@@ -26,7 +26,6 @@ type Manager struct {
 	logger         controller.Logger
 	ds             controller.LibraryManagerDataStorer
 	metadataReader MetadataReader
-
 	commandDecider CommandDecider
 
 	// lastCheckedTimes is a map of Library ids and the last time that they were checked.
