@@ -18,9 +18,9 @@ type CmdDecider struct {
 	logger controller.Logger
 }
 
-func (c *CmdDecider) Decide(m controller.FileMetadata, bSettings []byte) (bool, []string) { //? Maybe an extra error return value would be good?
+func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) (bool, []string) { //? Maybe an extra error return value would be good?
 	settings := CmdDeciderSettings{}
-	err := json.Unmarshal(bSettings, &settings)
+	err := json.Unmarshal([]byte(sSettings), &settings)
 	if err != nil {
 		c.logger.Error(err.Error())
 		return false, []string{"Error parsing json settings", err.Error()}

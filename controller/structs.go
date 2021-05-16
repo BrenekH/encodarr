@@ -23,7 +23,7 @@ type Library struct {
 	FsCheckInterval        time.Duration `json:"fs_check_interval"`
 	Queue                  LibraryQueue  `json:"queue"`
 	PathMasks              []string      `json:"path_masks"`
-	CommandDeciderSettings string        `json:"command_decider_settings"`
+	CommandDeciderSettings string        `json:"command_decider_settings"` // We are using a string for the CommandDecider settings because it is easier for the frontend to convert back and forth from when setting and reading values.
 }
 
 type DispatchedJob struct {
