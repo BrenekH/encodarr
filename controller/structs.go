@@ -17,15 +17,13 @@ type Job struct {
 
 // Library represents a single library.
 type Library struct {
-	ID              int           `json:"id"`
-	Folder          string        `json:"folder"`
-	Priority        int           `json:"priority"`
-	FsCheckInterval time.Duration `json:"fs_check_interval"`
-	Queue           LibraryQueue  `json:"queue"`
-	PathMasks       []string      `json:"path_masks"`
-
-	// TODO: Figure out how to replace PluginPipeline
-	// Pipeline        PluginPipeline `json:"pipeline"`
+	ID                     int           `json:"id"`
+	Folder                 string        `json:"folder"`
+	Priority               int           `json:"priority"`
+	FsCheckInterval        time.Duration `json:"fs_check_interval"`
+	Queue                  LibraryQueue  `json:"queue"`
+	PathMasks              []string      `json:"path_masks"`
+	CommandDeciderSettings string        `json:"command_decider_settings"`
 }
 
 type DispatchedJob struct {
