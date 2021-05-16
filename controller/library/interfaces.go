@@ -3,7 +3,7 @@ package library
 import "github.com/BrenekH/encodarr/controller"
 
 type MetadataReader interface {
-	Read(path string) controller.FileMetadata
+	Read(path string) (controller.FileMetadata, error)
 }
 
 type CommandDecider interface {

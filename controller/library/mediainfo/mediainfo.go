@@ -10,7 +10,7 @@ type MetadataReader struct {
 	logger controller.Logger
 }
 
-func (m *MetadataReader) Read(path string) (fm controller.FileMetadata) {
+func (m *MetadataReader) Read(path string) (fm controller.FileMetadata, err error) {
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
 	return

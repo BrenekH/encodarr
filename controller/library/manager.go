@@ -103,7 +103,10 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 		}
 
 		// Read file metadata from a MetadataReader
-		fMetadata := m.metadataReader.Read(videoFilepath)
+		fMetadata, err := m.metadataReader.Read(videoFilepath)
+		if err != nil {
+			m.logger.Error("Skipping %v because of error: %v", videoFilepath, err)
+		}
 
 		// Run a CommandDecider against the metadata to determine what FFMpeg command to run
 		runCmd, commandSlice := m.commandDecider.Decide(fMetadata, lib.CommandDeciderSettings)
