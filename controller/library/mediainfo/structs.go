@@ -18,6 +18,7 @@ type media struct {
 }
 
 type track struct {
+	// From General Track Type
 	Type                     string `json:"@type"`
 	Count                    string `json:"Count"`
 	StreamCount              string `json:"StreamCount"`
@@ -83,4 +84,53 @@ type track struct {
 	Extra                    struct {
 		ErrorDetectionType string `json:"ErrorDetectionType"`
 	} `json:"extra"`
+
+	// From Video Track Type
+	ID                             string `json:"ID"`
+	IDString                       string `json:"ID_String"`
+	FormatInfo                     string `json:"Format_Info"`
+	FormatProfile                  string `json:"Format_Profile"`
+	FormatLevel                    string `json:"Format_Level"`
+	FormatTier                     string `json:"Format_Tier"`
+	InternetMediaType              string `json:"InternetMediaType"`
+	CodecID                        string `json:"CodecID"`
+	Width                          string `json:"Width"`
+	WidthString                    string `json:"Width_String"`
+	Height                         string `json:"Height"`
+	HeightString                   string `json:"Height_String"`
+	SampledWidth                   string `json:"Sampled_Width"`
+	SampledHeight                  string `json:"Sampled_Height"`
+	PixelAspectRatio               string `json:"PixelAspectRatio"`
+	DisplayAspectRatio             string `json:"DisplayAspectRatio"`
+	DisplayAspectRatioString       string `json:"DisplayAspectRatio_String"`
+	FrameRateMode                  string `json:"FrameRate_Mode"`
+	FrameRateModeString            string `json:"FrameRate_Mode_String"`
+	FrameRateNum                   string `json:"FrameRate_Num"`
+	FrameRateDen                   string `json:"FrameRate_Den"`
+	ColorSpace                     string `json:"ColorSpace"`
+	ChromaSubsampling              string `json:"ChromaSubsampling"`
+	ChromaSubsamplingString        string `json:"ChromaSubsampling_String"`
+	BitDepth                       string `json:"BitDepth"`
+	BitDepthString                 string `json:"BitDepth_String"`
+	Delay                          string `json:"Delay"`
+	DelayString3                   string `json:"Delay_String3"`
+	DelaySource                    string `json:"Delay_Source"`
+	DelaySourceString              string `json:"Delay_Source_String"`
+	EncodedLibraryName             string `json:"Encoded_Library_Name"`
+	EncodedLibraryVersion          string `json:"Encoded_Library_Version"`
+	EncodedLibrarySettings         string `json:"Encoded_Library_Settings"`
+	Default                        string `json:"Default"`
+	DefaultString                  string `json:"Default_String"`
+	Forced                         string `json:"Forced"`
+	ForcedString                   string `json:"Forced_String"`
+	ColourDescriptionPresent       string `json:"colour_description_present"`
+	ColourDescriptionPresentSource string `json:"colour_description_present_Source"`
+	ColourRange                    string `json:"colour_range"`
+	ColourRangeSource              string `json:"colour_range_Source"`
+	ColourPrimaries                string `json:"colour_primaries"`
+	ColourPrimariesSource          string `json:"colour_primaries_Source"`
+	TransferCharacteristics        string `json:"transfer_characteristics"`
+	TransferCharacteristicsSource  string `json:"tranfer_characteristics_Source"`
+	MatrixCoefficients             string `json:"matrix_coefficients"`
+	MatrixCoefficientsSource       string `json:"matrix_coefficients_Source"`
 }
