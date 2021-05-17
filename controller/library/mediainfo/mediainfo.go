@@ -1,17 +1,43 @@
 package mediainfo
 
-import "github.com/BrenekH/encodarr/controller"
+import (
+	"encoding/json"
+
+	"github.com/BrenekH/encodarr/controller"
+)
 
 func NewMetadataReader(logger controller.Logger) MetadataReader {
-	return MetadataReader{logger: logger}
+	return MetadataReader{
+		logger: logger,
+		cmdr:   ExecCommander{},
+	}
 }
 
 type MetadataReader struct {
 	logger controller.Logger
+
+	cmdr Commander
 }
 
-func (m *MetadataReader) Read(path string) (fm controller.FileMetadata, err error) {
-	m.logger.Critical("Not implemented")
-	// TODO: Implement
-	return
+func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
+	cmd := m.cmdr.Command("mediainfo", "--Output=JSON", "--Full", path)
+	b, err := cmd.Output()
+	if err != nil {
+		return controller.FileMetadata{}, err
+	}
+
+	mi := mediaInfo{}
+	err = json.Unmarshal(b, &mi)
+	if err != nil {
+		return controller.FileMetadata{}, err
+	}
+
+	return controller.FileMetadata{
+		General: controller.General{
+			Duration: 0,
+		},
+		VideoTracks:    []controller.VideoTrack{},
+		AudioTracks:    []controller.AudioTrack{},
+		SubtitleTracks: []controller.SubtitleTrack{},
+	}, nil
 }
