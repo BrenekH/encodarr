@@ -2,6 +2,7 @@ package mediainfo
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/BrenekH/encodarr/controller"
 )
@@ -32,12 +33,89 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 		return controller.FileMetadata{}, err
 	}
 
+	var generalDuration float64
+	vidTracks := make([]controller.VideoTrack, 0)
+	audioTracks := make([]controller.AudioTrack, 0)
+	subtitleTracks := make([]controller.SubtitleTrack, 0)
+
+	for _, v := range mi.Media.Tracks {
+		switch v.Type {
+		case "General":
+			generalDuration, err = strconv.ParseFloat(v.Duration, 32)
+			if err != nil {
+				return controller.FileMetadata{}, err
+			}
+		case "Video":
+			vidTrack := controller.VideoTrack{}
+
+			switch v.Format {
+			case "AVC":
+				vidTrack.Codec = "AVC"
+			case "HEVC":
+				vidTrack.Codec = "HEVC"
+			case "VP9":
+				vidTrack.Codec = "VP9"
+			case "AV1":
+				vidTrack.Codec = "AV1"
+			default:
+				vidTrack.Codec = ""
+			}
+
+			vidTrack.ColorPrimaries = v.ColourPrimaries
+
+			vidTrack.Index, err = strconv.Atoi(v.StreamOrder)
+			if err != nil {
+				return controller.FileMetadata{}, err
+			}
+
+			vidTrack.Width, err = strconv.Atoi(v.Width)
+			if err != nil {
+				return controller.FileMetadata{}, err
+			}
+
+			vidTrack.Height, err = strconv.Atoi(v.Height)
+			if err != nil {
+				return controller.FileMetadata{}, err
+			}
+
+			vidTracks = append(vidTracks, vidTrack)
+		case "Audio":
+			audioTrack := controller.AudioTrack{}
+
+			audioTrack.Index, err = strconv.Atoi(v.StreamOrder)
+			if err != nil {
+				return controller.FileMetadata{}, err
+			}
+
+			audioTrack.Channels, err = strconv.Atoi(v.Channels)
+			if err != nil {
+				return controller.FileMetadata{}, err
+			}
+
+			audioTracks = append(audioTracks, audioTrack)
+		case "Text":
+			textTrack := controller.SubtitleTrack{}
+
+			textTrack.Index, err = strconv.Atoi(v.StreamOrder)
+			if err != nil {
+				return controller.FileMetadata{}, err
+			}
+
+			textTrack.Language = v.Language
+
+			subtitleTracks = append(subtitleTracks, textTrack)
+		case "Menu":
+		default:
+		}
+
+	}
+
 	return controller.FileMetadata{
 		General: controller.General{
-			Duration: 0,
+			Duration: float32(generalDuration),
 		},
-		VideoTracks:    []controller.VideoTrack{},
-		AudioTracks:    []controller.AudioTrack{},
-		SubtitleTracks: []controller.SubtitleTrack{},
+		VideoTracks:    vidTracks,
+		AudioTracks:    audioTracks,
+		SubtitleTracks: subtitleTracks,
 	}, nil
 }
