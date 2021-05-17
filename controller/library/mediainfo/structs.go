@@ -133,4 +133,37 @@ type track struct {
 	TransferCharacteristicsSource  string `json:"tranfer_characteristics_Source"`
 	MatrixCoefficients             string `json:"matrix_coefficients"`
 	MatrixCoefficientsSource       string `json:"matrix_coefficients_Source"`
+
+	// From Audio Track Type
+	TypeOrder                string `json:"@typeorder"`
+	StreamKindPos            string `json:"StreamKindPos"`
+	StreamOrder              string `json:"StreamOrder"`
+	FormatSettingsSBR        string `json:"Format_Settings_SBR"`
+	FormatSettingsSBRString  string `json:"Format_Settings_SBR_String"`
+	FormatAdditionalFeatures string `json:"Format_AdditionalFeatures"`
+	Channels                 string `json:"Channels"`
+	ChannelsString           string `json:"Channels_String"`
+	ChannelPositions         string `json:"ChannelPositions"`
+	ChannelPositionsString2  string `json:"ChannelPositions_String2"`
+	ChannelLayout            string `json:"ChannelLayout"`
+	SamplesPerFrame          string `json:"SamplesPerFrame"`
+	SamplingRate             string `json:"SamplingRate"`
+	SamplingRateString       string `json:"SamplingRate_String"`
+	SamplingCount            string `json:"SamplingCount"`
+	CompressionMode          string `json:"Compression_Mode"`
+	CompressionModeString    string `json:"Compression_Mode_String"`
+	DelayString              string `json:"Delay_String"`
+	DelayString1             string `json:"Delay_String1"`
+	DelayString2             string `json:"Delay_String2"`
+	VideoDelay               string `json:"Video_Delay"`
+	VideoDelayString         string `json:"Video_Delay_String"`
+	VideoDelayString1        string `json:"Video_Delay_String1"`
+	VideoDelayString2        string `json:"Video_Delay_String2"`
+	VideoDelayString3        string `json:"Video_Delay_String3"`
+	Language                 string `json:"Language"`
+	LanguageString           string `json:"Language_String"`
+	LanguageString1          string `json:"Language_String1"`
+	LanguageString2          string `json:"Language_String2"`
+	LanguageString3          string `json:"Language_String3"`
+	LanguageString4          string `json:"Language_String4"`
 }
