@@ -84,11 +84,13 @@ func main() {
 	mediainfoMRLogger := logange.NewLogger("library/mediainfo.MetadataReader")
 	metadataReader := mediainfo.NewMetadataReader(&mediainfoMRLogger)
 
+	metadataCacheMiddleware := library.NewCache(&metadataReader)
+
 	cmdDeciderLogger := logange.NewLogger("library/command_decider.CmdDecider")
 	commandDecider := command_decider.New(&cmdDeciderLogger)
 
 	lmLogger := logange.NewLogger("library.Manager")
-	lm := library.NewManager(&lmLogger, &lmDBAdapter, &metadataReader, &commandDecider)
+	lm := library.NewManager(&lmLogger, &lmDBAdapter, &metadataCacheMiddleware, &commandDecider)
 
 	// --------------- RunnerCommunicator ---------------
 	rcLogger := logange.NewLogger("runnerCommunicator")
