@@ -166,4 +166,9 @@ type track struct {
 	LanguageString2          string `json:"Language_String2"`
 	LanguageString3          string `json:"Language_String3"`
 	LanguageString4          string `json:"Language_String4"`
+
+	// From Menu Track Type
+	ChaptersPosBegin string `json:"Chapters_Pos_Begin"`
+	ChaptersPosEnd   string `json:"Chapters_Pos_End"`
+	// There are also more items for the extra key, but they have dynamic keys and they don't matter that much anyway.
 }
