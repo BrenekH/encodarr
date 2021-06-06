@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS libraries (
 CREATE TABLE IF NOT EXISTS files (
 	path text,
 	modtime timestamp,
-	mediainfo binary
+	metadata binary
 );
 CREATE TABLE IF NOT EXISTS history (
 	time_completed timestamp,
