@@ -1,6 +1,10 @@
 package library
 
-import "github.com/BrenekH/encodarr/controller"
+import (
+	"io/fs"
+
+	"github.com/BrenekH/encodarr/controller"
+)
 
 type MetadataReader interface {
 	Read(path string) (controller.FileMetadata, error)
@@ -8,4 +12,8 @@ type MetadataReader interface {
 
 type CommandDecider interface {
 	Decide(m controller.FileMetadata, cmdDeciderSettings string) (runCmd bool, cmd []string)
+}
+
+type stater interface {
+	Stat(name string) (fs.FileInfo, error)
 }

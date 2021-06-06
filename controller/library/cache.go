@@ -1,6 +1,7 @@
 package library
 
 import (
+	"io/fs"
 	"os"
 
 	"github.com/BrenekH/encodarr/controller"
@@ -11,6 +12,7 @@ func NewCache(m MetadataReader, f controller.FileCacheDataStorer, l controller.L
 		metadataReader: m,
 		ds:             f,
 		logger:         l,
+		stater:         osStater{},
 	}
 }
 
@@ -20,10 +22,11 @@ type Cache struct {
 	metadataReader MetadataReader
 	ds             controller.FileCacheDataStorer
 	logger         controller.Logger
+	stater         stater
 }
 
 func (c *Cache) Read(path string) (controller.FileMetadata, error) {
-	fileInfo, err := os.Stat(path)
+	fileInfo, err := c.stater.Stat(path)
 	if err != nil {
 		c.logger.Error("Failed to stat %v, disabling caching for this call: %v", path, err)
 		return c.metadataReader.Read(path)
@@ -60,4 +63,10 @@ func (c *Cache) Read(path string) (controller.FileMetadata, error) {
 	}
 
 	return newMetadata, err
+}
+
+type osStater struct{}
+
+func (o osStater) Stat(name string) (fs.FileInfo, error) {
+	return os.Stat(name)
 }
