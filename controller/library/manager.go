@@ -16,6 +16,7 @@ func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer
 		ds:             ds,
 		metadataReader: metadataReader,
 		commandDecider: commandDecider,
+		videoFileser:   defaultVideoFileser{},
 
 		lastCheckedTimes:   make(map[int]time.Time),
 		workerCompletedMap: make(map[int]bool),
@@ -27,6 +28,7 @@ type Manager struct {
 	ds             controller.LibraryManagerDataStorer
 	metadataReader MetadataReader
 	commandDecider CommandDecider
+	videoFileser   videoFileser
 
 	// lastCheckedTimes is a map of Library ids and the last time that they were checked.
 	lastCheckedTimes map[int]time.Time
@@ -78,7 +80,7 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 	defer func() { m.workerCompletedMap[lib.ID] = true }()
 
 	// Locate video files
-	discoveredVideos, err := GetVideoFilesFromDir(lib.Folder) // TODO: Abstract this function so it can be mocked out for something else during testing
+	discoveredVideos, err := m.videoFileser.VideoFiles(lib.Folder)
 	if err != nil {
 		m.logger.Error(err.Error())
 		return
@@ -155,4 +157,10 @@ func (m *Manager) PopNewJob() (j controller.Job) {
 func (m *Manager) UpdateLibrarySettings(map[string]controller.Library) {
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
+}
+
+type defaultVideoFileser struct{}
+
+func (d defaultVideoFileser) VideoFiles(dir string) ([]string, error) {
+	return GetVideoFilesFromDir(dir)
 }
