@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"sync"
+	"time"
 )
 
 // The HealthChecker interface describes how a struct wishing to decide if a job's
@@ -117,6 +118,14 @@ type LibraryManagerDataStorer interface {
 	SaveFileEntry(f File)
 
 	IsPathDispatched(path string) bool
+}
+
+type FileCacheDataStorer interface {
+	Modtime(path string) (time.Time, error)
+	Metadata(path string) (FileMetadata, error)
+
+	SaveModtime(path string, t time.Time) error
+	SaveMetadata(path string, f FileMetadata) error
 }
 
 type Logger interface {
