@@ -84,7 +84,10 @@ func main() {
 	mediainfoMRLogger := logange.NewLogger("library/mediainfo.MetadataReader")
 	metadataReader := mediainfo.NewMetadataReader(&mediainfoMRLogger)
 
-	metadataCacheMiddleware := library.NewCache(&metadataReader)
+	fileCacheLogger := logange.NewLogger("sqlite.FCA")
+	fileCacheDS := sqlite.NewFileCacheAdapter(&sqliteDatabase, &fileCacheLogger)
+	cacheMiddlewareLogger := logange.NewLogger("library.cache")
+	metadataCacheMiddleware := library.NewCache(&metadataReader, &fileCacheDS, &cacheMiddlewareLogger)
 
 	cmdDeciderLogger := logange.NewLogger("library/command_decider.CmdDecider")
 	commandDecider := command_decider.New(&cmdDeciderLogger)
