@@ -18,7 +18,7 @@ type CmdDecider struct {
 	logger controller.Logger
 }
 
-func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) (bool, []string) { //? Maybe an extra error return value would be good?
+func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) (bool, []string) { //? Maybe an error return value instead of a boolean would be good?
 	settings := CmdDeciderSettings{}
 	err := json.Unmarshal([]byte(sSettings), &settings)
 	if err != nil {
@@ -36,7 +36,14 @@ func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) (bool, 
 		}
 	}
 
-	alreadyTargetVideoCodec := m.VideoTracks[0].Codec == settings.TargetVideoCodec // TODO: Protect against empty slice
+	var alreadyTargetVideoCodec bool
+	if len(m.VideoTracks) > 0 {
+		alreadyTargetVideoCodec = m.VideoTracks[0].Codec == settings.TargetVideoCodec
+	} else {
+		// Just because there are no video tracks, doesn't mean that the audio can't be adjusted.
+		// So tell the system that the video is already the target and move on.
+		alreadyTargetVideoCodec = true
+	}
 
 	if stereoAudioTrackExists && alreadyTargetVideoCodec {
 		return false, []string{"File already matches requirements"}
