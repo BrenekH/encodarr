@@ -18,6 +18,7 @@ type FileCacheAdapter struct {
 	logger controller.Logger
 }
 
+// Modtime uses a SQL SELECT statement to obtain the modtime associated with the provided path.
 func (a *FileCacheAdapter) Modtime(path string) (time.Time, error) {
 	row := a.db.Client.QueryRow("SELECT modtime FROM files WHERE path = $1;", path)
 
@@ -32,6 +33,7 @@ func (a *FileCacheAdapter) Modtime(path string) (time.Time, error) {
 	return storedModtime, nil
 }
 
+// Metadata uses a SQL SELECT statement to obtain the metadata associated with the provided path.
 func (a *FileCacheAdapter) Metadata(path string) (controller.FileMetadata, error) {
 	row := a.db.Client.QueryRow("SELECT metadata FROM files WHERE path = $1;", path)
 
@@ -54,6 +56,7 @@ func (a *FileCacheAdapter) Metadata(path string) (controller.FileMetadata, error
 	return storedMetadata, nil
 }
 
+// SaveModtime uses the UPSERT syntax to update the modtime that is associated with the provided path in the database.
 func (a *FileCacheAdapter) SaveModtime(path string, t time.Time) error {
 	_, err := a.db.Client.Exec("INSERT INTO files (path, modtime) VALUES ($1, $2) ON CONFLICT(path) DO UPDATE SET path=$1, modtime=$2;",
 		path,
@@ -67,6 +70,7 @@ func (a *FileCacheAdapter) SaveModtime(path string, t time.Time) error {
 	return nil
 }
 
+// SaveMetadata uses the UPSERT syntax to update the metadata that is associated with the provided path in the database.
 func (a *FileCacheAdapter) SaveMetadata(path string, f controller.FileMetadata) error {
 	_, err := a.db.Client.Exec("INSERT INTO files (path, metadata) VALUES ($1, $2) ON CONFLICT(path) DO UPDATE SET path=$1, metadata=$2;",
 		path,
