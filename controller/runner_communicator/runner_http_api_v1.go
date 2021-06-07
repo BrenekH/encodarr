@@ -3,8 +3,11 @@ package runner_communicator
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path"
 	"sync"
 
 	"github.com/BrenekH/encodarr/controller"
@@ -25,6 +28,7 @@ type RunnerHTTPApiV1 struct {
 	ds         controller.RunnerCommunicatorDataStorer
 
 	nullifiedUUIDs []controller.UUID
+	completedJobs  chan controller.CompletedJob
 }
 
 func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
@@ -133,15 +137,57 @@ func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
 func (a *RunnerHTTPApiV1) jobComplete(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		// Goals: Check UUID for nullified status, save file that client is posting, add job to channel for CompletedJobs to pick up from
-		//? Probably should detect a client disconnect and disregard any data it sent
+		//? Probably should detect a client disconnect and disregard any data it sent (use r.Context())
 
-		// TODO: Read history entry from headers
-		// TODO: Unmarshal history entry into usable struct
+		// Read history entry from headers
+		h := r.Header.Get("X-Encodarr-History-Entry")
+		if h == "" {
+			a.logger.Debug("received invalid history entry")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
-		// TODO: If job didn't fail, write file to disk
+		// Unmarshal history entry into usable struct
+		cJob := controller.CompletedJob{}
+		err := json.Unmarshal([]byte(h), &cJob)
+		if err != nil {
+			a.logger.Debug("error unmarshalling history entry: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-		// TODO: Add controller.CompletedJob to channel for CompletedJobs to pick up from
+		// If UUID was nullified, respond with 409 error code and exit
+		for _, v := range a.nullifiedUUIDs {
+			if v == cJob.UUID {
+				w.WriteHeader(http.StatusConflict)
+				return
+			}
+		}
+
+		// If job didn't fail, write file to disk
+		if !cJob.Failed {
+			fileReader, fileHeader, err := r.FormFile("file")
+			if err != nil {
+				a.logger.Debug("error accessing form file: %v", err)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			defer fileReader.Close()
+
+			// Copy to intermediate file
+			cJob.InFile = fmt.Sprintf("%v.import%v", cJob.UUID, path.Ext(fileHeader.Filename))
+			f, err := os.Create(cJob.InFile) // TODO: Mock out for testing
+			if err != nil {
+				a.logger.Debug("error opening receiving file: %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			io.Copy(f, fileReader)
+			f.Close()
+		}
+
+		// Add controller.CompletedJob to channel for CompletedJobs to pick up from
+		a.completedJobs <- cJob
 
 		w.WriteHeader(http.StatusOK)
 	default:
