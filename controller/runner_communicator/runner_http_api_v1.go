@@ -60,6 +60,12 @@ func (r *RunnerHTTPApiV1) WaitingRunners() (runnerNames []string) {
 func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		// TODO: Gather Runner name from HTTP headers
+		// TODO: Add callback channel to waiting runners queue
+		// TODO: Check for a returned job
+		// TODO: Also check for a connection close using r.Context(). Remove from waiting runners if becomes done.
+		// TODO: Send back header info
+		// TODO: Respond with file
 		w.WriteHeader(http.StatusOK)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)

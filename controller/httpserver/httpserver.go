@@ -26,6 +26,7 @@ type Server struct {
 }
 
 // Start starts the http server which will exit when ctx is closed. Calling Start more than once results in a no-op.
+// The passed sync.WaitGroup should not have the Add method called before passing to Start.
 func (s *Server) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	if s.serverAlreadyStarted {
 		return
