@@ -166,7 +166,9 @@ func (m *Manager) PopNewJob() (j controller.Job) {
 	return
 }
 
-func (m *Manager) UpdateLibrarySettings(map[string]controller.Library) {
+// UpdateLibrarySettings loops through each entry in the provided map and applies the new settings
+// if the key matches a valid library. However, it will not update the ID and Queue fields.
+func (m *Manager) UpdateLibrarySettings(map[int]controller.Library) {
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
 }

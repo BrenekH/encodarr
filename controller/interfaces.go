@@ -37,7 +37,7 @@ type LibraryManager interface {
 
 	// UpdateLibrarySettings loops through the provided map of new settings and applies
 	// them to the appropriate libraries.
-	UpdateLibrarySettings(map[string]Library)
+	UpdateLibrarySettings(map[int]Library)
 
 	Start(ctx *context.Context, wg *sync.WaitGroup)
 }
@@ -70,7 +70,7 @@ type RunnerCommunicator interface {
 // with the user should interact with the Run function.
 type UserInterfacer interface {
 	// NewLibrarySettings returns a map of all updated library settings as set by the user.
-	NewLibrarySettings() map[string]Library
+	NewLibrarySettings() map[int]Library
 
 	// SetLibrarySettings takes the provided slice of LibrarySettings and stores it
 	// for an incoming request.

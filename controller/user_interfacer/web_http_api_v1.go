@@ -22,7 +22,7 @@ func (w *WebHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	// TODO: Add handlers to w.httpServer
 }
 
-func (w *WebHTTPApiV1) NewLibrarySettings() (m map[string]controller.Library) {
+func (w *WebHTTPApiV1) NewLibrarySettings() (m map[int]controller.Library) {
 	w.logger.Critical("Not implemented")
 	// TODO: Implement
 	return
