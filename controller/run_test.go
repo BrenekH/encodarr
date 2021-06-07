@@ -34,9 +34,6 @@ func TestRunFuncsCalled(t *testing.T) {
 	if !mLibraryManager.libSettingsCalled {
 		t.Errorf("LibraryManager.LibrarySettings() wasn't called")
 	}
-	if !mLibraryManager.libQueuesCalled {
-		t.Errorf("LibraryManager.LibraryQueues() wasn't called")
-	}
 	if !mLibraryManager.popJobCalled {
 		t.Errorf("LibraryManager.PopNewJob() wasn't called")
 	}
@@ -73,9 +70,6 @@ func TestRunFuncsCalled(t *testing.T) {
 	}
 	if !mUserInterfacer.setLibSettingsCalled {
 		t.Errorf("UserInterfacer.SetLibrarySettings() wasn't called")
-	}
-	if !mUserInterfacer.setLibQueuesCalled {
-		t.Errorf("UserInterfacer.SetLibraryQueues() wasn't called")
 	}
 	if !mUserInterfacer.setWaitingRunnersCalled {
 		t.Errorf("UserInterfacer.SetWaitingRunners() wasn't called")

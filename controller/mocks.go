@@ -22,7 +22,6 @@ func (m *mockHealthChecker) Run() (uuidsToNull []UUID) {
 type mockLibraryManager struct {
 	importCalled            bool
 	libSettingsCalled       bool
-	libQueuesCalled         bool
 	popJobCalled            bool
 	updateLibSettingsCalled bool
 	startCalled             bool
@@ -38,11 +37,6 @@ func (m *mockLibraryManager) ImportCompletedJobs([]Job) {
 
 func (m *mockLibraryManager) LibrarySettings() (ls []Library, err error) {
 	m.libSettingsCalled = true
-	return
-}
-
-func (m *mockLibraryManager) LibraryQueues() (lq []LibraryQueue) {
-	m.libQueuesCalled = true
 	return
 }
 
@@ -95,7 +89,6 @@ func (m *mockRunnerCommunicator) WaitingRunners() (runnerNames []string) {
 type mockUserInterfacer struct {
 	newLibSettingsCalled    bool
 	setLibSettingsCalled    bool
-	setLibQueuesCalled      bool
 	setWaitingRunnersCalled bool
 	startCalled             bool
 }
@@ -111,10 +104,6 @@ func (m *mockUserInterfacer) NewLibrarySettings() (ls map[int]Library) {
 
 func (m *mockUserInterfacer) SetLibrarySettings([]Library) {
 	m.setLibSettingsCalled = true
-}
-
-func (m *mockUserInterfacer) SetLibraryQueues([]LibraryQueue) {
-	m.setLibQueuesCalled = true
 }
 
 func (m *mockUserInterfacer) SetWaitingRunners(runnerNames []string) {
