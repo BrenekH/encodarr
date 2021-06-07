@@ -196,9 +196,24 @@ func (m *Manager) PopNewJob() (controller.Job, error) {
 
 // UpdateLibrarySettings loops through each entry in the provided map and applies the new settings
 // if the key matches a valid library. However, it will not update the ID and Queue fields.
-func (m *Manager) UpdateLibrarySettings(map[int]controller.Library) {
-	m.logger.Critical("Not implemented")
-	// TODO: Implement
+func (m *Manager) UpdateLibrarySettings(libSettings map[int]controller.Library) {
+	for k, v := range libSettings {
+		lib, err := m.ds.Library(k)
+		if err != nil {
+			m.logger.Error(err.Error())
+			continue
+		}
+
+		lib.Folder = v.Folder
+		lib.Priority = v.Priority
+		lib.FsCheckInterval = v.FsCheckInterval
+		lib.PathMasks = v.PathMasks
+		lib.CommandDeciderSettings = v.CommandDeciderSettings
+
+		if err = m.ds.SaveLibrary(lib); err != nil {
+			m.logger.Error(err.Error())
+		}
+	}
 }
 
 type defaultVideoFileser struct{}
