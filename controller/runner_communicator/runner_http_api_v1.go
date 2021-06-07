@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"sync"
 
@@ -226,7 +225,7 @@ func (a *RunnerHTTPApiV1) jobComplete(w http.ResponseWriter, r *http.Request) {
 			defer fileReader.Close()
 
 			// Copy to intermediate file
-			cJob.InFile = fmt.Sprintf("%v.import%v", cJob.UUID, path.Ext(fileHeader.Filename))
+			cJob.InFile = fmt.Sprintf("%v.import%v", cJob.UUID, filepath.Ext(fileHeader.Filename))
 			f, err := os.Create(cJob.InFile) // TODO: Mock out for testing
 			if err != nil {
 				a.logger.Debug("error opening receiving file: %v", err)

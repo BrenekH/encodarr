@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -179,7 +179,7 @@ func (m *Manager) ImportCompletedJobs(jobs []controller.CompletedJob) {
 			m.logger.Error(failMessage)
 
 			// Set filename to a string with an extra encodarr extension
-			fnExt := path.Ext(filename)
+			fnExt := filepath.Ext(filename)
 			i := strings.LastIndex(filename, fnExt)
 			fnWoExt := filename[:i] + strings.Replace(filename[i:], fnExt, "", 1)
 			filename = fmt.Sprintf("%v.encodarr%v", fnWoExt, fnExt)
@@ -188,8 +188,8 @@ func (m *Manager) ImportCompletedJobs(jobs []controller.CompletedJob) {
 		}
 
 		// Change filename to have file extension of InFile
-		inFileExt := path.Ext(cJob.InFile)
-		fnExt := path.Ext(filename)
+		inFileExt := filepath.Ext(cJob.InFile)
+		fnExt := filepath.Ext(filename)
 		i := strings.LastIndex(filename, fnExt)
 		fnWoExt := filename[:i] + strings.Replace(filename[i:], fnExt, "", 1)
 		filename = fnWoExt + inFileExt
