@@ -48,6 +48,19 @@ func (l *LibraryManagerAdapter) Libraries() ([]controller.Library, error) {
 	return returnSlice, nil
 }
 
+func (l *LibraryManagerAdapter) Library(id int) (controller.Library, error) {
+	row := l.db.Client.QueryRow("SELECT id, folder, priority, fs_check_interval, cmd_decider_settings, queue, path_masks FROM libraries WHERE id = $1;", id)
+
+	d := dbLibrary{}
+
+	err := row.Scan(d.ID, d.Folder, d.Priority, d.FsCheckInterval, d.CommandDeciderSettings, d.Queue, d.PathMasks)
+	if err != nil {
+		return controller.Library{}, err
+	}
+
+	return fromDBLibrary(d)
+}
+
 func (l *LibraryManagerAdapter) SaveLibrary(lib controller.Library) error {
 	d, err := toDBLibrary(lib)
 	if err != nil {

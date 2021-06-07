@@ -105,6 +105,7 @@ type HealthCheckerDataStorer interface {
 
 type LibraryManagerDataStorer interface {
 	Libraries() ([]Library, error)
+	Library(id int) (Library, error)
 	SaveLibrary(Library) error
 
 	IsPathDispatched(path string) (bool, error)
