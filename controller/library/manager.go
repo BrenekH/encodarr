@@ -2,6 +2,8 @@ package library
 
 import (
 	"context"
+	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -159,15 +161,37 @@ func (m *Manager) LibrarySettings() ([]controller.Library, error) {
 }
 
 func (m *Manager) PopNewJob() (controller.Job, error) {
-	m.logger.Critical("Not implemented")
-	// TODO: Implement
+	// Get every library from DataStorer (m.ds.Libraries())
+	libs, err := m.ds.Libraries()
+	if err != nil {
+		m.logger.Error(err.Error())
+		return controller.Job{}, err
+	}
 
-	// Steps
-	// * Get every library from DataStorer (m.ds.Libraries())
-	// * Sort for priority (descending order)
-	// * Loop through sorted slice looking for a job to return
+	// Sort libraries by decreasing order so that the libraries with the higher priority number dispatch jobs first.
+	sort.Slice(libs, func(i, j int) bool {
+		return libs[i].Priority > libs[j].Priority
+	})
 
-	return controller.Job{}, nil
+	// Loop through sorted slice looking for a job to return
+	for _, l := range libs {
+		job, err := l.Queue.Pop()
+		if err != nil {
+			// If we are in this code block, it is likely an ErrEmptyQueue error, which we should just ignore.
+			m.logger.Debug("error while searching for job: %v", err)
+			continue
+		}
+
+		// Update library in datastore
+		err = m.ds.SaveLibrary(l)
+		if err != nil {
+			m.logger.Error(err.Error())
+		}
+
+		return job, nil
+	}
+
+	return controller.Job{}, fmt.Errorf("no available jobs")
 }
 
 // UpdateLibrarySettings loops through each entry in the provided map and applies the new settings
