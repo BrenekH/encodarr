@@ -58,13 +58,28 @@ func (r *RunnerHTTPApiV1) WaitingRunners() (runnerNames []string) {
 }
 
 func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	switch r.Method {
+	case http.MethodGet:
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }
 
 func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	switch r.Method {
+	case http.MethodPost:
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }
 
 func (a *RunnerHTTPApiV1) jobComplete(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	switch r.Method {
+	case http.MethodPost:
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }
