@@ -114,7 +114,37 @@ func (l *LibraryManagerAdapter) IsPathDispatched(path string) (bool, error) {
 }
 
 func (l *LibraryManagerAdapter) PopDispatchedJob(uuid controller.UUID) (controller.DispatchedJob, error) {
-	return controller.DispatchedJob{}, nil
+	// Get data from table
+	row := l.db.Client.QueryRow("SELECT job, status, runner, last_updated FROM dispatched_jobs WHERE uuid = $1", uuid)
+
+	dJob := controller.DispatchedJob{UUID: uuid}
+	bJob := []byte{}
+	bStatus := []byte{}
+
+	err := row.Scan(
+		bJob,
+		bStatus,
+		dJob.Runner,
+		dJob.LastUpdated,
+	)
+	if err != nil {
+		return dJob, err
+	}
+
+	if err = json.Unmarshal(bJob, &dJob.Job); err != nil {
+		return dJob, err
+	}
+
+	if err = json.Unmarshal(bStatus, &dJob.Status); err != nil {
+		return dJob, err
+	}
+
+	// Delete data from table
+	if _, err = l.db.Client.Exec("DELETE FROM dispatched_jobs WHERE uuid = $1;", uuid); err != nil {
+		return dJob, err
+	}
+
+	return dJob, nil
 }
 
 func (l *LibraryManagerAdapter) SaveHistory(controller.History) error {
