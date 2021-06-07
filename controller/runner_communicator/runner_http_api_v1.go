@@ -2,6 +2,8 @@ package runner_communicator
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"sync"
 
@@ -76,8 +78,30 @@ func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
 func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		// TODO: Implement
 		// Goals: Check UUID for nullified status, save provided status to dispatched_jobs datastore
+
+		b, err := io.ReadAll(r.Body)
+		if err != nil {
+			a.logger.Error("error reading job status body: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		ijs := incomingJobStatus{}
+		if err = json.Unmarshal(b, &ijs); err != nil {
+			a.logger.Error("error unmarshalling into struct: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		// TODO: Check ijs.UUID against nullified UUIDs
+
+		// TODO: Get existing DispatchedJob from datastore
+
+		// TODO: Update DispatchedJob.Status
+
+		// TODO: Store DispatchedJob into datastore
+
 		w.WriteHeader(http.StatusOK)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -95,4 +119,9 @@ func (a *RunnerHTTPApiV1) jobComplete(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
+}
+
+type incomingJobStatus struct {
+	UUID   controller.UUID      `json:"uuid"`
+	Status controller.JobStatus `json:"status"`
 }

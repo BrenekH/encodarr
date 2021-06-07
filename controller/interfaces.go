@@ -115,7 +115,8 @@ type LibraryManagerDataStorer interface {
 }
 
 type RunnerCommunicatorDataStorer interface {
-	UpdateDispatchedJob(DispatchedJob) error
+	DispatchedJob() (DispatchedJob, error)
+	SaveDispatchedJob(DispatchedJob) error
 }
 
 type FileCacheDataStorer interface {
