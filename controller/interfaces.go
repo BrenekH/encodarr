@@ -111,7 +111,7 @@ type LibraryManagerDataStorer interface {
 	IsPathDispatched(path string) (bool, error)
 	PopDispatchedJob(uuid UUID) (DispatchedJob, error)
 
-	SaveHistory(History) error
+	PushHistory(History) error
 }
 
 type FileCacheDataStorer interface {

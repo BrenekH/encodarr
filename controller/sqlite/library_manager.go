@@ -147,7 +147,7 @@ func (l *LibraryManagerAdapter) PopDispatchedJob(uuid controller.UUID) (controll
 	return dJob, nil
 }
 
-func (l *LibraryManagerAdapter) SaveHistory(controller.History) error {
+func (l *LibraryManagerAdapter) PushHistory(controller.History) error {
 	return nil
 }
 
