@@ -11,7 +11,7 @@ type MetadataReader interface {
 }
 
 type CommandDecider interface {
-	Decide(m controller.FileMetadata, cmdDeciderSettings string) (runCmd bool, cmd []string)
+	Decide(m controller.FileMetadata, cmdDeciderSettings string) (cmd []string, err error)
 }
 
 // stater is an interface that allows for the mocking of os.Stat for testing.

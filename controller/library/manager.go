@@ -123,9 +123,9 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 		}
 
 		// Run a CommandDecider against the metadata to determine what FFMpeg command to run
-		runCmd, commandSlice := m.commandDecider.Decide(fMetadata, lib.CommandDeciderSettings)
-		if !runCmd {
-			m.logger.Debug("Skipping %v because CommandDecider returned a do not run status bool and the following command slice: %v", videoFilepath, commandSlice)
+		commandSlice, err := m.commandDecider.Decide(fMetadata, lib.CommandDeciderSettings)
+		if err != nil {
+			m.logger.Debug("Skipping %v because CommandDecider returned error: %v", videoFilepath, err)
 			continue
 		}
 

@@ -18,12 +18,12 @@ type CmdDecider struct {
 	logger controller.Logger
 }
 
-func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) (bool, []string) { //? Maybe an error return value instead of a boolean would be good?
+func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) ([]string, error) {
 	settings := CmdDeciderSettings{}
 	err := json.Unmarshal([]byte(sSettings), &settings)
 	if err != nil {
 		c.logger.Error(err.Error())
-		return false, []string{"Error parsing json settings", err.Error()}
+		return []string{}, err
 	}
 
 	stereoAudioTrackExists := true
@@ -46,17 +46,17 @@ func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) (bool, 
 	}
 
 	if stereoAudioTrackExists && alreadyTargetVideoCodec {
-		return false, []string{"File already matches requirements"}
+		return []string{}, fmt.Errorf("file already matches requirements")
 	}
 
 	ffmpegCodecParam, ok := codecParams[settings.TargetVideoCodec]
 	if !ok {
-		return false, []string{fmt.Sprintf("Couldn't identify ffmpeg parameter for '%v' target codec", settings.TargetVideoCodec)}
+		return []string{}, fmt.Errorf("couldn't identify ffmpeg parameter for '%v' target codec", settings.TargetVideoCodec)
 	}
 
 	cmd := genFFmpegCmd(!stereoAudioTrackExists, !alreadyTargetVideoCodec, ffmpegCodecParam)
 
-	return true, cmd
+	return cmd, nil
 }
 
 type CmdDeciderSettings struct {
