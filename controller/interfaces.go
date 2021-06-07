@@ -115,7 +115,7 @@ type LibraryManagerDataStorer interface {
 }
 
 type RunnerCommunicatorDataStorer interface {
-	DispatchedJob() (DispatchedJob, error)
+	DispatchedJob(uuid UUID) (DispatchedJob, error)
 	SaveDispatchedJob(DispatchedJob) error
 }
 

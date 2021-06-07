@@ -11,13 +11,20 @@ import (
 )
 
 func NewRunnerHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServer, ds controller.RunnerCommunicatorDataStorer) RunnerHTTPApiV1 {
-	return RunnerHTTPApiV1{logger: logger, httpServer: httpServer, ds: ds}
+	return RunnerHTTPApiV1{
+		logger:         logger,
+		httpServer:     httpServer,
+		ds:             ds,
+		nullifiedUUIDs: make([]controller.UUID, 0),
+	}
 }
 
 type RunnerHTTPApiV1 struct {
 	logger     controller.Logger
 	httpServer controller.HTTPServer
 	ds         controller.RunnerCommunicatorDataStorer
+
+	nullifiedUUIDs []controller.UUID
 }
 
 func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
@@ -49,9 +56,8 @@ func (r *RunnerHTTPApiV1) NeedNewJob() (b bool) {
 	return
 }
 
-func (r *RunnerHTTPApiV1) NullifyUUIDs([]controller.UUID) {
-	r.logger.Critical("Not Implemented")
-	// TODO: Implement
+func (r *RunnerHTTPApiV1) NullifyUUIDs(uuids []controller.UUID) {
+	r.nullifiedUUIDs = append(r.nullifiedUUIDs, uuids...)
 }
 
 func (r *RunnerHTTPApiV1) WaitingRunners() (runnerNames []string) {
@@ -78,8 +84,6 @@ func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
 func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		// Goals: Check UUID for nullified status, save provided status to dispatched_jobs datastore
-
 		b, err := io.ReadAll(r.Body)
 		if err != nil {
 			a.logger.Error("error reading job status body: %v", err)
@@ -94,13 +98,31 @@ func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// TODO: Check ijs.UUID against nullified UUIDs
+		// Check ijs.UUID against nullified UUIDs
+		for _, v := range a.nullifiedUUIDs {
+			if v == ijs.UUID {
+				w.WriteHeader(http.StatusConflict) // Send the 409 error code to signal to the Runner that the job has been nullified.
+				return
+			}
+		}
 
-		// TODO: Get existing DispatchedJob from datastore
+		// Get existing DispatchedJob from datastore
+		dJob, err := a.ds.DispatchedJob(ijs.UUID)
+		if err != nil {
+			a.logger.Error(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-		// TODO: Update DispatchedJob.Status
+		// Update DispatchedJob.Status
+		dJob.Status = ijs.Status
 
-		// TODO: Store DispatchedJob into datastore
+		// Store DispatchedJob into datastore
+		if err = a.ds.SaveDispatchedJob(dJob); err != nil {
+			a.logger.Error(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
 		w.WriteHeader(http.StatusOK)
 	default:

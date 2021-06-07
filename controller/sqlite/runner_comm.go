@@ -11,7 +11,7 @@ type RunnerCommunicatorAdapater struct {
 	logger controller.Logger
 }
 
-func (r *RunnerCommunicatorAdapater) DispatchedJob() (controller.DispatchedJob, error) {
+func (r *RunnerCommunicatorAdapater) DispatchedJob(uuid controller.UUID) (controller.DispatchedJob, error) {
 	r.logger.Critical("Not yet implemented")
 	// TODO: Implement
 	return controller.DispatchedJob{}, nil
