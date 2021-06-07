@@ -2,6 +2,7 @@ package runner_communicator
 
 import (
 	"context"
+	"net/http"
 	"sync"
 
 	"github.com/BrenekH/encodarr/controller"
@@ -19,7 +20,10 @@ type RunnerHTTPApiV1 struct {
 func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	r.httpServer.Start(ctx, wg)
 
-	// TODO: Add handlers to r.httpServer
+	// Add handlers to r.httpServer
+	r.httpServer.HandleFunc("/api/runner/v1/job/request", r.requestJob)
+	r.httpServer.HandleFunc("/api/runner/v1/job/status", r.jobStatus)
+	r.httpServer.HandleFunc("/api/runner/v1/job/complete", r.jobComplete)
 }
 
 func (r *RunnerHTTPApiV1) CompletedJobs() (j []controller.CompletedJob) {
@@ -51,4 +55,16 @@ func (r *RunnerHTTPApiV1) WaitingRunners() (runnerNames []string) {
 	r.logger.Critical("Not Implemented")
 	// TODO: Implement
 	return
+}
+
+func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *RunnerHTTPApiV1) jobComplete(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
