@@ -7,19 +7,19 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewWebHTTPApiV1(logger controller.Logger) WebHTTPApiV1 {
-	return WebHTTPApiV1{logger: logger}
+func NewWebHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServer) WebHTTPApiV1 {
+	return WebHTTPApiV1{logger: logger, httpServer: httpServer}
 }
 
 type WebHTTPApiV1 struct {
-	logger controller.Logger
+	logger     controller.Logger
+	httpServer controller.HTTPServer
 }
 
 func (w *WebHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
-	w.logger.Critical("Not implemented")
-	// TODO: Implement
-	// Run w.httpServer.Start(ctx, wg)
-	// Add handlers to w.httpServer
+	w.httpServer.Start(ctx, wg)
+
+	// TODO: Add handlers to w.httpServer
 }
 
 func (w *WebHTTPApiV1) NewLibrarySettings() (m map[string]controller.Library) {

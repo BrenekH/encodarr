@@ -7,19 +7,19 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewRunnerHTTPApiV1(logger controller.Logger) RunnerHTTPApiV1 {
-	return RunnerHTTPApiV1{logger: logger}
+func NewRunnerHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServer) RunnerHTTPApiV1 {
+	return RunnerHTTPApiV1{logger: logger, httpServer: httpServer}
 }
 
 type RunnerHTTPApiV1 struct {
-	logger controller.Logger
+	logger     controller.Logger
+	httpServer controller.HTTPServer
 }
 
 func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
-	r.logger.Critical("Not Implemented")
-	// TODO: Implement
-	// Run r.httpServer.Start(ctx, wg)
-	// Add handlers to r.httpServer
+	r.httpServer.Start(ctx, wg)
+
+	// TODO: Add handlers to r.httpServer
 }
 
 func (r *RunnerHTTPApiV1) CompletedJobs() (j []controller.Job) {

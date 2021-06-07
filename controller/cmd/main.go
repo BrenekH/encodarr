@@ -10,6 +10,7 @@ import (
 
 	"github.com/BrenekH/encodarr/controller"
 	"github.com/BrenekH/encodarr/controller/globals"
+	"github.com/BrenekH/encodarr/controller/httpserver"
 	"github.com/BrenekH/encodarr/controller/job_health"
 	"github.com/BrenekH/encodarr/controller/library"
 	"github.com/BrenekH/encodarr/controller/library/command_decider"
@@ -70,6 +71,9 @@ func main() {
 		mainLogger.Critical("NewSettingsStore Error: %v", err)
 	}
 
+	httpSrvLogger := logange.NewLogger("httpServer")
+	httpServer := httpserver.NewServer(&httpSrvLogger, "8123")
+
 	// --------------- HealthChecker ---------------
 	sqliteHCLogger := logange.NewLogger("sqlite.HCA")
 	hcDBAdapter := sqlite.NewHealthCheckerAdapter(&sqliteDatabase, &sqliteHCLogger)
@@ -97,11 +101,11 @@ func main() {
 
 	// --------------- RunnerCommunicator ---------------
 	rcLogger := logange.NewLogger("runnerCommunicator")
-	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger)
+	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger, &httpServer)
 
 	// --------------- UserInterfacer ---------------
 	uiLogger := logange.NewLogger("userInterfacer")
-	ui := user_interfacer.NewWebHTTPApiV1(&uiLogger)
+	ui := user_interfacer.NewWebHTTPApiV1(&uiLogger, &httpServer)
 
 	runLogger := logange.NewLogger("run")
 	controller.Run(&ctx, &runLogger, &healthChecker, &lm, &rc, &ui, false)

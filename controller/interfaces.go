@@ -140,5 +140,5 @@ type HTTPServer interface {
 	Start(*context.Context, *sync.WaitGroup)
 
 	Handle(pattern string, handler http.Handler)
-	HandleFunc(pattern string, handlerFunc func(http.ResponseWriter, http.Request))
+	HandleFunc(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))
 }
