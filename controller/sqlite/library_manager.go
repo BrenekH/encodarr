@@ -147,8 +147,24 @@ func (l *LibraryManagerAdapter) PopDispatchedJob(uuid controller.UUID) (controll
 	return dJob, nil
 }
 
-func (l *LibraryManagerAdapter) PushHistory(controller.History) error {
-	return nil
+func (l *LibraryManagerAdapter) PushHistory(h controller.History) error {
+	bW, err := json.Marshal(h.Warnings)
+	if err != nil {
+		return err
+	}
+
+	bE, err := json.Marshal(h.Errors)
+	if err != nil {
+		return err
+	}
+
+	_, err = l.db.Client.Exec("INSERT INTO history (time_completed, filename, warnings, errors) VALUES ($1, $2, $3, $4",
+		h.DateTimeCompleted,
+		h.Filename,
+		bW,
+		bE,
+	)
+	return err
 }
 
 // dbLibrary is an interim struct for converting to and from the data types in memory and in the database.
