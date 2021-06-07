@@ -148,7 +148,7 @@ func (m *Manager) ImportCompletedJobs(jobs []controller.Job) { // TODO: Replace 
 	// TODO: Implement
 }
 
-func (m *Manager) LibrarySettings() (ls []controller.Library) { //? Maybe this would benefit from an error return value. I'm thinking it guard against setting the settings in the UI to an empty slice.
+func (m *Manager) LibrarySettings() ([]controller.Library, error) {
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
 
@@ -157,7 +157,7 @@ func (m *Manager) LibrarySettings() (ls []controller.Library) { //? Maybe this w
 	// * Log any error
 	// * Return slice of controller.Library
 
-	return
+	return []controller.Library{}, nil
 }
 
 // TODO: Add error return value

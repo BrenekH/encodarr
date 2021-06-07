@@ -36,7 +36,7 @@ func (m *mockLibraryManager) ImportCompletedJobs([]Job) {
 	m.importCalled = true
 }
 
-func (m *mockLibraryManager) LibrarySettings() (ls []Library) {
+func (m *mockLibraryManager) LibrarySettings() (ls []Library, err error) {
 	m.libSettingsCalled = true
 	return
 }

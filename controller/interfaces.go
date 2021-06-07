@@ -25,7 +25,7 @@ type LibraryManager interface {
 	ImportCompletedJobs([]Job)
 
 	// LibrarySettings returns the current settings of all libraries (including the queues).
-	LibrarySettings() []Library
+	LibrarySettings() ([]Library, error)
 
 	// PopNewJob returns a job that may be dispatched as well as deletes it from any
 	// data stores.

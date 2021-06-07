@@ -34,8 +34,9 @@ func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManage
 		rc.NullifyUUIDs(uuidsToNull)
 
 		// Update the UserInterfacer library settings cache
-		ls := lm.LibrarySettings()
-		ui.SetLibrarySettings(ls)
+		if ls, err := lm.LibrarySettings(); err == nil {
+			ui.SetLibrarySettings(ls)
+		}
 
 		// Apply user changes to library settings
 		lsUserChanges := ui.NewLibrarySettings()
