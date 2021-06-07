@@ -143,26 +143,40 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 	}
 }
 
-func (m *Manager) ImportCompletedJobs([]controller.Job) {
+func (m *Manager) ImportCompletedJobs(jobs []controller.Job) { // TODO: Replace controller.Job with a better data type for completed jobs.
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
 }
 
-func (m *Manager) LibrarySettings() (ls []controller.Library) {
+func (m *Manager) LibrarySettings() (ls []controller.Library) { //? Maybe this would benefit from an error return value. I'm thinking it guard against setting the settings in the UI to an empty slice.
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
+
+	// Steps
+	// * Get every library from DataStorer (m.ds.Libraries())
+	// * Log any error
+	// * Return slice of controller.Library
+
 	return
 }
 
+// TODO: Remove
 func (m *Manager) LibraryQueues() (lq []controller.LibraryQueue) {
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
 	return
 }
 
+// TODO: Add error return value
 func (m *Manager) PopNewJob() (j controller.Job) {
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
+
+	// Steps
+	// * Get every library from DataStorer (m.ds.Libraries())
+	// * Sort for priority (descending order)
+	// * Loop through sorted slice looking for a job to return
+
 	return
 }
 
