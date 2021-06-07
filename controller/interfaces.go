@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -132,4 +133,12 @@ type Logger interface {
 	Warn(s string, i ...interface{})
 	Error(s string, i ...interface{})
 	Critical(s string, i ...interface{})
+}
+
+type HTTPServer interface {
+	// Start starts the HTTPServer. If Start is called again, it is a no-op.
+	Start(*context.Context, *sync.WaitGroup)
+
+	Handle(pattern string, handler http.Handler)
+	HandleFunc(pattern string, handlerFunc func(http.ResponseWriter, http.Request))
 }
