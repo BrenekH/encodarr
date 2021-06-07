@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 
 	"github.com/BrenekH/encodarr/controller"
@@ -19,6 +20,7 @@ func NewRunnerHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServ
 		httpServer:     httpServer,
 		ds:             ds,
 		nullifiedUUIDs: make([]controller.UUID, 0),
+		wrQueue:        newQueue(),
 	}
 }
 
@@ -29,6 +31,7 @@ type RunnerHTTPApiV1 struct {
 
 	nullifiedUUIDs []controller.UUID
 	completedJobs  chan controller.CompletedJob
+	wrQueue        queue
 }
 
 func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
@@ -75,12 +78,58 @@ func (r *RunnerHTTPApiV1) WaitingRunners() (runnerNames []string) {
 func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		// TODO: Gather Runner name from HTTP headers
-		// TODO: Add callback channel to waiting runners queue
-		// TODO: Check for a returned job
+		// Gather Runner name from HTTP headers
+		runnerName := r.Header.Get("X-Encodarr-Runner-Name")
+		a.logger.Info("Received request from %v @ %v", runnerName, r.RemoteAddr)
+
+		// Add callback channel to waiting runners queue
+		receiveChan := make(chan controller.Job)
+		a.wrQueue.Push(waitingRunner{Name: runnerName, CallbackChan: receiveChan})
+
+		// Check for a returned job
+		jobToSend, ok := <-receiveChan
+		if !ok { // Server shutdown
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		// TODO: Also check for a connection close using r.Context(). Remove from waiting runners if becomes done.
-		// TODO: Send back header info
-		// TODO: Respond with file
+
+		// Marshal Job into json to be sent in a header
+		jobJSONBytes, err := json.Marshal(jobToSend)
+		if err != nil {
+			a.logger.Error("error marshaling Job to json: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("X-Encodarr-Job-Info", string(jobJSONBytes))
+
+		// Respond with file
+		w.Header().Set("Content-Type", inferMIMETypeFromExt(filepath.Ext(jobToSend.Path)))
+		file, err := os.Open(jobToSend.Path)
+		if err != nil {
+			a.logger.Error("error opening %v: %v", jobToSend.Path, err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		bufferSize := 1024
+		buffer := make([]byte, bufferSize)
+
+		for {
+			bytesRead, err := file.Read(buffer)
+			if err != nil {
+				if err != io.EOF {
+					a.logger.Error("error writing to HTTP Writer: %v", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				break
+			}
+			w.Write(buffer[:bytesRead])
+		}
+
 		w.WriteHeader(http.StatusOK)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
