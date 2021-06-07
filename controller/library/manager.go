@@ -149,15 +149,13 @@ func (m *Manager) ImportCompletedJobs(jobs []controller.Job) { // TODO: Replace 
 }
 
 func (m *Manager) LibrarySettings() ([]controller.Library, error) {
-	m.logger.Critical("Not implemented")
-	// TODO: Implement
+	libs, err := m.ds.Libraries()
 
-	// Steps
-	// * Get every library from DataStorer (m.ds.Libraries())
-	// * Log any error
-	// * Return slice of controller.Library
+	if err != nil {
+		m.logger.Error(err.Error())
+	}
 
-	return []controller.Library{}, nil
+	return libs, err
 }
 
 // TODO: Add error return value
