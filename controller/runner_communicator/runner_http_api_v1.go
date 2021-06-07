@@ -75,6 +75,8 @@ func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
 func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
+		// TODO: Implement
+		// Goals: Check UUID for nullified status, save provided status to dispatched_jobs datastore
 		w.WriteHeader(http.StatusOK)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -84,6 +86,8 @@ func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
 func (a *RunnerHTTPApiV1) jobComplete(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
+		// TODO: Implement
+		// Goals: Check UUID for nullified status, save file that client is posting, add job to channel for CompletedJobs to pick up from
 		w.WriteHeader(http.StatusOK)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
