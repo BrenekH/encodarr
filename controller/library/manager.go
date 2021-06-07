@@ -150,11 +150,12 @@ func (m *Manager) ImportCompletedJobs(jobs []controller.CompletedJob) {
 	// TODO: Implement
 
 	// Steps
-	// * Delete job from dispatched_jobs
-	// * If job failed, log it, add the history entry to the history table, and return
+	// * Pop job from dispatched_jobs
+	// * If job failed, log it, save the history entry to the history table, and return
 	//? Somewhere in here should be an evaluation from CommandDecider to detect if any plugins want to make more changes. If they do then the file should be placed in a cache location and not the og file location.
 	// * Remove old file
 	// * Move new file to old file location
+	// * Save history entry to histroy table
 }
 
 func (m *Manager) LibrarySettings() ([]controller.Library, error) {

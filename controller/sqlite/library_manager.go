@@ -113,6 +113,14 @@ func (l *LibraryManagerAdapter) IsPathDispatched(path string) (bool, error) {
 	return false, nil
 }
 
+func (l *LibraryManagerAdapter) PopDispatchedJob(uuid controller.UUID) (controller.DispatchedJob, error) {
+	return controller.DispatchedJob{}, nil
+}
+
+func (l *LibraryManagerAdapter) SaveHistory(controller.History) error {
+	return nil
+}
+
 // dbLibrary is an interim struct for converting to and from the data types in memory and in the database.
 type dbLibrary struct {
 	ID                     int

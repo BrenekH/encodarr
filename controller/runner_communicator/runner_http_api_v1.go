@@ -25,6 +25,9 @@ func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 func (r *RunnerHTTPApiV1) CompletedJobs() (j []controller.CompletedJob) {
 	r.logger.Critical("Not Implemented")
 	// TODO: Implement
+
+	// NOTE: Use a channel to transfer all completed job requests from the HTTP handler to this function.
+
 	return
 }
 

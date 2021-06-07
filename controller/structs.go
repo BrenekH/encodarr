@@ -16,8 +16,17 @@ type Job struct {
 }
 
 type CompletedJob struct {
-	Job         Job
-	CurrentPath string
+	UUID    UUID    `json:"uuid"`
+	Failed  bool    `json:"failed"`
+	History History `json:"history"`
+	InFile  string  `json:"-"`
+}
+
+type History struct {
+	Filename          string    `json:"file"`
+	DateTimeCompleted time.Time `json:"datetime_completed"`
+	Warnings          []string  `json:"warnings"`
+	Errors            []string  `json:"errors"`
 }
 
 type DispatchedJob struct {
