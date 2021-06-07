@@ -49,8 +49,25 @@ func (l *LibraryManagerAdapter) Libraries() ([]controller.Library, error) {
 }
 
 func (l *LibraryManagerAdapter) SaveLibrary(lib controller.Library) error {
-	l.logger.Critical("Not implemented")
-	// TODO: Implement
+	d, err := toDBLibrary(lib)
+	if err != nil {
+		return err
+	}
+
+	_, err = l.db.Client.Exec("INSERT INTO libraries (id, folder, priority, fs_check_interval, cmd_decider_settings, queue, path_masks) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT(path) DO UPDATE SET id=$1, folder=$2, priority=$3, fs_check_interval=$4, cmd_decider_settings=$5, queue=$6, path_masks=$7;",
+		d.ID,
+		d.Folder,
+		d.Priority,
+		d.FsCheckInterval,
+		d.CommandDeciderSettings,
+		d.Queue,
+		d.PathMasks,
+	)
+	if err != nil {
+		l.logger.Error(err.Error())
+		return err
+	}
+
 	return nil
 }
 
@@ -66,8 +83,8 @@ func (l *LibraryManagerAdapter) SaveFileEntry(f controller.File) error {
 	return nil
 }
 
+// IsPathDispatched loops through the dispatched_jobs table to determine if any jobs with the provided path have already been dispatched.
 func (l *LibraryManagerAdapter) IsPathDispatched(path string) (b bool) {
-	// Loops through the dispatched_jobs table to determine if any jobs with the provided path have already been dispatched
 	l.logger.Critical("Not implemented")
 	// TODO: Implement
 	return
@@ -110,4 +127,26 @@ func fromDBLibrary(d dbLibrary) (controller.Library, error) {
 	}
 
 	return l, nil
+}
+
+// toDBLibrary returns an instance of dbLibrary with all of the necessary conversions to save data into the database.
+func toDBLibrary(lib controller.Library) (d dbLibrary, err error) {
+	d.ID = lib.ID
+	d.Folder = lib.Folder
+	d.Priority = lib.Priority
+	d.CommandDeciderSettings = lib.CommandDeciderSettings
+
+	d.FsCheckInterval = lib.FsCheckInterval.String()
+
+	d.Queue, err = json.Marshal(lib.Queue)
+	if err != nil {
+		return
+	}
+
+	d.PathMasks, err = json.Marshal(lib.PathMasks)
+	if err != nil {
+		return
+	}
+
+	return
 }

@@ -45,6 +45,7 @@ func (m *Manager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 			if controller.IsContextFinished(ctx) {
 				return
 			}
+
 			// Check all Libraries for required scans
 			allLibraries, err := m.ds.Libraries()
 			if err != nil {
