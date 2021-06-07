@@ -100,8 +100,10 @@ func main() {
 	lm := library.NewManager(&lmLogger, &lmDBAdapter, &metadataCacheMiddleware, &commandDecider)
 
 	// --------------- RunnerCommunicator ---------------
+	rcDSLogger := logange.NewLogger("sqlite.RCA")
+	rcDS := sqlite.NewRunnerCommunicatorAdapter(&sqliteDatabase, &rcDSLogger)
 	rcLogger := logange.NewLogger("runnerCommunicator")
-	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger, &httpServer)
+	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger, &httpServer, &rcDS)
 
 	// --------------- UserInterfacer ---------------
 	uiLogger := logange.NewLogger("userInterfacer")

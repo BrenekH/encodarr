@@ -8,13 +8,14 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewRunnerHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServer) RunnerHTTPApiV1 {
-	return RunnerHTTPApiV1{logger: logger, httpServer: httpServer}
+func NewRunnerHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServer, ds controller.RunnerCommunicatorDataStorer) RunnerHTTPApiV1 {
+	return RunnerHTTPApiV1{logger: logger, httpServer: httpServer, ds: ds}
 }
 
 type RunnerHTTPApiV1 struct {
 	logger     controller.Logger
 	httpServer controller.HTTPServer
+	ds         controller.RunnerCommunicatorDataStorer
 }
 
 func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
@@ -88,6 +89,8 @@ func (a *RunnerHTTPApiV1) jobComplete(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		// TODO: Implement
 		// Goals: Check UUID for nullified status, save file that client is posting, add job to channel for CompletedJobs to pick up from
+
+		//? Probably should detect a client disconnect and disregard any data it sent
 		w.WriteHeader(http.StatusOK)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)

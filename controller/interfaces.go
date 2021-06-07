@@ -114,6 +114,10 @@ type LibraryManagerDataStorer interface {
 	PushHistory(History) error
 }
 
+type RunnerCommunicatorDataStorer interface {
+	UpdateDispatchedJob(DispatchedJob) error
+}
+
 type FileCacheDataStorer interface {
 	Modtime(path string) (time.Time, error)
 	Metadata(path string) (FileMetadata, error)
