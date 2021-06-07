@@ -22,7 +22,7 @@ func (r *RunnerHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	// TODO: Add handlers to r.httpServer
 }
 
-func (r *RunnerHTTPApiV1) CompletedJobs() (j []controller.Job) {
+func (r *RunnerHTTPApiV1) CompletedJobs() (j []controller.CompletedJob) {
 	r.logger.Critical("Not Implemented")
 	// TODO: Implement
 	return

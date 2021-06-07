@@ -15,15 +15,9 @@ type Job struct {
 	Metadata FileMetadata `json:"metadata"`
 }
 
-// Library represents a single library.
-type Library struct {
-	ID                     int           `json:"id"`
-	Folder                 string        `json:"folder"`
-	Priority               int           `json:"priority"`
-	FsCheckInterval        time.Duration `json:"fs_check_interval"`
-	Queue                  LibraryQueue  `json:"queue"`
-	PathMasks              []string      `json:"path_masks"`
-	CommandDeciderSettings string        `json:"command_decider_settings"` // We are using a string for the CommandDecider settings because it is easier for the frontend to convert back and forth from when setting and reading values.
+type CompletedJob struct {
+	Job         Job
+	CurrentPath string
 }
 
 type DispatchedJob struct {
@@ -41,6 +35,17 @@ type JobStatus struct {
 	FPS                         string `json:"fps"`
 	StageElapsedTime            string `json:"stage_elapsed_time"`
 	StageEstimatedTimeRemaining string `json:"stage_estimated_time_remaining"`
+}
+
+// Library represents a single library.
+type Library struct {
+	ID                     int           `json:"id"`
+	Folder                 string        `json:"folder"`
+	Priority               int           `json:"priority"`
+	FsCheckInterval        time.Duration `json:"fs_check_interval"`
+	Queue                  LibraryQueue  `json:"queue"`
+	PathMasks              []string      `json:"path_masks"`
+	CommandDeciderSettings string        `json:"command_decider_settings"` // We are using a string for the CommandDecider settings because it is easier for the frontend to convert back and forth from when setting and reading values.
 }
 
 type File struct {

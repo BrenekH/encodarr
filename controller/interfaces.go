@@ -22,7 +22,7 @@ type HealthChecker interface {
 // libraries should interact with the Run function.
 type LibraryManager interface {
 	// ImportCompletedJobs imports the provided jobs into the system.
-	ImportCompletedJobs([]Job)
+	ImportCompletedJobs([]CompletedJob)
 
 	// LibrarySettings returns the current settings of all libraries (including the queues).
 	LibrarySettings() ([]Library, error)
@@ -43,7 +43,7 @@ type LibraryManager interface {
 type RunnerCommunicator interface {
 	// CompletedJobs returns a slice of jobs that are ready to be imported back into the
 	// system.
-	CompletedJobs() []Job
+	CompletedJobs() []CompletedJob
 
 	// NewJob takes the provided job and sends it to a waiting Runner.
 	NewJob(Job)

@@ -31,7 +31,7 @@ func (m *mockLibraryManager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	m.startCalled = true
 }
 
-func (m *mockLibraryManager) ImportCompletedJobs([]Job) {
+func (m *mockLibraryManager) ImportCompletedJobs([]CompletedJob) {
 	m.importCalled = true
 }
 
@@ -62,7 +62,7 @@ func (m *mockRunnerCommunicator) Start(ctx *context.Context, wg *sync.WaitGroup)
 	m.startCalled = true
 }
 
-func (m *mockRunnerCommunicator) CompletedJobs() (j []Job) {
+func (m *mockRunnerCommunicator) CompletedJobs() (j []CompletedJob) {
 	m.completedJobsCalled = true
 	return
 }

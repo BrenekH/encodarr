@@ -145,7 +145,7 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 	}
 }
 
-func (m *Manager) ImportCompletedJobs(jobs []controller.Job) { // TODO: Replace controller.Job with a better data type for completed jobs.
+func (m *Manager) ImportCompletedJobs(jobs []controller.CompletedJob) {
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
 }
