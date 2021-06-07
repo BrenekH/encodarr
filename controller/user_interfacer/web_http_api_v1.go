@@ -33,11 +33,6 @@ func (w *WebHTTPApiV1) SetLibrarySettings([]controller.Library) {
 	// TODO: Implement
 }
 
-func (w *WebHTTPApiV1) SetLibraryQueues([]controller.LibraryQueue) {
-	w.logger.Critical("Not implemented")
-	// TODO: Implement
-}
-
 func (w *WebHTTPApiV1) SetWaitingRunners(runnerNames []string) {
 	w.logger.Critical("Not implemented")
 	// TODO: Implement

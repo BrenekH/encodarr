@@ -24,12 +24,8 @@ type LibraryManager interface {
 	// ImportCompletedJobs imports the provided jobs into the system.
 	ImportCompletedJobs([]Job)
 
-	// LibrarySettings returns the current settings of all libraries
+	// LibrarySettings returns the current settings of all libraries (including the queues).
 	LibrarySettings() []Library
-
-	// LibraryQueues returns a slice of LibraryQueue to indicate the current status of
-	// the queues.
-	LibraryQueues() []LibraryQueue
 
 	// PopNewJob returns a job that may be dispatched as well as deletes it from any
 	// data stores.
@@ -75,10 +71,6 @@ type UserInterfacer interface {
 	// SetLibrarySettings takes the provided slice of LibrarySettings and stores it
 	// for an incoming request.
 	SetLibrarySettings([]Library)
-
-	// SetLibraryQueues takes the provided slice and stores it so that if a request
-	// to view the queues is received, the response can be quickly sent.
-	SetLibraryQueues([]LibraryQueue)
 
 	// SetWaitingRunners stores an updated value that should be sent if a request to view
 	// the waiting Runner is received.

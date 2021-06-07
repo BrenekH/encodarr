@@ -160,13 +160,6 @@ func (m *Manager) LibrarySettings() (ls []controller.Library) { //? Maybe this w
 	return
 }
 
-// TODO: Remove
-func (m *Manager) LibraryQueues() (lq []controller.LibraryQueue) {
-	m.logger.Critical("Not implemented")
-	// TODO: Implement
-	return
-}
-
 // TODO: Add error return value
 func (m *Manager) PopNewJob() (j controller.Job) {
 	m.logger.Critical("Not implemented")

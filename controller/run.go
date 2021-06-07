@@ -41,11 +41,6 @@ func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManage
 		lsUserChanges := ui.NewLibrarySettings()
 		lm.UpdateLibrarySettings(lsUserChanges)
 
-		// TODO: Remove the setting of queues in the UserInterfacer
-		// Update queues cache in the UserInterfacer
-		lq := lm.LibraryQueues()
-		ui.SetLibraryQueues(lq)
-
 		// Update waiting runners to be shown to the user
 		wr := rc.WaitingRunners()
 		ui.SetWaitingRunners(wr)
