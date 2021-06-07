@@ -23,3 +23,11 @@ type stater interface {
 type videoFileser interface {
 	VideoFiles(dir string) ([]string, error)
 }
+
+type fileRemover interface {
+	Remove(path string) error
+}
+
+type fileMover interface {
+	Move(from string, to string) error
+}

@@ -3,6 +3,8 @@ package library
 import (
 	"context"
 	"fmt"
+	"os"
+	"path"
 	"sort"
 	"strings"
 	"sync"
@@ -19,6 +21,8 @@ func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer
 		metadataReader: metadataReader,
 		commandDecider: commandDecider,
 		videoFileser:   defaultVideoFileser{},
+		fileRemover:    defaultFileRemover{},
+		fileMover:      defaultFileMover{},
 
 		lastCheckedTimes:   make(map[int]time.Time),
 		workerCompletedMap: make(map[int]bool),
@@ -31,6 +35,8 @@ type Manager struct {
 	metadataReader MetadataReader
 	commandDecider CommandDecider
 	videoFileser   videoFileser
+	fileRemover    fileRemover
+	fileMover      fileMover
 
 	// lastCheckedTimes is a map of Library ids and the last time that they were checked.
 	lastCheckedTimes map[int]time.Time
@@ -146,16 +152,61 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 }
 
 func (m *Manager) ImportCompletedJobs(jobs []controller.CompletedJob) {
-	m.logger.Critical("Not implemented")
-	// TODO: Implement
+	for _, cJob := range jobs {
+		// Pop job from dispatched_jobs
+		dJob, err := m.ds.PopDispatchedJob(cJob.UUID)
+		if err != nil {
+			m.logger.Error(err.Error())
+			continue
+		}
 
-	// Steps
-	// * Pop job from dispatched_jobs
-	// * If job failed, log it, save the history entry to the history table, and return
-	//? Somewhere in here should be an evaluation from CommandDecider to detect if any plugins want to make more changes. If they do then the file should be placed in a cache location and not the og file location.
-	// * Remove old file
-	// * Move new file to old file location
-	// * Save history entry to histroy table
+		// If job failed, log it, save the history entry to the history table, and continue iterating.
+		if cJob.Failed {
+			m.logger.Warn("Job for file %v failed: %v, %v", dJob.Job.Path, cJob.History.Warnings, cJob.History.Errors)
+			if err = m.ds.PushHistory(cJob.History); err != nil {
+				m.logger.Error(err.Error())
+			}
+			continue
+		}
+
+		//? Somewhere in here should be an evaluation from CommandDecider to detect if any plugins want to make more changes. If they do then the file should be placed in a cache location and not the og file location.
+
+		filename := dJob.Job.Path
+
+		// Remove old file
+		if err = m.fileRemover.Remove(dJob.Job.Path); err != nil {
+			failMessage := fmt.Sprintf("Failed to remove file '%v' because of error: %v", dJob.Job.Path, err)
+			m.logger.Error(failMessage)
+
+			// Set filename to a string with an extra encodarr extension
+			fnExt := path.Ext(filename)
+			i := strings.LastIndex(filename, fnExt)
+			fnWoExt := filename[:i] + strings.Replace(filename[i:], fnExt, "", 1)
+			filename = fmt.Sprintf("%v.encodarr%v", fnWoExt, fnExt)
+
+			cJob.History.Warnings = append(cJob.History.Warnings, failMessage)
+		}
+
+		// Change filename to have file extension of InFile
+		inFileExt := path.Ext(cJob.InFile)
+		fnExt := path.Ext(filename)
+		i := strings.LastIndex(filename, fnExt)
+		fnWoExt := filename[:i] + strings.Replace(filename[i:], fnExt, "", 1)
+		filename = fnWoExt + inFileExt
+
+		// Move new file to old file location
+		if err = m.fileMover.Move(cJob.InFile, filename); err != nil {
+			failMessage := fmt.Sprintf("Failed to move file '%v' because of error: %v", dJob.Job.Path, err)
+			m.logger.Error(failMessage)
+
+			cJob.History.Errors = append(cJob.History.Errors, failMessage)
+		}
+
+		// Save history entry to histroy table
+		if err = m.ds.PushHistory(cJob.History); err != nil {
+			m.logger.Error(err.Error())
+		}
+	}
 }
 
 func (m *Manager) LibrarySettings() ([]controller.Library, error) {
@@ -228,4 +279,16 @@ type defaultVideoFileser struct{}
 
 func (d defaultVideoFileser) VideoFiles(dir string) ([]string, error) {
 	return GetVideoFilesFromDir(dir)
+}
+
+type defaultFileRemover struct{}
+
+func (d defaultFileRemover) Remove(path string) error {
+	return os.Remove(path)
+}
+
+type defaultFileMover struct{}
+
+func (d defaultFileMover) Move(from string, to string) error {
+	return nil
 }
