@@ -29,7 +29,7 @@ type LibraryManager interface {
 
 	// PopNewJob returns a job that may be dispatched as well as deletes it from any
 	// data stores.
-	PopNewJob() Job
+	PopNewJob() (Job, error)
 
 	// UpdateLibrarySettings loops through the provided map of new settings and applies
 	// them to the appropriate libraries.

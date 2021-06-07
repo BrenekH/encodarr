@@ -48,8 +48,9 @@ func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManage
 
 		// Send new job to the RunnerCommunicator if there is a waiting Runner
 		if rc.NeedNewJob() {
-			nj := lm.PopNewJob()
-			rc.NewJob(nj)
+			if nj, err := lm.PopNewJob(); err == nil {
+				rc.NewJob(nj)
+			}
 		}
 
 		// Import completed jobs

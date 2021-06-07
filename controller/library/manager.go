@@ -158,8 +158,7 @@ func (m *Manager) LibrarySettings() ([]controller.Library, error) {
 	return libs, err
 }
 
-// TODO: Add error return value
-func (m *Manager) PopNewJob() (j controller.Job) {
+func (m *Manager) PopNewJob() (controller.Job, error) {
 	m.logger.Critical("Not implemented")
 	// TODO: Implement
 
@@ -168,7 +167,7 @@ func (m *Manager) PopNewJob() (j controller.Job) {
 	// * Sort for priority (descending order)
 	// * Loop through sorted slice looking for a job to return
 
-	return
+	return controller.Job{}, nil
 }
 
 // UpdateLibrarySettings loops through each entry in the provided map and applies the new settings

@@ -46,7 +46,7 @@ func (m *mockLibraryManager) LibraryQueues() (lq []LibraryQueue) {
 	return
 }
 
-func (m *mockLibraryManager) PopNewJob() (j Job) {
+func (m *mockLibraryManager) PopNewJob() (j Job, err error) {
 	m.popJobCalled = true
 	return
 }
