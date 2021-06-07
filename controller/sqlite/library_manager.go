@@ -71,18 +71,6 @@ func (l *LibraryManagerAdapter) SaveLibrary(lib controller.Library) error {
 	return nil
 }
 
-func (l *LibraryManagerAdapter) FileEntryByPath(path string) (f controller.File, err error) {
-	l.logger.Critical("Not implemented")
-	// TODO: Implement
-	return
-}
-
-func (l *LibraryManagerAdapter) SaveFileEntry(f controller.File) error {
-	l.logger.Critical("Not implemented")
-	// TODO: Implement
-	return nil
-}
-
 // IsPathDispatched loops through the dispatched_jobs table to determine if any jobs with the provided path have already been dispatched.
 func (l *LibraryManagerAdapter) IsPathDispatched(path string) (b bool) {
 	l.logger.Critical("Not implemented")

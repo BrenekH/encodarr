@@ -114,9 +114,6 @@ type LibraryManagerDataStorer interface {
 	Libraries() ([]Library, error)
 	SaveLibrary(Library) error
 
-	FileEntryByPath(path string) (File, error)
-	SaveFileEntry(f File) error
-
 	IsPathDispatched(path string) bool
 }
 
