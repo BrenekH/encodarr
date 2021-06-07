@@ -10,6 +10,13 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
+func NewServer(logger controller.Logger, port string) Server {
+	return Server{
+		port:   port,
+		logger: logger,
+	}
+}
+
 type Server struct {
 	serverAlreadyStarted bool
 	port                 string
@@ -18,6 +25,7 @@ type Server struct {
 	srv *http.Server
 }
 
+// Start starts the http server which will exit when ctx is closed. Calling Start more than once results in a no-op.
 func (s *Server) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	if s.serverAlreadyStarted {
 		return
