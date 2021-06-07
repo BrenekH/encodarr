@@ -106,7 +106,13 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 			continue
 		}
 
-		if m.ds.IsPathDispatched(videoFilepath) || lib.Queue.InQueuePath(controller.Job{Path: videoFilepath}) {
+		pathDispatched, err := m.ds.IsPathDispatched(videoFilepath)
+		if err != nil {
+			m.logger.Error(err.Error())
+			continue
+		}
+
+		if pathDispatched || lib.Queue.InQueuePath(controller.Job{Path: videoFilepath}) {
 			continue
 		}
 

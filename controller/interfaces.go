@@ -114,7 +114,7 @@ type LibraryManagerDataStorer interface {
 	Libraries() ([]Library, error)
 	SaveLibrary(Library) error
 
-	IsPathDispatched(path string) bool
+	IsPathDispatched(path string) (bool, error)
 }
 
 type FileCacheDataStorer interface {

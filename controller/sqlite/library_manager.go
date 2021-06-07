@@ -72,10 +72,32 @@ func (l *LibraryManagerAdapter) SaveLibrary(lib controller.Library) error {
 }
 
 // IsPathDispatched loops through the dispatched_jobs table to determine if any jobs with the provided path have already been dispatched.
-func (l *LibraryManagerAdapter) IsPathDispatched(path string) (b bool) {
-	l.logger.Critical("Not implemented")
-	// TODO: Implement
-	return
+func (l *LibraryManagerAdapter) IsPathDispatched(path string) (bool, error) {
+	rows, err := l.db.Client.Query("SELECT job FROM dispatched_jobs;")
+	if err != nil {
+		return true, nil
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		bJob := []byte{}
+
+		if err = rows.Scan(&bJob); err != nil {
+			return true, err
+		}
+
+		job := controller.Job{}
+		err = json.Unmarshal(bJob, &job)
+		if err != nil {
+			return true, err
+		}
+
+		if job.Path == path {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // dbLibrary is an interim struct for converting to and from the data types in memory and in the database.

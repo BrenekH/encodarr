@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS libraries (
 	path_masks binary
 );
 CREATE TABLE IF NOT EXISTS files (
-	path text,
+	path text NOT NULL UNIQUE,
 	modtime timestamp,
 	metadata binary
 );
