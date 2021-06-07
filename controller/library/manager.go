@@ -46,7 +46,12 @@ func (m *Manager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 				return
 			}
 			// Check all Libraries for required scans
-			allLibraries := m.ds.Libraries()
+			allLibraries, err := m.ds.Libraries()
+			if err != nil {
+				m.logger.Error("%v", err)
+				time.Sleep(time.Second)
+				continue
+			}
 
 			for _, lib := range allLibraries {
 				t, ok := m.lastCheckedTimes[lib.ID]

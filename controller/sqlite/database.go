@@ -34,9 +34,8 @@ CREATE TABLE IF NOT EXISTS libraries (
 	folder text,
 	priority integer,
 	fs_check_interval text,
-	pipeline binary,
+	cmd_decider_settings text,
 	queue binary,
-	file_cache binary,
 	path_masks binary
 );
 CREATE TABLE IF NOT EXISTS files (
