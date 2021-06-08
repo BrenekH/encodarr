@@ -25,6 +25,10 @@ func NewWebHTTPv1(logger controller.Logger, httpServer controller.HTTPServer, ss
 		useOsFs:    useOsFs,
 		ss:         ss,
 		ds:         ds,
+
+		waitingRunnersCache: []string{},
+		libraryCache:        []controller.Library{},
+		libSettingsUpdates:  map[int]controller.Library{},
 	}
 }
 
@@ -37,6 +41,7 @@ type WebHTTPv1 struct {
 
 	waitingRunnersCache []string
 	libraryCache        []controller.Library
+	libSettingsUpdates  map[int]controller.Library
 }
 
 func (w *WebHTTPv1) Start(ctx *context.Context, wg *sync.WaitGroup) {
@@ -64,10 +69,10 @@ func (w *WebHTTPv1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	w.httpServer.HandleFunc("/api/v1/web/library/", w.handleLibrary)
 }
 
-func (w *WebHTTPv1) NewLibrarySettings() (m map[int]controller.Library) {
-	w.logger.Critical("Not implemented")
-	// TODO: Implement
-	return
+func (w *WebHTTPv1) NewLibrarySettings() map[int]controller.Library {
+	copy := w.libSettingsUpdates
+	w.libSettingsUpdates = map[int]controller.Library{}
+	return copy
 }
 
 func (w *WebHTTPv1) SetLibrarySettings(libs []controller.Library) {
@@ -296,7 +301,25 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 			newLib.FsCheckInterval = td
 		}
 
-		// TODO: Save with auto-incremented id (this will probably be done by allow the library manager to create any unknown IDs as new libraries when it loops over the result of UI.NewLibrarySettings())
+		// Create map of library IDs (for fast valid ID lookup)
+		libIDMap := map[int]struct{}{}
+		for _, v := range a.libraryCache {
+			libIDMap[v.ID] = struct{}{}
+		}
+
+		// Find valid ID
+		var validID int
+		for i := 0; i < 10_000; i++ {
+			_, ok := libIDMap[i]
+			if !ok {
+				validID = i
+				break
+			}
+		}
+		newLib.ID = validID
+
+		// Put new lib in a.libSettingsUpdates with located valid id
+		a.libSettingsUpdates[newLib.ID] = newLib
 
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(fmt.Sprintf("/api/web/v1/library/%v", newLib.ID))) // TODO: Add ip/hostname to response
@@ -370,7 +393,8 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 			lib.FsCheckInterval = td
 		}
 
-		// TODO: Add lib to response of UI.NewLibrarySettings
+		// Add lib to response of UI.NewLibrarySettings
+		a.libSettingsUpdates[lib.ID] = lib
 
 		w.WriteHeader(http.StatusNoContent)
 	case http.MethodDelete:
