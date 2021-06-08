@@ -70,8 +70,12 @@ func (r *RunnerHTTPApiV1) NullifyUUIDs(uuids []controller.UUID) {
 }
 
 func (r *RunnerHTTPApiV1) WaitingRunners() (runnerNames []string) {
-	r.logger.Critical("Not Implemented")
-	// TODO: Implement
+	wr := r.wrQueue.Dequeue()
+
+	for _, v := range wr {
+		runnerNames = append(runnerNames, v.Name)
+	}
+
 	return
 }
 
