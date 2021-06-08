@@ -2,7 +2,8 @@ package user_interfacer
 
 import "github.com/BrenekH/encodarr/controller"
 
-func filterDispatchedJobs(dJobs []controller.DispatchedJob) (fDJobs []filteredDispatchedJob) {
+func filterDispatchedJobs(dJobs []controller.DispatchedJob) []filteredDispatchedJob {
+	fDJobs := make([]filteredDispatchedJob, 0)
 	for _, dJob := range dJobs {
 		fDJobs = append(fDJobs, filteredDispatchedJob{
 			Job: filteredJob{
@@ -14,5 +15,5 @@ func filterDispatchedJobs(dJobs []controller.DispatchedJob) (fDJobs []filteredDi
 			Status:     dJob.Status,
 		})
 	}
-	return
+	return fDJobs
 }
