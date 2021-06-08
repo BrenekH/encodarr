@@ -322,7 +322,7 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 		a.libSettingsUpdates[newLib.ID] = newLib
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(fmt.Sprintf("/api/web/v1/library/%v", newLib.ID))) // TODO: Add ip/hostname to response
+		w.Write([]byte(fmt.Sprintf("http://%v/api/web/v1/library/%v", r.Host, newLib.ID)))
 		return
 	}
 
