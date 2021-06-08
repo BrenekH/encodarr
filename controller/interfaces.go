@@ -129,6 +129,8 @@ type FileCacheDataStorer interface {
 
 type UserInterfacerDataStorer interface {
 	DispatchedJobs() ([]DispatchedJob, error)
+
+	HistoryEntries() ([]History, error)
 }
 
 type Logger interface {

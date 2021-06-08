@@ -121,20 +121,19 @@ func (a *WebHTTPv1) getRunning(w http.ResponseWriter, r *http.Request) {
 func (a *WebHTTPv1) getHistory(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		// Get slice of HistoryEntries (Decontain)
-		hE, err := history.All()
+		historyEntries, err := a.ds.HistoryEntries()
 		if err != nil {
 			a.logger.Error(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		h := make([]transformedHistoryEntry, len(hE))
+		h := make([]humanizedHistoryEntry, len(historyEntries))
 
 		// Change datetime into human-readable format
-		for i, v := range hE {
+		for i, v := range historyEntries {
 			dt := v.DateTimeCompleted
-			h[i] = transformedHistoryEntry{
+			h[i] = humanizedHistoryEntry{
 				File: v.Filename,
 				DateTimeCompleted: fmt.Sprintf("%02d-%02d-%d %02d:%02d:%02d",
 					dt.Month(), dt.Day(), dt.Year(),
