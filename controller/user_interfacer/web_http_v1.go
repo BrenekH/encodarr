@@ -54,7 +54,6 @@ func (w *WebHTTPv1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 
 	// API Handlers
 	w.httpServer.HandleFunc("/api/v1/web/running", w.getRunning)
-	w.httpServer.HandleFunc("/api/v1/web/queue", w.getQueue)
 	w.httpServer.HandleFunc("/api/v1/web/history", w.getHistory)
 	w.httpServer.HandleFunc("/api/v1/web/settings", w.settings)
 	w.httpServer.HandleFunc("/api/v1/web/waitingrunners", w.getWaitingRunners)
@@ -113,38 +112,6 @@ func (a *WebHTTPv1) getRunning(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(runningJSONBytes)
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	}
-}
-
-// getQueue is a HTTP handler that returns the current queue in a JSON response.
-func (a *WebHTTPv1) getQueue(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		jsonResponseStruct := queueJSONResponse{JobQueue: make([]dispatched.Job, 0)}
-
-		allLibraries, err := libraries.All()
-		if err != nil {
-			a.logger.Error(err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		for _, v := range allLibraries {
-			jsonResponseStruct.JobQueue = append(jsonResponseStruct.JobQueue, v.Queue.Items...)
-		}
-
-		queueJSONBytes, err := json.Marshal(jsonResponseStruct)
-		if err != nil {
-			a.logger.Error("error marshaling Job queue to json: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-
-		w.Write(queueJSONBytes)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
