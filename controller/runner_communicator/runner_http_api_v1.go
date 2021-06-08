@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/BrenekH/encodarr/controller"
+	"github.com/google/uuid"
 )
 
 func NewRunnerHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServer, ds controller.RunnerCommunicatorDataStorer) RunnerHTTPApiV1 {
@@ -83,16 +84,25 @@ func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
 
 		// Add callback channel to waiting runners queue
 		receiveChan := make(chan controller.Job)
-		a.wrQueue.Push(waitingRunner{Name: runnerName, CallbackChan: receiveChan})
+		requestUUID := uuid.NewString()
+		a.wrQueue.Push(waitingRunner{Name: runnerName, CallbackChan: receiveChan, UUID: requestUUID})
 
 		// Check for a returned job
-		jobToSend, ok := <-receiveChan
+		var jobToSend controller.Job
+		var ok bool
+		select {
+		case jobToSend, ok = <-receiveChan:
+			break
+		case <-r.Context().Done():
+			a.wrQueue.Remove(requestUUID)
+			w.WriteHeader(http.StatusGone)
+			return
+		}
+
 		if !ok { // Server shutdown
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		// TODO: Also check for a connection close using r.Context(). Remove from waiting runners if becomes done.
 
 		// Marshal Job into json to be sent in a header
 		jobJSONBytes, err := json.Marshal(jobToSend)

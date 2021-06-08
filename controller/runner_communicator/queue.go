@@ -5,6 +5,7 @@ import "github.com/BrenekH/encodarr/controller"
 type waitingRunner struct {
 	Name         string
 	CallbackChan chan controller.Job
+	UUID         string
 }
 
 func newQueue() queue {
@@ -32,6 +33,16 @@ func (q *queue) Pop() (waitingRunner, error) {
 	q.items[0] = waitingRunner{} // Hopefully this garbage collects properly
 	q.items = q.items[1:]
 	return item, nil
+}
+
+// Remove deletes the first item that has the uuid provided.
+func (q *queue) Remove(uuid string) {
+	for index, v := range q.items {
+		if v.UUID == uuid {
+			q.items = append(q.items[:index], q.items[index+1:]...)
+			return
+		}
+	}
 }
 
 // Dequeue returns a copy of the underlying slice in the Queue.
