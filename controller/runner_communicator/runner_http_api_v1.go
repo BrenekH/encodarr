@@ -54,15 +54,17 @@ func (r *RunnerHTTPApiV1) CompletedJobs() (j []controller.CompletedJob) {
 	}
 }
 
-func (r *RunnerHTTPApiV1) NewJob(controller.Job) {
-	r.logger.Critical("Not Implemented")
-	// TODO: Implement
+func (r *RunnerHTTPApiV1) NewJob(cJob controller.Job) {
+	wr, err := r.wrQueue.Pop()
+	if err != nil {
+		r.logger.Error("NewJob was called but got error from Pop: %v", err)
+	}
+
+	wr.CallbackChan <- cJob
 }
 
-func (r *RunnerHTTPApiV1) NeedNewJob() (b bool) {
-	r.logger.Critical("Not Implemented")
-	// TODO: Implement
-	return
+func (r *RunnerHTTPApiV1) NeedNewJob() bool {
+	return !r.wrQueue.Empty()
 }
 
 func (r *RunnerHTTPApiV1) NullifyUUIDs(uuids []controller.UUID) {
