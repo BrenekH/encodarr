@@ -28,7 +28,10 @@ var (
 )
 
 func main() {
+	// TODO: Set config dir from env var or CL args
+	// TODO: Set port from env var or CL args
 	configDir := "."
+	httpServerPort := "8123"
 
 	// Setup main logger
 	mainLogger := logange.NewLogger("main")
@@ -77,7 +80,7 @@ func main() {
 	}
 
 	httpSrvLogger := logange.NewLogger("httpServer")
-	httpServer := httpserver.NewServer(&httpSrvLogger, "8123", webApiVersions, runnerApiVersions)
+	httpServer := httpserver.NewServer(&httpSrvLogger, httpServerPort, webApiVersions, runnerApiVersions)
 
 	// --------------- HealthChecker ---------------
 	sqliteHCLogger := logange.NewLogger("sqlite.HCA")
