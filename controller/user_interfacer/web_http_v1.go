@@ -34,6 +34,8 @@ type WebHTTPv1 struct {
 	useOsFs    bool
 	ss         controller.SettingsStorer
 	ds         controller.UserInterfacerDataStorer
+
+	waitingRunnersCache []string
 }
 
 func (w *WebHTTPv1) Start(ctx *context.Context, wg *sync.WaitGroup) {
@@ -73,8 +75,7 @@ func (w *WebHTTPv1) SetLibrarySettings([]controller.Library) {
 }
 
 func (w *WebHTTPv1) SetWaitingRunners(runnerNames []string) {
-	w.logger.Critical("Not implemented")
-	// TODO: Implement
+	w.waitingRunnersCache = runnerNames
 }
 
 // nonRootIndexHandler serves up the index files for /running, /libraries, /history, and /settings.
@@ -221,18 +222,9 @@ func (a *WebHTTPv1) settings(w http.ResponseWriter, r *http.Request) {
 func (a *WebHTTPv1) getWaitingRunners(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		runners := make([]string, len(controller.JobRequests))
-
-		for _, v := range controller.JobRequests {
-			runners = append(runners, v.RunnerName)
-		}
-
-		if len(runners) > 0 {
-			runners = runners[1:]
-		}
-		wR := waitingRunners{Runners: runners}
-
-		b, err := json.Marshal(wR)
+		b, err := json.Marshal(struct {
+			Runners []string `json:"Runners"`
+		}{a.waitingRunnersCache})
 		if err != nil {
 			a.logger.Error(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
