@@ -8,9 +8,13 @@ import (
 	"time"
 
 	"github.com/BrenekH/encodarr/controller"
+	"github.com/BrenekH/encodarr/controller/globals"
 )
 
 func NewServer(logger controller.Logger, port string) Server {
+	http.HandleFunc("/version", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(globals.Version))
+	})
 	return Server{
 		port:   port,
 		logger: logger,
