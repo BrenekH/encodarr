@@ -22,6 +22,11 @@ import (
 	"github.com/BrenekH/logange"
 )
 
+var (
+	webApiVersions    = []string{"v1"}
+	runnerApiVersions = []string{"v1"}
+)
+
 func main() {
 	configDir := "."
 
@@ -72,7 +77,7 @@ func main() {
 	}
 
 	httpSrvLogger := logange.NewLogger("httpServer")
-	httpServer := httpserver.NewServer(&httpSrvLogger, "8123")
+	httpServer := httpserver.NewServer(&httpSrvLogger, "8123", webApiVersions, runnerApiVersions)
 
 	// --------------- HealthChecker ---------------
 	sqliteHCLogger := logange.NewLogger("sqlite.HCA")

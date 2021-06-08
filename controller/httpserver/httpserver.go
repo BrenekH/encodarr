@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -11,10 +12,9 @@ import (
 	"github.com/BrenekH/encodarr/controller/globals"
 )
 
-func NewServer(logger controller.Logger, port string) Server {
-	http.HandleFunc("/version", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(globals.Version))
-	})
+func NewServer(logger controller.Logger, port string, webApiVersions, runnerApiVersions []string) Server {
+	registerVersionHandlers(webApiVersions, runnerApiVersions)
+
 	return Server{
 		port:   port,
 		logger: logger,
@@ -81,4 +81,57 @@ func startListenAndServer(wg *sync.WaitGroup, logger controller.Logger, port str
 
 	// Returning reference so caller can call Shutdown()
 	return srv
+}
+
+func registerVersionHandlers(webVersions, runnerVersions []string) {
+	// Controller version
+	http.HandleFunc("/version", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(globals.Version))
+	})
+
+	// Web and Runner versions
+	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+		respStruct := struct {
+			Web struct {
+				Versions []string `json:"versions"`
+			} `json:"web"`
+			Runner struct {
+				Versions []string `json:"versions"`
+			} `json:"runner"`
+		}{
+			Web: struct {
+				Versions []string `json:"versions"`
+			}{webVersions},
+			Runner: struct {
+				Versions []string `json:"versions"`
+			}{runnerVersions},
+		}
+
+		b, _ := json.Marshal(respStruct)
+		w.Write(b)
+	})
+
+	// Web versions
+	http.HandleFunc("/api/web", func(w http.ResponseWriter, r *http.Request) {
+		respStruct := struct {
+			Versions []string `json:"versions"`
+		}{
+			Versions: webVersions,
+		}
+
+		b, _ := json.Marshal(respStruct)
+		w.Write(b)
+	})
+
+	// Runner versions
+	http.HandleFunc("/api/runner", func(w http.ResponseWriter, r *http.Request) {
+		respStruct := struct {
+			Versions []string `json:"versions"`
+		}{
+			Versions: webVersions,
+		}
+
+		b, _ := json.Marshal(respStruct)
+		w.Write(b)
+	})
 }
