@@ -106,7 +106,7 @@ func main() {
 	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger, &httpServer, &rcDS)
 
 	// --------------- UserInterfacer ---------------
-	uiDS := sqlite.NewUserInterfacerAdapter()
+	uiDS := sqlite.NewUserInterfacerAdapter(&sqliteDatabase)
 	uiLogger := logange.NewLogger("userInterfacer")
 	ui := user_interfacer.NewWebHTTPv1(&uiLogger, &httpServer, &settingsStore, &uiDS, false)
 
