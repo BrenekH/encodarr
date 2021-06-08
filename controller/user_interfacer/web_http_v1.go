@@ -100,6 +100,12 @@ func (a *WebHTTPv1) getRunning(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		dJobs, err := a.ds.DispatchedJobs()
+		if err != nil {
+			a.logger.Error(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		rJSONResp := runningJSONResponse{
 			DispatchedJobs: filterDispatchedJobs(dJobs),
 		}
