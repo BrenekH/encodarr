@@ -18,14 +18,15 @@ import (
 //go:embed webfiles
 var webfiles embed.FS
 
-func NewWebHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServer, useOsFs bool) WebHTTPApiV1 {
-	return WebHTTPApiV1{logger: logger, httpServer: httpServer, useOsFs: useOsFs}
+func NewWebHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServer, ss controller.SettingsStorer, useOsFs bool) WebHTTPApiV1 {
+	return WebHTTPApiV1{logger: logger, httpServer: httpServer, useOsFs: useOsFs, ss: ss}
 }
 
 type WebHTTPApiV1 struct {
 	logger     controller.Logger
 	httpServer controller.HTTPServer
 	useOsFs    bool
+	ss         controller.SettingsStorer
 }
 
 func (w *WebHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
@@ -38,12 +39,13 @@ func (w *WebHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 
 	w.httpServer.Handle("/", http.FileServer(http.FS(fSys)))
 
+	// React app handlers
 	w.httpServer.HandleFunc("/running", w.nonRootIndexHandler)
 	w.httpServer.HandleFunc("/libraries", w.nonRootIndexHandler)
 	w.httpServer.HandleFunc("/history", w.nonRootIndexHandler)
 	w.httpServer.HandleFunc("/settings", w.nonRootIndexHandler)
 
-	// TODO: Add API handlers to w.httpServer
+	// API Handlers
 	w.httpServer.HandleFunc("/api/v1/web/running", w.getRunning)
 	w.httpServer.HandleFunc("/api/v1/web/queue", w.getQueue)
 	w.httpServer.HandleFunc("/api/v1/web/history", w.getHistory)
@@ -182,10 +184,9 @@ func (a *WebHTTPApiV1) settings(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		rS := settingsJSON{
-			HealthCheckInterval: time.Duration(config.Global.HealthCheckInterval).String(),
-			HealthCheckTimeout:  time.Duration(config.Global.HealthCheckTimeout).String(),
-			LogVerbosity:        config.RootFileHandler.LevelString(),
-			SmallerFiles:        config.Global.SmallerFiles,
+			HealthCheckInterval: time.Duration(a.ss.HealthCheckInterval()).String(),
+			HealthCheckTimeout:  time.Duration(a.ss.HealthCheckTimeout()).String(),
+			LogVerbosity:        a.ss.LogVerbosity(),
 		}
 		b, err := json.Marshal(rS)
 		if err != nil {
@@ -204,10 +205,9 @@ func (a *WebHTTPApiV1) settings(w http.ResponseWriter, r *http.Request) {
 		}
 
 		rS := settingsJSON{
-			HealthCheckInterval: time.Duration(config.Global.HealthCheckInterval).String(),
-			HealthCheckTimeout:  time.Duration(config.Global.HealthCheckTimeout).String(),
-			LogVerbosity:        config.RootFileHandler.LevelString(),
-			SmallerFiles:        config.Global.SmallerFiles,
+			HealthCheckInterval: time.Duration(a.ss.HealthCheckInterval()).String(),
+			HealthCheckTimeout:  time.Duration(a.ss.HealthCheckTimeout()).String(),
+			LogVerbosity:        a.ss.LogVerbosity(),
 		}
 		err = json.Unmarshal(b, &rS)
 		if err != nil {
@@ -218,24 +218,17 @@ func (a *WebHTTPApiV1) settings(w http.ResponseWriter, r *http.Request) {
 
 		td, err := time.ParseDuration(rS.HealthCheckInterval)
 		if err == nil {
-			config.Global.HealthCheckInterval = uint64(td)
+			a.ss.SetHealthCheckInterval(uint64(td))
 		}
 
 		td, err = time.ParseDuration(rS.HealthCheckTimeout)
 		if err == nil {
-			config.Global.HealthCheckTimeout = uint64(td)
+			a.ss.SetHealthCheckTimeout(uint64(td))
 		}
 
-		err = config.SetRootFHVerbosity(rS.LogVerbosity)
-		if err != nil {
-			a.logger.Warn(err.Error())
-		} else {
-			config.Global.LogVerbosity = rS.LogVerbosity
-		}
+		a.ss.SetLogVerbosity(rS.LogVerbosity)
 
-		config.Global.SmallerFiles = rS.SmallerFiles
-
-		err = config.SaveGlobal()
+		err = a.ss.Save()
 		if err != nil {
 			a.logger.Error(err.Error())
 		}

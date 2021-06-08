@@ -107,7 +107,7 @@ func main() {
 
 	// --------------- UserInterfacer ---------------
 	uiLogger := logange.NewLogger("userInterfacer")
-	ui := user_interfacer.NewWebHTTPApiV1(&uiLogger, &httpServer, false)
+	ui := user_interfacer.NewWebHTTPApiV1(&uiLogger, &httpServer, &settingsStore, false)
 
 	runLogger := logange.NewLogger("run")
 	controller.Run(&ctx, &runLogger, &healthChecker, &lm, &rc, &ui, false)
