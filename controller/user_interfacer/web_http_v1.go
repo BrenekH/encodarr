@@ -271,7 +271,7 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		interimNewLib := libraryJSON{}
+		interimNewLib := interimLibraryJSON{}
 		err = json.Unmarshal(readBytes, &interimNewLib)
 		if err != nil {
 			a.logger.Error(err.Error())
@@ -279,10 +279,9 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		newLib := libraries.Library{
+		newLib := controller.Library{
 			Folder:    interimNewLib.Folder,
 			Priority:  interimNewLib.Priority,
-			Pipeline:  interimNewLib.Pipeline,
 			PathMasks: interimNewLib.PathMasks,
 		}
 
@@ -291,14 +290,10 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 			newLib.FsCheckInterval = td
 		}
 
-		if err = newLib.Create(); err != nil {
-			a.logger.Error(err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		// TODO: Save with auto-incremented id (this will probably be done by allow the library manager to create any unknown IDs as new libraries when it loops over the result of UI.NewLibrarySettings())
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("/api/web/v1/library/" + newLib.ID)) // TODO: Add ip/hostname to response
+		w.Write([]byte("/api/web/v1/library/" + string(newLib.ID))) // TODO: Add ip/hostname to response
 		return
 	}
 
@@ -321,7 +316,7 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		toSend := libraryJSON{lib.ID, lib.Folder, lib.Priority, lib.FsCheckInterval.String(), lib.Pipeline, lib.Queue, lib.PathMasks}
+		toSend := interimLibraryJSON{lib.ID, lib.Folder, lib.Priority, lib.FsCheckInterval.String(), lib.Pipeline, lib.Queue, lib.PathMasks}
 		b, err := json.Marshal(toSend)
 		if err != nil {
 			a.logger.Error(err.Error())
@@ -342,7 +337,7 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		uLib := libraryJSON{}
+		uLib := interimLibraryJSON{}
 		err = json.Unmarshal(readBytes, &uLib)
 		if err != nil {
 			a.logger.Error(err.Error())

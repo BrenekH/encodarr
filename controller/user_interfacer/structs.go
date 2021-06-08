@@ -35,3 +35,13 @@ type humanizedHistoryEntry struct {
 type historyJSON struct {
 	History []humanizedHistoryEntry `json:"history"`
 }
+
+type interimLibraryJSON struct {
+	ID                     int                     `json:"id"`
+	Folder                 string                  `json:"folder"`
+	Priority               int                     `json:"priority"`
+	FsCheckInterval        string                  `json:"fs_check_interval"`
+	Queue                  controller.LibraryQueue `json:"queue"`
+	PathMasks              []string                `json:"path_masks"`
+	CommandDeciderSettings string                  `json:"command_decider_settings"`
+}
