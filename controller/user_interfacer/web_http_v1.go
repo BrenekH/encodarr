@@ -61,12 +61,12 @@ func (w *WebHTTPv1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	w.httpServer.HandleFunc("/settings", w.nonRootIndexHandler)
 
 	// API Handlers
-	w.httpServer.HandleFunc("/api/v1/web/running", w.getRunning)
-	w.httpServer.HandleFunc("/api/v1/web/history", w.getHistory)
-	w.httpServer.HandleFunc("/api/v1/web/settings", w.settings)
-	w.httpServer.HandleFunc("/api/v1/web/waitingrunners", w.getWaitingRunners)
-	w.httpServer.HandleFunc("/api/v1/web/libraries", w.getAllLibraryIDs)
-	w.httpServer.HandleFunc("/api/v1/web/library/", w.handleLibrary)
+	w.httpServer.HandleFunc("/api/web/v1/running", w.getRunning)
+	w.httpServer.HandleFunc("/api/web/v1/history", w.getHistory)
+	w.httpServer.HandleFunc("/api/web/v1/settings", w.settings)
+	w.httpServer.HandleFunc("/api/web/v1/waitingrunners", w.getWaitingRunners)
+	w.httpServer.HandleFunc("/api/web/v1/libraries", w.getAllLibraryIDs)
+	w.httpServer.HandleFunc("/api/web/v1/library/", w.handleLibrary)
 }
 
 func (w *WebHTTPv1) NewLibrarySettings() map[int]controller.Library {
