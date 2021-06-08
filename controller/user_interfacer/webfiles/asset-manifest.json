@@ -1,0 +1,30 @@
+{
+  "files": {
+    "main.css": "/static/css/main.a0813476.chunk.css",
+    "main.js": "/static/js/main.ebd50372.chunk.js",
+    "main.js.map": "/static/js/main.ebd50372.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.2dd4e8a6.js",
+    "runtime-main.js.map": "/static/js/runtime-main.2dd4e8a6.js.map",
+    "static/css/2.2c2d1656.chunk.css": "/static/css/2.2c2d1656.chunk.css",
+    "static/js/2.af4dfa24.chunk.js": "/static/js/2.af4dfa24.chunk.js",
+    "static/js/2.af4dfa24.chunk.js.map": "/static/js/2.af4dfa24.chunk.js.map",
+    "static/js/3.010aea4f.chunk.js": "/static/js/3.010aea4f.chunk.js",
+    "static/js/3.010aea4f.chunk.js.map": "/static/js/3.010aea4f.chunk.js.map",
+    "index.html": "/index.html",
+    "static/css/2.2c2d1656.chunk.css.map": "/static/css/2.2c2d1656.chunk.css.map",
+    "static/css/main.a0813476.chunk.css.map": "/static/css/main.a0813476.chunk.css.map",
+    "static/js/2.af4dfa24.chunk.js.LICENSE.txt": "/static/js/2.af4dfa24.chunk.js.LICENSE.txt",
+    "static/media/Encodarr-Logo.4b0cc1bf.svg": "/static/media/Encodarr-Logo.4b0cc1bf.svg",
+    "static/media/Info-I.ffc9d3a2.svg": "/static/media/Info-I.ffc9d3a2.svg",
+    "static/media/addLibraryIcon.dd5f1d29.svg": "/static/media/addLibraryIcon.dd5f1d29.svg",
+    "static/media/headphones.f1e7bde3.svg": "/static/media/headphones.f1e7bde3.svg",
+    "static/media/play_button.415684ac.svg": "/static/media/play_button.415684ac.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.2dd4e8a6.js",
+    "static/css/2.2c2d1656.chunk.css",
+    "static/js/2.af4dfa24.chunk.js",
+    "static/css/main.a0813476.chunk.css",
+    "static/js/main.ebd50372.chunk.js"
+  ]
+}

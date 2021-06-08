@@ -31,6 +31,7 @@ func (s *Server) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	if s.serverAlreadyStarted {
 		return
 	}
+	s.serverAlreadyStarted = true
 
 	httpServerExitDone := sync.WaitGroup{}
 
