@@ -293,7 +293,7 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 		// TODO: Save with auto-incremented id (this will probably be done by allow the library manager to create any unknown IDs as new libraries when it loops over the result of UI.NewLibrarySettings())
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("/api/web/v1/library/" + string(newLib.ID))) // TODO: Add ip/hostname to response
+		w.Write([]byte(fmt.Sprintf("/api/web/v1/library/%v", newLib.ID))) // TODO: Add ip/hostname to response
 		return
 	}
 
@@ -306,17 +306,26 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 	intLibID := int(temp)
 
-	// Validate libraryID
-	lib := libraries.Library{ID: intLibID}
-	if err = lib.Get(); err != nil {
-		a.logger.Error(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+	// Validate libraryID (and pull the matching library out of the cache).
+	var lib controller.Library
+	validID := false
+	for _, v := range a.libraryCache {
+		if intLibID == v.ID {
+			validID = true
+			lib = v
+			break
+		}
+	}
+
+	if !validID {
+		a.logger.Error("invalid library ID '%v' requested", intLibID)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	switch r.Method {
 	case http.MethodGet:
-		toSend := interimLibraryJSON{lib.ID, lib.Folder, lib.Priority, lib.FsCheckInterval.String(), lib.Pipeline, lib.Queue, lib.PathMasks}
+		toSend := interimLibraryJSON{lib.ID, lib.Folder, lib.Priority, lib.FsCheckInterval.String(), lib.Queue, lib.PathMasks, lib.CommandDeciderSettings}
 		b, err := json.Marshal(toSend)
 		if err != nil {
 			a.logger.Error(err.Error())
@@ -348,22 +357,18 @@ func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 		lib.Folder = uLib.Folder
 		lib.Priority = uLib.Priority
 		lib.PathMasks = uLib.PathMasks
-		lib.Pipeline = uLib.Pipeline
+		lib.CommandDeciderSettings = uLib.CommandDeciderSettings
 
 		td, err := time.ParseDuration(uLib.FsCheckInterval)
 		if err == nil {
 			lib.FsCheckInterval = td
 		}
 
-		if err = lib.Update(); err != nil {
-			a.logger.Error(err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		// TODO: Add lib to response of UI.NewLibrarySettings
 
 		w.WriteHeader(http.StatusNoContent)
 	case http.MethodDelete:
-		if err = lib.Delete(); err != nil {
+		if err = a.ds.DeleteLibrary(lib.ID); err != nil {
 			a.logger.Error(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return

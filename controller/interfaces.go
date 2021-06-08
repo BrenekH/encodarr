@@ -131,6 +131,8 @@ type UserInterfacerDataStorer interface {
 	DispatchedJobs() ([]DispatchedJob, error)
 
 	HistoryEntries() ([]History, error)
+
+	DeleteLibrary(id int) error
 }
 
 type Logger interface {
