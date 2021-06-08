@@ -106,9 +106,10 @@ func main() {
 	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger, &httpServer, &rcDS)
 
 	// --------------- UserInterfacer ---------------
-	uiDS := sqlite.NewUserInterfacerAdapter(&sqliteDatabase)
+	uiaLogger := logange.NewLogger("sqlite.UIA")
+	uiDBAdapter := sqlite.NewUserInterfacerAdapter(&sqliteDatabase, &uiaLogger)
 	uiLogger := logange.NewLogger("userInterfacer")
-	ui := user_interfacer.NewWebHTTPv1(&uiLogger, &httpServer, &settingsStore, &uiDS, false)
+	ui := user_interfacer.NewWebHTTPv1(&uiLogger, &httpServer, &settingsStore, &uiDBAdapter, false)
 
 	runLogger := logange.NewLogger("run")
 	controller.Run(&ctx, &runLogger, &healthChecker, &lm, &rc, &ui, false)
