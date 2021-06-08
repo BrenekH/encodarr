@@ -127,6 +127,10 @@ type FileCacheDataStorer interface {
 	SaveMetadata(path string, f FileMetadata) error
 }
 
+type UserInterfacerDataStorer interface {
+	DispatchedJobs() ([]DispatchedJob, error)
+}
+
 type Logger interface {
 	Trace(s string, i ...interface{})
 	Debug(s string, i ...interface{})

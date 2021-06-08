@@ -18,18 +18,25 @@ import (
 //go:embed webfiles
 var webfiles embed.FS
 
-func NewWebHTTPApiV1(logger controller.Logger, httpServer controller.HTTPServer, ss controller.SettingsStorer, useOsFs bool) WebHTTPApiV1 {
-	return WebHTTPApiV1{logger: logger, httpServer: httpServer, useOsFs: useOsFs, ss: ss}
+func NewWebHTTPv1(logger controller.Logger, httpServer controller.HTTPServer, ss controller.SettingsStorer, ds controller.UserInterfacerDataStorer, useOsFs bool) WebHTTPv1 {
+	return WebHTTPv1{
+		logger:     logger,
+		httpServer: httpServer,
+		useOsFs:    useOsFs,
+		ss:         ss,
+		ds:         ds,
+	}
 }
 
-type WebHTTPApiV1 struct {
+type WebHTTPv1 struct {
 	logger     controller.Logger
 	httpServer controller.HTTPServer
 	useOsFs    bool
 	ss         controller.SettingsStorer
+	ds         controller.UserInterfacerDataStorer
 }
 
-func (w *WebHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
+func (w *WebHTTPv1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	w.httpServer.Start(ctx, wg)
 
 	fSys, err := fs.Sub(webfiles, "webfiles")
@@ -55,24 +62,24 @@ func (w *WebHTTPApiV1) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	w.httpServer.HandleFunc("/api/v1/web/library/", w.handleLibrary)
 }
 
-func (w *WebHTTPApiV1) NewLibrarySettings() (m map[int]controller.Library) {
+func (w *WebHTTPv1) NewLibrarySettings() (m map[int]controller.Library) {
 	w.logger.Critical("Not implemented")
 	// TODO: Implement
 	return
 }
 
-func (w *WebHTTPApiV1) SetLibrarySettings([]controller.Library) {
+func (w *WebHTTPv1) SetLibrarySettings([]controller.Library) {
 	w.logger.Critical("Not implemented")
 	// TODO: Implement
 }
 
-func (w *WebHTTPApiV1) SetWaitingRunners(runnerNames []string) {
+func (w *WebHTTPv1) SetWaitingRunners(runnerNames []string) {
 	w.logger.Critical("Not implemented")
 	// TODO: Implement
 }
 
 // nonRootIndexHandler serves up the index files for /running, /libraries, /history, and /settings.
-func (a *WebHTTPApiV1) nonRootIndexHandler(w http.ResponseWriter, r *http.Request) {
+func (a *WebHTTPv1) nonRootIndexHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		indexFileData, err := webfiles.ReadFile("webfiles/index.html")
@@ -89,10 +96,15 @@ func (a *WebHTTPApiV1) nonRootIndexHandler(w http.ResponseWriter, r *http.Reques
 }
 
 // getRunning is a HTTP handler that returns the current running jobs in a JSON response.
-func (a *WebHTTPApiV1) getRunning(w http.ResponseWriter, r *http.Request) {
+func (a *WebHTTPv1) getRunning(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		runningJSONBytes, err := json.Marshal(makeFilteredDispatchedJobs())
+		dJobs, err := a.ds.DispatchedJobs()
+		rJSONResp := runningJSONResponse{
+			DispatchedJobs: filterDispatchedJobs(dJobs),
+		}
+
+		runningJSONBytes, err := json.Marshal(rJSONResp)
 		if err != nil {
 			a.logger.Error("error marshaling Job queue to json: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -107,7 +119,7 @@ func (a *WebHTTPApiV1) getRunning(w http.ResponseWriter, r *http.Request) {
 }
 
 // getQueue is a HTTP handler that returns the current queue in a JSON response.
-func (a *WebHTTPApiV1) getQueue(w http.ResponseWriter, r *http.Request) {
+func (a *WebHTTPv1) getQueue(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		jsonResponseStruct := queueJSONResponse{JobQueue: make([]dispatched.Job, 0)}
@@ -139,7 +151,7 @@ func (a *WebHTTPApiV1) getQueue(w http.ResponseWriter, r *http.Request) {
 }
 
 // getHistory is a HTTP handler that returns the current history in a JSON response.
-func (a *WebHTTPApiV1) getHistory(w http.ResponseWriter, r *http.Request) {
+func (a *WebHTTPv1) getHistory(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		// Get slice of HistoryEntries (Decontain)
@@ -180,7 +192,7 @@ func (a *WebHTTPApiV1) getHistory(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *WebHTTPApiV1) settings(w http.ResponseWriter, r *http.Request) {
+func (a *WebHTTPv1) settings(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		rS := settingsJSON{
@@ -240,7 +252,7 @@ func (a *WebHTTPApiV1) settings(w http.ResponseWriter, r *http.Request) {
 }
 
 // getWaitingRunners is a HTTP handler that returns all runners waiting for a job in a JSON response.
-func (a *WebHTTPApiV1) getWaitingRunners(w http.ResponseWriter, r *http.Request) {
+func (a *WebHTTPv1) getWaitingRunners(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		runners := make([]string, len(controller.JobRequests))
@@ -268,7 +280,7 @@ func (a *WebHTTPApiV1) getWaitingRunners(w http.ResponseWriter, r *http.Request)
 }
 
 // getAllLibraryIDs is a HTTP handler that returns all of the library's IDs
-func (a *WebHTTPApiV1) getAllLibraryIDs(w http.ResponseWriter, r *http.Request) {
+func (a *WebHTTPv1) getAllLibraryIDs(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		allLibs, err := libraries.All()
@@ -297,7 +309,7 @@ func (a *WebHTTPApiV1) getAllLibraryIDs(w http.ResponseWriter, r *http.Request) 
 }
 
 // handleLibrary is a HTTP handler than takes care of the management of a Library
-func (a *WebHTTPApiV1) handleLibrary(w http.ResponseWriter, r *http.Request) {
+func (a *WebHTTPv1) handleLibrary(w http.ResponseWriter, r *http.Request) {
 	libraryID := r.URL.Path[len("/api/web/v1/library/"):]
 
 	if libraryID == "new" && r.Method == http.MethodPost {
