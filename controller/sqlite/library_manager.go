@@ -67,7 +67,7 @@ func (l *LibraryManagerAdapter) SaveLibrary(lib controller.Library) error {
 		return err
 	}
 
-	_, err = l.db.Client.Exec("INSERT INTO libraries (id, folder, priority, fs_check_interval, cmd_decider_settings, queue, path_masks) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT(path) DO UPDATE SET id=$1, folder=$2, priority=$3, fs_check_interval=$4, cmd_decider_settings=$5, queue=$6, path_masks=$7;",
+	_, err = l.db.Client.Exec("INSERT INTO libraries (id, folder, priority, fs_check_interval, cmd_decider_settings, queue, path_masks) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT(id) DO UPDATE SET id=$1, folder=$2, priority=$3, fs_check_interval=$4, cmd_decider_settings=$5, queue=$6, path_masks=$7;",
 		d.ID,
 		d.Folder,
 		d.Priority,
