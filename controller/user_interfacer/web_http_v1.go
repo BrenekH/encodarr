@@ -26,7 +26,7 @@ func NewWebHTTPv1(logger controller.Logger, httpServer controller.HTTPServer, ss
 		ss:         ss,
 		ds:         ds,
 
-		waitingRunnersCache: []string{},
+		waitingRunnersCache: make([]string, 0),
 		libraryCache:        []controller.Library{},
 		libSettingsUpdates:  map[int]controller.Library{},
 	}
@@ -80,7 +80,10 @@ func (w *WebHTTPv1) SetLibrarySettings(libs []controller.Library) {
 }
 
 func (w *WebHTTPv1) SetWaitingRunners(runnerNames []string) {
-	w.waitingRunnersCache = runnerNames
+	// We have to make and copy runnerNames here so that when we marshal the w.waitingRunnersCache slice to json, it isn't null.
+	temp := make([]string, len(runnerNames))
+	copy(temp, runnerNames)
+	w.waitingRunnersCache = temp
 }
 
 // nonRootIndexHandler serves up the index files for /running, /libraries, /history, and /settings.
