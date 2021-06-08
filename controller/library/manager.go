@@ -255,11 +255,18 @@ func (m *Manager) PopNewJob() (controller.Job, error) {
 
 // UpdateLibrarySettings loops through each entry in the provided map and applies the new settings
 // if the key matches a valid library. However, it will not update the ID and Queue fields.
+// If the key doesn't match a valid library, a brand new one with the provided settings is created.
 func (m *Manager) UpdateLibrarySettings(libSettings map[int]controller.Library) {
 	for k, v := range libSettings {
 		lib, err := m.ds.Library(k)
 		if err != nil {
-			m.logger.Error(err.Error())
+			// Save brand new library with key as ID and value as library object
+			v.ID = k
+			v.Queue = controller.LibraryQueue{}
+
+			if err = m.ds.SaveLibrary(v); err != nil {
+				m.logger.Error(err.Error())
+			}
 			continue
 		}
 
