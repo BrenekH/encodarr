@@ -36,6 +36,7 @@ type WebHTTPv1 struct {
 	ds         controller.UserInterfacerDataStorer
 
 	waitingRunnersCache []string
+	libraryCache        []controller.Library
 }
 
 func (w *WebHTTPv1) Start(ctx *context.Context, wg *sync.WaitGroup) {
@@ -69,9 +70,8 @@ func (w *WebHTTPv1) NewLibrarySettings() (m map[int]controller.Library) {
 	return
 }
 
-func (w *WebHTTPv1) SetLibrarySettings([]controller.Library) {
-	w.logger.Critical("Not implemented")
-	// TODO: Implement
+func (w *WebHTTPv1) SetLibrarySettings(libs []controller.Library) {
+	w.libraryCache = libs
 }
 
 func (w *WebHTTPv1) SetWaitingRunners(runnerNames []string) {
@@ -241,15 +241,8 @@ func (a *WebHTTPv1) getWaitingRunners(w http.ResponseWriter, r *http.Request) {
 func (a *WebHTTPv1) getAllLibraryIDs(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		allLibs, err := libraries.All()
-		if err != nil {
-			a.logger.Error(err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		ids := make([]int, len(allLibs))
-		for k, v := range allLibs {
+		ids := make([]int, len(a.libraryCache))
+		for k, v := range a.libraryCache {
 			ids[k] = v.ID
 		}
 
