@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"sync"
+	"time"
 )
 
 // Run is the "top-level" function for running the Encodarr Controller. It calls all of the injected
@@ -56,6 +57,9 @@ func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManage
 		// Import completed jobs
 		cj := rc.CompletedJobs()
 		lm.ImportCompletedJobs(cj)
+
+		// TODO: Replace with proper loop slowdown system
+		time.Sleep(10 * time.Millisecond)
 	}
 
 	// Wait for goroutines to shut down
