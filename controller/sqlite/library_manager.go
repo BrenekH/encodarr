@@ -53,7 +53,7 @@ func (l *LibraryManagerAdapter) Library(id int) (controller.Library, error) {
 
 	d := dbLibrary{}
 
-	err := row.Scan(d.ID, d.Folder, d.Priority, d.FsCheckInterval, d.CommandDeciderSettings, d.Queue, d.PathMasks)
+	err := row.Scan(&d.ID, &d.Folder, &d.Priority, &d.FsCheckInterval, &d.CommandDeciderSettings, &d.Queue, &d.PathMasks)
 	if err != nil {
 		return controller.Library{}, err
 	}
@@ -122,10 +122,10 @@ func (l *LibraryManagerAdapter) PopDispatchedJob(uuid controller.UUID) (controll
 	bStatus := []byte{}
 
 	err := row.Scan(
-		bJob,
-		bStatus,
-		dJob.Runner,
-		dJob.LastUpdated,
+		&bJob,
+		&bStatus,
+		&dJob.Runner,
+		&dJob.LastUpdated,
 	)
 	if err != nil {
 		return dJob, err
@@ -158,7 +158,7 @@ func (l *LibraryManagerAdapter) PushHistory(h controller.History) error {
 		return err
 	}
 
-	_, err = l.db.Client.Exec("INSERT INTO history (time_completed, filename, warnings, errors) VALUES ($1, $2, $3, $4",
+	_, err = l.db.Client.Exec("INSERT INTO history (time_completed, filename, warnings, errors) VALUES ($1, $2, $3, $4);",
 		h.DateTimeCompleted,
 		h.Filename,
 		bW,
