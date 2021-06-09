@@ -35,6 +35,11 @@ func (m *mockReadWriteSeekCloser) Seek(offset int64, whence int) (int64, error) 
 	return m.bR.Seek(offset, whence)
 }
 
+func (m *mockReadWriteSeekCloser) Truncate(size int64) error {
+	m.readCalled = false // Effectively resets the byteReader
+	return nil
+}
+
 func (m *mockReadWriteSeekCloser) Close() error {
 	m.closeCalled = true
 	return nil

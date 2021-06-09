@@ -79,3 +79,5 @@ func TestErrorReturnedAfterFileIsClosed(t *testing.T) {
 		t.Errorf("expected controller.ErrClosed error from Save() after Close() is called, but got %v instead", err)
 	}
 }
+
+// TODO: Test that file is truncated on call to ss.Save

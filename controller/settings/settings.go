@@ -13,6 +13,7 @@ import (
 type ReadWriteSeekCloser interface {
 	io.ReadWriteCloser
 	io.Seeker
+	Truncate(size int64) error
 }
 
 type SettingsStore struct {
@@ -60,6 +61,12 @@ func (s *SettingsStore) Save() error {
 	if s.closed {
 		return controller.ErrClosed
 	}
+
+	// Erase current contents
+	s.file.Truncate(0)
+
+	// Move file pointer to start
+	s.file.Seek(0, io.SeekStart)
 
 	se := settings{
 		HealthCheckInterval: s.healthCheckInterval,
