@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/BrenekH/encodarr/controller"
 	"github.com/google/uuid"
@@ -58,6 +59,19 @@ func (r *RunnerHTTPApiV1) NewJob(cJob controller.Job) {
 	wr, err := r.wrQueue.Pop()
 	if err != nil {
 		r.logger.Error("NewJob was called but got error from Pop: %v", err)
+	}
+
+	// Add job to dispatched jobs
+	dJob := controller.DispatchedJob{
+		UUID:        cJob.UUID,
+		Runner:      wr.Name,
+		Job:         cJob,
+		Status:      controller.JobStatus{},
+		LastUpdated: time.Now(),
+	}
+	err = r.ds.SaveDispatchedJob(dJob)
+	if err != nil {
+		r.logger.Error("error saving new dispatched job: %v", err)
 	}
 
 	wr.CallbackChan <- cJob
@@ -144,8 +158,6 @@ func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
 			}
 			w.Write(buffer[:bytesRead])
 		}
-
-		w.WriteHeader(http.StatusOK)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
