@@ -19,3 +19,8 @@
 .info-i {
 	cursor: pointer;
 }
+
+.showCommand {
+	font-size: 14pt;
+	cursor: pointer;
+}

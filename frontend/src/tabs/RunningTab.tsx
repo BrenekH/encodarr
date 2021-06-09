@@ -7,9 +7,6 @@ import Modal from "react-bootstrap/Modal";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import Row from "react-bootstrap/Row";
 
-import { AudioImage } from "./shared/AudioImage";
-import { VideoImage } from "./shared/VideoImage";
-
 import "./RunningTab.css";
 import "../spacers.css";
 
@@ -20,11 +17,7 @@ interface IRunningJob {
 	job: {
 		uuid: string,
 		path: string,
-		parameters: {
-			encode: Boolean,
-			stereo: Boolean,
-			codec: string,
-		}
+		command: Array<string>,
 	},
 	status: {
 		fps: string,
@@ -132,8 +125,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 				jobElapsedTime={v.status.job_elapsed_time}
 				stageElapsedTime={v.status.stage_elapsed_time}
 				stageEstimatedTimeRemaining={v.status.stage_estimated_time_remaining}
-				videoOperation={v.job.parameters.encode}
-				audioOperation={v.job.parameters.stereo}
+				command={v.job.command.join(" ")}
 			/>);
 		});
 
@@ -164,8 +156,7 @@ interface IRunningCardProps {
 	jobElapsedTime: string,
 	stageElapsedTime: string,
 	stageEstimatedTimeRemaining: string,
-	videoOperation: Boolean,
-	audioOperation: Boolean,
+	command: string,
 }
 
 function RunningCard(props: IRunningCardProps) {
@@ -174,10 +165,7 @@ function RunningCard(props: IRunningCardProps) {
 			<Card.Header className="text-center">
 				<div className="file-image-container">
 					<h5>{props.filename}</h5>
-					<div className="svg-flex-container">
-						{(props.videoOperation) ? <VideoImage /> : null}
-						{(props.audioOperation) ? <AudioImage /> : null}
-					</div>
+					<div className="showCommand" title=""><p>?</p></div>
 				</div>
 
 				<h6>Stage: {props.stageValue}</h6>

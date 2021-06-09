@@ -7,9 +7,6 @@ import InputGroup from "react-bootstrap/InputGroup";
 import Modal from "react-bootstrap/Modal";
 import Table from "react-bootstrap/Table";
 
-import { AudioImage } from "./shared/AudioImage";
-import { VideoImage } from "./shared/VideoImage";
-
 import "./LibrariesTab.css";
 import "../spacers.css";
 
@@ -118,15 +115,18 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 
 	getLibraryData() {
 		axios.get(`/api/web/v1/library/${this.props.id}`).then((response) => {
+			const cmd_decider_settings = JSON.parse(response.data.command_decider_settings);
+
 			this.setState({
 				folder: response.data.folder,
 				priority: response.data.priority,
 				fs_check_interval: response.data.fs_check_interval,
 				path_masks: response.data.path_masks.join(","),
 				queue: response.data.queue.Items,
-				target_video_codec: response.data.pipeline.target_video_codec,
-				create_stereo_audio: response.data.pipeline.create_stereo_audio,
-				skip_hdr: response.data.pipeline.skip_hdr,
+
+				target_video_codec: cmd_decider_settings.target_video_codec,
+				create_stereo_audio: cmd_decider_settings.create_stereo_audio,
+				skip_hdr: cmd_decider_settings.skip_hdr,
 			});
 		}).catch((error) => {
 			console.error(`Request to /api/web/v1/library/${this.props.id} failed with error: ${error}`)
@@ -496,7 +496,7 @@ class QueueModal extends React.Component<IQueueModalProps> {
 		}
 
 		const qList = propsQueue.map((v: IQueuedJob, i: number) => {
-			return <TableEntry key={v.uuid} index={i+1} path={v.path} videoOperation={v.parameters.encode} audioOperation={v.parameters.stereo}/>;
+			return <TableEntry key={v.uuid} index={i+1} path={v.path} command={v.command.join(" ")}/>;
 		});
 
 		return (<div>
@@ -528,18 +528,13 @@ class QueueModal extends React.Component<IQueueModalProps> {
 interface IQueuedJob {
 	uuid: string,
 	path: string,
-	parameters: {
-		encode: Boolean,
-		stereo: Boolean,
-		codec: String,
-	},
+	command: Array<string>,
 }
 
 interface ITableEntryProps {
 	index: number,
 	path: string,
-	videoOperation: Boolean,
-	audioOperation: Boolean,
+	command: string,
 }
 
 function TableEntry(props: ITableEntryProps) {
@@ -547,10 +542,7 @@ function TableEntry(props: ITableEntryProps) {
 		<th scope="row">{props.index}</th>
 		<td>{props.path}</td>
 		<td>
-			<div className="queue-icon-container">
-				{(props.videoOperation) ? <span className="play-button-image"><VideoImage/></span> : null}
-				{(props.audioOperation) ? <AudioImage /> : null}
-			</div>
+			<span className={"showQueueCommand"} title={props.command}>?</span>
 		</td>
 	</tr>);
 }
