@@ -7,15 +7,14 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewFileCacheAdapter(db *SQLiteDatabase, logger controller.Logger) FileCacheAdapter {
-	return FileCacheAdapter{db: db, logger: logger}
+func NewFileCacheAdapter(db *SQLiteDatabase) FileCacheAdapter {
+	return FileCacheAdapter{db: db}
 }
 
 // FileCacheAdapter satisfies the controller.FilesCacheDataStorer interface by turning interface
 // requests into SQL requests that are passed on to an underlying SQLiteDatabase.
 type FileCacheAdapter struct {
-	db     *SQLiteDatabase
-	logger controller.Logger
+	db *SQLiteDatabase
 }
 
 // Modtime uses a SQL SELECT statement to obtain the modtime associated with the provided path.
@@ -26,7 +25,6 @@ func (a *FileCacheAdapter) Modtime(path string) (time.Time, error) {
 
 	err := row.Scan(&storedModtime)
 	if err != nil {
-		a.logger.Error("%v", err)
 		return time.Now(), err
 	}
 
@@ -41,7 +39,6 @@ func (a *FileCacheAdapter) Metadata(path string) (controller.FileMetadata, error
 
 	err := row.Scan(&storedMetadataBytes)
 	if err != nil {
-		a.logger.Error("%v", err)
 		return controller.FileMetadata{}, err
 	}
 
@@ -49,7 +46,6 @@ func (a *FileCacheAdapter) Metadata(path string) (controller.FileMetadata, error
 
 	err = json.Unmarshal(storedMetadataBytes, &storedMetadata)
 	if err != nil {
-		a.logger.Error("%v", err)
 		return controller.FileMetadata{}, err
 	}
 
@@ -63,7 +59,6 @@ func (a *FileCacheAdapter) SaveModtime(path string, t time.Time) error {
 		t,
 	)
 	if err != nil {
-		a.logger.Error(err.Error())
 		return err
 	}
 
@@ -72,12 +67,16 @@ func (a *FileCacheAdapter) SaveModtime(path string, t time.Time) error {
 
 // SaveMetadata uses the UPSERT syntax to update the metadata that is associated with the provided path in the database.
 func (a *FileCacheAdapter) SaveMetadata(path string, f controller.FileMetadata) error {
-	_, err := a.db.Client.Exec("INSERT INTO files (path, metadata) VALUES ($1, $2) ON CONFLICT(path) DO UPDATE SET path=$1, metadata=$2;",
+	b, err := json.Marshal(f)
+	if err != nil {
+		return err
+	}
+
+	_, err = a.db.Client.Exec("INSERT INTO files (path, metadata) VALUES ($1, $2) ON CONFLICT(path) DO UPDATE SET path=$1, metadata=$2;",
 		path,
-		f,
+		b,
 	)
 	if err != nil {
-		a.logger.Error(err.Error())
 		return err
 	}
 

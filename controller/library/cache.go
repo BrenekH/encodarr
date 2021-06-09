@@ -1,8 +1,10 @@
 package library
 
 import (
+	"database/sql"
 	"io/fs"
 	"os"
+	"time"
 
 	"github.com/BrenekH/encodarr/controller"
 )
@@ -34,8 +36,11 @@ func (c *Cache) Read(path string) (controller.FileMetadata, error) {
 
 	storedModtime, err := c.ds.Modtime(path)
 	if err != nil {
-		c.logger.Error("Failed to read stored modtime for %v, disabling caching for this call: %v", path, err)
-		return c.metadataReader.Read(path)
+		if err != sql.ErrNoRows {
+			c.logger.Error("Failed to read stored modtime for %v, disabling caching for this call: %v", path, err)
+			return c.metadataReader.Read(path)
+		}
+		storedModtime = time.Unix(0, 0)
 	}
 
 	// We have to set the mod times to UTC because the db returns a different time zone format than os.Stat()
