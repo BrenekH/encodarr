@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/BrenekH/encodarr/controller"
+	"github.com/BrenekH/encodarr/controller/cmd/options"
 	"github.com/BrenekH/encodarr/controller/globals"
 	"github.com/BrenekH/encodarr/controller/httpserver"
 	"github.com/BrenekH/encodarr/controller/job_health"
@@ -28,10 +29,8 @@ var (
 )
 
 func main() {
-	// TODO: Set config dir from env var or CL args
-	// TODO: Set port from env var or CL args
-	configDir := "."
-	httpServerPort := "8123"
+	configDir := options.ConfigDir()
+	httpServerPort := options.Port()
 
 	// Setup main logger
 	mainLogger := logange.NewLogger("main")
