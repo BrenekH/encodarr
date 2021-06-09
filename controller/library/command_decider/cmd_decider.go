@@ -18,6 +18,10 @@ type CmdDecider struct {
 	logger controller.Logger
 }
 
+func (c *CmdDecider) DefaultSettings() string {
+	return `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true}`
+}
+
 func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) ([]string, error) {
 	settings := CmdDeciderSettings{}
 	err := json.Unmarshal([]byte(sSettings), &settings)
@@ -60,9 +64,9 @@ func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) ([]stri
 }
 
 type CmdDeciderSettings struct {
-	TargetVideoCodec  string
-	CreateStereoAudio bool
-	SkipHDR           bool
+	TargetVideoCodec  string `json:"target_video_codec"`
+	CreateStereoAudio bool   `json:"create_stereo_audio"`
+	SkipHDR           bool   `json:"skip_hdr"`
 }
 
 // genFFmpegCmd creates the correct ffmpeg arguments for the input/output filenames and the job parameters.

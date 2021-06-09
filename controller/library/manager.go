@@ -263,6 +263,7 @@ func (m *Manager) UpdateLibrarySettings(libSettings map[int]controller.Library) 
 			// Save brand new library with key as ID and value as library object
 			v.ID = k
 			v.Queue = controller.LibraryQueue{}
+			v.CommandDeciderSettings = m.commandDecider.DefaultSettings()
 
 			if err = m.ds.SaveLibrary(v); err != nil {
 				m.logger.Error(err.Error())
