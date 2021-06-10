@@ -14,7 +14,7 @@ func TestRunFuncsCalled(t *testing.T) {
 	mRunnerCommunicator := mockRunnerCommunicator{}
 	mUserInterfacer := mockUserInterfacer{}
 
-	Run(&ctx, &mLogger, &mHealthChecker, &mLibraryManager, &mRunnerCommunicator, &mUserInterfacer, true)
+	Run(&ctx, &mLogger, &mHealthChecker, &mLibraryManager, &mRunnerCommunicator, &mUserInterfacer, func() {}, true)
 
 	// Check that HealthChecker methods were run
 	if !mHealthChecker.startCalled {

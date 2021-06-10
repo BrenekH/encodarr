@@ -8,7 +8,7 @@ import (
 
 // Run is the "top-level" function for running the Encodarr Controller. It calls all of the injected
 // dependencies in order to operate.
-func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManager, rc RunnerCommunicator, ui UserInterfacer, testMode bool) {
+func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManager, rc RunnerCommunicator, ui UserInterfacer, setLogLvl func(), testMode bool) {
 	wg := sync.WaitGroup{}
 	hc.Start(ctx)
 	lm.Start(ctx, &wg)
@@ -60,6 +60,9 @@ func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManage
 		// Import completed jobs
 		cj := rc.CompletedJobs()
 		lm.ImportCompletedJobs(cj)
+
+		// Apply the log level to the actual handler
+		setLogLvl()
 	}
 
 	// Wait for goroutines to shut down

@@ -118,5 +118,27 @@ func main() {
 	ui := user_interfacer.NewWebHTTPv1(&uiLogger, &httpServer, &settingsStore, &uiDBAdapter, false)
 
 	runLogger := logange.NewLogger("run")
-	controller.Run(&ctx, &runLogger, &healthChecker, &lm, &rc, &ui, false)
+	controller.Run(&ctx, &runLogger, &healthChecker, &lm, &rc, &ui, getSetFileLogLevelFunc(&rootFileHandler, &settingsStore), false)
+}
+
+func getSetFileLogLevelFunc(fh *logange.FileHandler, ss controller.SettingsStorer) func() {
+	return func() {
+		switch ss.LogVerbosity() {
+		case "TRACE":
+			fh.SetLevel(logange.LevelTrace)
+		case "DEBUG":
+			fh.SetLevel(logange.LevelDebug)
+		case "INFO":
+			fh.SetLevel(logange.LevelInfo)
+		case "WARN":
+		case "WARNING":
+			fh.SetLevel(logange.LevelWarn)
+		case "ERROR":
+			fh.SetLevel(logange.LevelError)
+		case "CRITICAL":
+			fh.SetLevel(logange.LevelCritical)
+		default:
+			fh.SetLevel(logange.LevelInfo)
+		}
+	}
 }
