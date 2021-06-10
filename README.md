@@ -182,7 +182,3 @@ This project holds all maintainers, contributors, and participants to the standa
 * Massive frontend overhaul
 
 * Scheduled working times
-
-## Attributions
-
-`controller/mediainfo/mediainfo.go` was modified from [pascoej/go-mediainfo](https://github.com/pascoej/go-mediainfo/blob/509f5adb9998a8fe497be4eed69c73d75161709e/mediainfo.go).
