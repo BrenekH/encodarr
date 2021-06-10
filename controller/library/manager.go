@@ -3,6 +3,7 @@ package library
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -236,8 +237,9 @@ func (m *Manager) PopNewJob() (controller.Job, error) {
 	for _, l := range libs {
 		job, err := l.Queue.Pop()
 		if err != nil {
-			// If we are in this code block, it is likely an ErrEmptyQueue error, which we should just ignore.
-			m.logger.Debug("error while searching for job: %v", err)
+			if err != controller.ErrEmptyQueue { // Forgoes logging about an empty queue
+				m.logger.Debug("error while searching for job: %v", err)
+			}
 			continue
 		}
 
@@ -297,6 +299,30 @@ func (d defaultFileRemover) Remove(path string) error {
 
 type defaultFileMover struct{}
 
-func (d defaultFileMover) Move(from string, to string) error {
+func (d defaultFileMover) Move(from, to string) error {
+	inputFile, err := os.Open(from)
+	if err != nil {
+		return fmt.Errorf("couldn't open source file: %s", err)
+	}
+
+	outputFile, err := os.Create(to)
+	if err != nil {
+		inputFile.Close()
+		return fmt.Errorf("couldn't open dest file: %s", err)
+	}
+	defer outputFile.Close()
+
+	_, err = io.Copy(outputFile, inputFile)
+	inputFile.Close()
+	if err != nil {
+		return fmt.Errorf("writing to output file failed: %s", err)
+	}
+
+	// The copy was successful, so now delete the original file
+	err = os.Remove(from)
+	if err != nil {
+		return fmt.Errorf("failed removing original file: %s", err)
+	}
+
 	return nil
 }
