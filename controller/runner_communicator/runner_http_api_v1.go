@@ -97,7 +97,7 @@ func (r *RunnerHTTPApiV1) WaitingRunners() (runnerNames []string) {
 }
 
 func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
-	a.logger.Debug("%+v", r)
+	a.logger.Trace("%+v", r)
 	switch r.Method {
 	case http.MethodGet:
 		// Gather Runner name from HTTP headers
@@ -166,7 +166,7 @@ func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
-	a.logger.Debug("%+v", r)
+	a.logger.Trace("%+v", r)
 	switch r.Method {
 	case http.MethodPost:
 		b, err := io.ReadAll(r.Body)
@@ -216,7 +216,7 @@ func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *RunnerHTTPApiV1) jobComplete(w http.ResponseWriter, r *http.Request) {
-	a.logger.Debug("%+v", r)
+	a.logger.Trace("%+v", r)
 	switch r.Method {
 	case http.MethodPost:
 		//? Probably should detect a client disconnect and disregard any data it sent (use r.Context())
