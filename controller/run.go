@@ -16,7 +16,10 @@ func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManage
 	ui.Start(ctx, &wg)
 	looped := false
 
-	for {
+	loopsPerSec := 20
+	ticker := time.NewTicker(time.Second / time.Duration(loopsPerSec))
+
+	for range ticker.C {
 		// A while loop will skip if its condition is false even on the first run.
 		// Using the looped var allows a do-while run for testing.
 		if testMode && looped {
@@ -57,9 +60,6 @@ func Run(ctx *context.Context, logger Logger, hc HealthChecker, lm LibraryManage
 		// Import completed jobs
 		cj := rc.CompletedJobs()
 		lm.ImportCompletedJobs(cj)
-
-		// TODO: Replace with proper loop slowdown system
-		time.Sleep(10 * time.Millisecond)
 	}
 
 	// Wait for goroutines to shut down
