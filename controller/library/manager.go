@@ -105,6 +105,7 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 	}
 
 	for _, videoFilepath := range discoveredVideos {
+		// TODO: Respect context while iterating over discoveredVideos
 		// Check path against Library path masks
 		maskedOut := false
 		for _, v := range lib.PathMasks {
