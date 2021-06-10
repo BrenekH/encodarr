@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -24,6 +25,7 @@ func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer
 		videoFileser:   defaultVideoFileser{},
 		fileRemover:    defaultFileRemover{},
 		fileMover:      defaultFileMover{},
+		fileStater:     defaultFileStater{},
 
 		lastCheckedTimes:   make(map[int]time.Time),
 		workerCompletedMap: make(map[int]bool),
@@ -38,6 +40,7 @@ type Manager struct {
 	videoFileser   videoFileser
 	fileRemover    fileRemover
 	fileMover      fileMover
+	fileStater     fileStater
 
 	// lastCheckedTimes is a map of Library ids and the last time that they were checked.
 	lastCheckedTimes map[int]time.Time
@@ -235,21 +238,30 @@ func (m *Manager) PopNewJob() (controller.Job, error) {
 
 	// Loop through sorted slice looking for a job to return
 	for _, l := range libs {
-		job, err := l.Queue.Pop()
-		if err != nil {
-			if err != controller.ErrEmptyQueue { // Forgoes logging about an empty queue
-				m.logger.Debug("error while searching for job: %v", err)
+		for !l.Queue.Empty() {
+			job, err := l.Queue.Pop()
+			if err != nil {
+				if err != controller.ErrEmptyQueue { // Forgoes logging about an empty queue
+					m.logger.Debug("error while searching for job: %v", err)
+				}
+				continue
 			}
-			continue
-		}
 
-		// Update library in datastore
-		err = m.ds.SaveLibrary(l)
-		if err != nil {
-			m.logger.Error(err.Error())
-		}
+			// Skip queue entry if there is an error while stating the file
+			_, err = m.fileStater.Stat(job.Path)
+			if err != nil {
+				m.logger.Debug("skipping queue entry for %v because of error: %v", job.Path, err)
+				continue
+			}
 
-		return job, nil
+			// Update library in datastore
+			err = m.ds.SaveLibrary(l)
+			if err != nil {
+				m.logger.Error(err.Error())
+			}
+
+			return job, nil
+		}
 	}
 
 	return controller.Job{}, fmt.Errorf("no available jobs")
@@ -325,4 +337,10 @@ func (d defaultFileMover) Move(from, to string) error {
 	}
 
 	return nil
+}
+
+type defaultFileStater struct{}
+
+func (d defaultFileStater) Stat(path string) (fs.FileInfo, error) {
+	return os.Stat(path)
 }
