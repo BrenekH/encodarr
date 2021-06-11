@@ -109,7 +109,6 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 		case "Menu":
 		default:
 		}
-
 	}
 
 	return controller.FileMetadata{
