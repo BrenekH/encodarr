@@ -42,7 +42,7 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 		switch v.Type {
 		case "General":
 			if generalDuration, err = strconv.ParseFloat(v.Duration, 32); err != nil {
-				m.logger.Debug("error while parsing general duration (%v): %v", v.Duration, err)
+				m.logger.Debug("error while parsing general duration (%v) for %v: %v", path, v.Duration, err)
 				return controller.FileMetadata{}, err
 			}
 		case "Video":
@@ -64,17 +64,17 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 			vidTrack.ColorPrimaries = v.ColourPrimaries
 
 			if vidTrack.Index, err = strconv.Atoi(v.StreamOrder); err != nil {
-				m.logger.Debug("error while converting vidTrack.Index (StreamOrder): %v", err)
+				m.logger.Debug("error while converting vidTrack.Index (StreamOrder) for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
 
 			if vidTrack.Width, err = strconv.Atoi(v.Width); err != nil {
-				m.logger.Debug("error while converting vidTrack.Width: %v", err)
+				m.logger.Debug("error while converting vidTrack.Width for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
 
 			if vidTrack.Height, err = strconv.Atoi(v.Height); err != nil {
-				m.logger.Debug("error while converting vidTrack.Height: %v", err)
+				m.logger.Debug("error while converting vidTrack.Height for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
 
@@ -83,12 +83,12 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 			audioTrack := controller.AudioTrack{}
 
 			if audioTrack.Index, err = strconv.Atoi(v.StreamOrder); err != nil {
-				m.logger.Debug("error while converting audioTrack.Index (StreamOrder): %v", err)
+				m.logger.Debug("error while converting audioTrack.Index (StreamOrder) for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
 
 			if audioTrack.Channels, err = strconv.Atoi(v.Channels); err != nil {
-				m.logger.Debug("error while converting audioTrack.Channels: %v", err)
+				m.logger.Debug("error while converting audioTrack.Channels for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
 
@@ -98,7 +98,7 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 
 			if textTrack.Index, err = strconv.Atoi(v.StreamOrder); err != nil {
 				if textTrack.Index, err = strconv.Atoi(v.UniqueID); err != nil {
-					m.logger.Warn("error while converting textTrack.Index (StreamOrder, UniqueID): %v", err)
+					m.logger.Warn("error while converting textTrack.Index (StreamOrder, UniqueID) for %v: %v", path, err)
 					continue
 				}
 			}
