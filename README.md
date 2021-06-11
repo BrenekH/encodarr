@@ -10,6 +10,7 @@
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/brenekh/encodarr-runner/latest?label=runner%20image%20size)
 ![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=controller%2Fgo.mod&label=Controller%20Go%20Version)
 ![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=runner%2Fgo.mod&label=Runner%20Go%20Version)
+[![Go Report Card](https://goreportcard.com/badge/github.com/BrenekH/encodarr)](https://goreportcard.com/report/github.com/BrenekH/encodarr)
 [![Controller CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml)
 [![Runner CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml)
 
