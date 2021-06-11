@@ -98,8 +98,8 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 
 			if textTrack.Index, err = strconv.Atoi(v.StreamOrder); err != nil {
 				if textTrack.Index, err = strconv.Atoi(v.UniqueID); err != nil {
-					m.logger.Debug("error while converting textTrack.Index (StreamOrder, UniqueID): %v", err)
-					return controller.FileMetadata{}, err
+					m.logger.Warn("error while converting textTrack.Index (StreamOrder, UniqueID): %v", err)
+					continue
 				}
 			}
 
