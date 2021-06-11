@@ -121,6 +121,8 @@ func (a *RunnerHTTPApiV1) requestJob(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		close(receiveChan)
+
 		if !ok { // Server shutdown
 			w.WriteHeader(http.StatusInternalServerError)
 			return
