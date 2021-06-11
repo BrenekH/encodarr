@@ -105,7 +105,7 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 			textTrack.Index, err = strconv.Atoi(v.StreamOrder)
 			if err != nil {
 				m.logger.Debug("error while converting textTrack.Index (StreamOrder): %v", err)
-				m.logger.Debug("%+v", v)
+				m.logger.Debug("%v", string(b))
 				return controller.FileMetadata{}, err
 			}
 
