@@ -43,6 +43,7 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 		case "General":
 			generalDuration, err = strconv.ParseFloat(v.Duration, 32)
 			if err != nil {
+				m.logger.Debug("error while parsing general duration (%v): %v", v.Duration, err)
 				return controller.FileMetadata{}, err
 			}
 		case "Video":
@@ -65,19 +66,19 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 
 			vidTrack.Index, err = strconv.Atoi(v.StreamOrder)
 			if err != nil {
-				m.logger.Debug("error while converting vidTrack.Index (StreamOrder): %v", err)
+				m.logger.Debug("error while converting vidTrack.Index (StreamOrder: %v): %v", v.StreamOrder, err)
 				return controller.FileMetadata{}, err
 			}
 
 			vidTrack.Width, err = strconv.Atoi(v.Width)
 			if err != nil {
-				m.logger.Debug("error while converting vidTrack.Width: %v", err)
+				m.logger.Debug("error while converting vidTrack.Width (%v): %v", v.Width, err)
 				return controller.FileMetadata{}, err
 			}
 
 			vidTrack.Height, err = strconv.Atoi(v.Height)
 			if err != nil {
-				m.logger.Debug("error while converting vidTrack.Height: %v", err)
+				m.logger.Debug("error while converting vidTrack.Height (%v): %v", v.Height, err)
 				return controller.FileMetadata{}, err
 			}
 
@@ -87,13 +88,13 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 
 			audioTrack.Index, err = strconv.Atoi(v.StreamOrder)
 			if err != nil {
-				m.logger.Debug("error while converting audioTrack.Index (StreamOrder): %v", err)
+				m.logger.Debug("error while converting audioTrack.Index (StreamOrder: %v): %v", v.StreamOrder, err)
 				return controller.FileMetadata{}, err
 			}
 
 			audioTrack.Channels, err = strconv.Atoi(v.Channels)
 			if err != nil {
-				m.logger.Debug("error while converting audioTrack.Channels: %v", err)
+				m.logger.Debug("error while converting audioTrack.Channels (%v): %v", v.Channels, err)
 				return controller.FileMetadata{}, err
 			}
 
@@ -103,7 +104,7 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 
 			textTrack.Index, err = strconv.Atoi(v.StreamOrder)
 			if err != nil {
-				m.logger.Debug("error while converting textTrack.Index (StreamOrder): %v", err)
+				m.logger.Debug("error while converting textTrack.Index (StreamOrder: %v): %v", v.StreamOrder, err)
 				return controller.FileMetadata{}, err
 			}
 
