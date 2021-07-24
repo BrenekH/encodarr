@@ -188,7 +188,7 @@ func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
 		// Check ijs.UUID against nullified UUIDs
 		for _, v := range a.nullifiedUUIDs {
 			if v == ijs.UUID {
-				w.WriteHeader(http.StatusConflict) // Send the 409 error code to signal to the Runner that the job has been nullified.
+				w.WriteHeader(http.StatusConflict) // Send the 409 error code to signal to the Runner to indicate that the job has been nullified.
 				return
 			}
 		}
@@ -201,8 +201,10 @@ func (a *RunnerHTTPApiV1) jobStatus(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Update DispatchedJob.Status
 		dJob.Status = ijs.Status
+
+		// Update the LastUpdated time so that the health check won't null this Runner
+		dJob.LastUpdated = time.Now()
 
 		// Store DispatchedJob into datastore
 		if err = a.ds.SaveDispatchedJob(dJob); err != nil {
