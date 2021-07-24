@@ -54,6 +54,7 @@ func (c *Checker) Run() (uuidsToNull []controller.UUID) {
 
 				if jobDeleted {
 					uuidsToNull = append(uuidsToNull, v.UUID)
+					c.logger.Warn("Nullified job for %v because the %v runner was unresponsive", v.Job.Path, v.Runner)
 				}
 			}
 		}
