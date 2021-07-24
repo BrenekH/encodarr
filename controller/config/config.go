@@ -43,7 +43,7 @@ func SaveSettings(s Settings) error {
 		return err
 	}
 
-	err = os.WriteFile(fmt.Sprintf("%v/settings.json", options.ConfigDir()), b, 0664)
+	err = os.WriteFile(fmt.Sprintf("%v/settings.json", options.ConfigDir()), b, 0666)
 	if err != nil {
 		return err
 	}
