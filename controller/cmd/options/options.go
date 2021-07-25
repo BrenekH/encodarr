@@ -74,7 +74,7 @@ func ConfigDir() string {
 
 // makeConfigDir creates the options.configDir
 func makeConfigDir() {
-	err := os.MkdirAll(configDir, 0644)
+	err := os.MkdirAll(configDir, 0777)
 	if err != nil {
 		log.Fatalln(fmt.Sprintf("Failed to create config directory '%v' because of error: %v", configDir, err.Error()))
 	}

@@ -119,7 +119,7 @@ func NewSettingsStore(configDir string) (SettingsStore, error) {
 	s := defaultSettings()
 
 	var err error
-	s.file, err = os.OpenFile(configDir+"/settings.json", os.O_RDWR|os.O_CREATE, 0755)
+	s.file, err = os.OpenFile(configDir+"/settings.json", os.O_RDWR|os.O_CREATE, 0777)
 	if err != nil {
 		return s, err
 	}
