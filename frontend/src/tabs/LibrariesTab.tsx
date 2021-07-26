@@ -88,9 +88,11 @@ interface ILibraryCardState {
 	target_video_codec: string,
 	create_stereo_audio: boolean,
 	skip_hdr: boolean,
+	use_hardware: boolean,
+	hardware_codec: string,
 
-	showEditModal: Boolean,
-	showQueueModal: Boolean,
+	showEditModal: boolean,
+	showQueueModal: boolean,
 }
 
 class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> {
@@ -106,6 +108,8 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 			target_video_codec: "HEVC",
 			create_stereo_audio: true,
 			skip_hdr: true,
+			use_hardware: false,
+			hardware_codec: "",
 
 			showEditModal: false,
 			showQueueModal: false,
@@ -127,6 +131,8 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				target_video_codec: response.data.pipeline.target_video_codec,
 				create_stereo_audio: response.data.pipeline.create_stereo_audio,
 				skip_hdr: response.data.pipeline.skip_hdr,
+				use_hardware: response.data.pipeline.use_hardware,
+				hardware_codec: response.data.pipeline.hardware_codec,
 			});
 		}).catch((error) => {
 			console.error(`Request to /api/web/v1/library/${this.props.id} failed with error: ${error}`)
@@ -143,6 +149,8 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				<p className="text-center">Target Video Codec: {this.state.target_video_codec}</p>
 				<p className="text-center">Create Stereo Audio Track: {(this.state.create_stereo_audio) ? "True" : "False"}</p>
 				<p className="text-center">Skip HDR Files: {(this.state.skip_hdr) ? "True" : "False"}</p>
+				<p className="text-center">Use Hardware: {(this.state.use_hardware) ? "True" : "False"}</p>
+				{(this.state.use_hardware) ? <p className="text-center">Hardware Codec: {this.state.hardware_codec}</p> : null }
 				{(this.state.path_masks.length !== 0) ? <p className="text-center">Path Masks: {this.state.path_masks}</p> : null }
 				<Button variant="secondary" onClick={() => {this.setState({showQueueModal: true})}}>Queue</Button>
 				<Button variant="primary" onClick={() => {this.setState({showEditModal: true})}}>Edit</Button>
@@ -158,6 +166,8 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				target_video_codec={this.state.target_video_codec}
 				create_stereo_audio={this.state.create_stereo_audio}
 				skip_hdr={this.state.skip_hdr}
+				use_hardware={this.state.use_hardware}
+				hardware_codec={this.state.hardware_codec}
 			/>) : null}
 
 			{(this.state.showQueueModal) ? (<QueueModal
@@ -182,6 +192,8 @@ interface ICreateLibraryModalState {
 	target_video_codec: string,
 	create_stereo_audio: boolean,
 	skip_hdr: boolean,
+	use_hardware: boolean,
+	hardware_codec: string,
 }
 
 class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICreateLibraryModalState> {
@@ -196,6 +208,8 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			target_video_codec: "HEVC",
 			create_stereo_audio: true,
 			skip_hdr: true,
+			use_hardware: false,
+			hardware_codec: "",
 		}
 
 		this.submitLib = this.submitLib.bind(this);
@@ -211,6 +225,8 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 				target_video_codec: this.state.target_video_codec,
 				create_stereo_audio: this.state.create_stereo_audio,
 				skip_hdr: this.state.skip_hdr,
+				use_hardware: this.state.use_hardware,
+				hardware_codec: this.state.hardware_codec,
 			},
 		};
 		axios.post("/api/web/v1/library/new", data).then(() => {
@@ -279,6 +295,27 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 					</InputGroup>
 
 					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Use Hardware</InputGroup.Text></InputGroup.Prepend>
+						<InputGroup.Checkbox
+							aria-label="Use Hardware Checkbox"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ use_hardware: event.target.checked }); }}
+							checked={this.state.use_hardware}
+						/>
+					</InputGroup>
+
+					{(this.state.use_hardware) ? <InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Hardware Codec</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder=""
+							aria-label="Hardware Codec"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ hardware_codec: event.target.value }); }}
+							value={this.state.hardware_codec}
+						/>
+					</InputGroup> : null}
+
+					<InputGroup className="mb-3">
 						<InputGroup.Prepend><InputGroup.Text>Create Stereo Audio Track</InputGroup.Text></InputGroup.Prepend>
 						<InputGroup.Checkbox
 							aria-label="Create Stereo Audio Track Checkbox"
@@ -328,6 +365,8 @@ interface IEditLibraryModalProps {
 	target_video_codec: string,
 	create_stereo_audio: boolean,
 	skip_hdr: boolean,
+	use_hardware: boolean,
+	hardware_codec: string,
 }
 
 interface IEditLibraryModalState {
@@ -338,6 +377,8 @@ interface IEditLibraryModalState {
 	target_video_codec: string,
 	create_stereo_audio: boolean,
 	skip_hdr: boolean,
+	use_hardware: boolean,
+	hardware_codec: string,
 }
 
 class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibraryModalState> {
@@ -352,6 +393,8 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 			target_video_codec: props.target_video_codec,
 			create_stereo_audio: props.create_stereo_audio,
 			skip_hdr: props.skip_hdr,
+			use_hardware: props.use_hardware,
+			hardware_codec: props.hardware_codec,
 		}
 
 		this.putChanges = this.putChanges.bind(this);
@@ -368,6 +411,8 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 				target_video_codec: this.state.target_video_codec,
 				create_stereo_audio: this.state.create_stereo_audio,
 				skip_hdr: this.state.skip_hdr,
+				use_hardware: this.state.use_hardware,
+				hardware_codec: this.state.hardware_codec,
 			},
 		};
 		axios.put(`/api/web/v1/library/${this.props.id}`, data).then(() => {
@@ -441,6 +486,27 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 							<option value="VP9">VP9</option>
 						</FormControl>
 					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Use Hardware</InputGroup.Text></InputGroup.Prepend>
+						<InputGroup.Checkbox
+							aria-label="Use Hardware Checkbox"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ use_hardware: event.target.checked }); }}
+							checked={this.state.use_hardware}
+						/>
+					</InputGroup>
+
+					{(this.state.use_hardware) ? <InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Hardware Codec</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder=""
+							aria-label="Hardware Codec"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ hardware_codec: event.target.value }); }}
+							value={this.state.hardware_codec}
+						/>
+					</InputGroup> : null}
 
 					<InputGroup className="mb-3">
 						<InputGroup.Prepend><InputGroup.Text>Create Stereo Audio Track</InputGroup.Text></InputGroup.Prepend>
