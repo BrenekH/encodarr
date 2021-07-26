@@ -24,6 +24,8 @@ type PluginPipeline struct { // TODO: Implement
 	TargetVideoCodec  string `json:"target_video_codec"`
 	CreateStereoAudio bool   `json:"create_stereo_audio"`
 	SkipHDR           bool   `json:"skip_hdr"`
+	UseHardware       bool   `json:"use_hardware"`
+	HardwareCodec     string `json:"hardware_codec"`
 }
 
 type fileCache struct{} // TODO: Complete
