@@ -192,6 +192,8 @@ interface ICreateLibraryModalState {
 	target_video_codec: string,
 	create_stereo_audio: boolean,
 	skip_hdr: boolean,
+	use_hardware: boolean,
+	hardware_codec: string,
 }
 
 class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICreateLibraryModalState> {
@@ -206,6 +208,8 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			target_video_codec: "HEVC",
 			create_stereo_audio: true,
 			skip_hdr: true,
+			use_hardware: false,
+			hardware_codec: "",
 		}
 
 		this.submitLib = this.submitLib.bind(this);
@@ -221,6 +225,8 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 				target_video_codec: this.state.target_video_codec,
 				create_stereo_audio: this.state.create_stereo_audio,
 				skip_hdr: this.state.skip_hdr,
+				use_hardware: this.state.use_hardware,
+				hardware_codec: this.state.hardware_codec,
 			},
 		};
 		axios.post("/api/web/v1/library/new", data).then(() => {
@@ -287,6 +293,27 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 							<option value="VP9">VP9</option>
 						</FormControl>
 					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Use Hardware</InputGroup.Text></InputGroup.Prepend>
+						<InputGroup.Checkbox
+							aria-label="Use Hardware Checkbox"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ use_hardware: event.target.checked }); }}
+							checked={this.state.use_hardware}
+						/>
+					</InputGroup>
+
+					{(this.state.use_hardware) ? <InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Hardware Codec</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder=""
+							aria-label="Hardware Codec"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ hardware_codec: event.target.value }); }}
+							value={this.state.hardware_codec}
+						/>
+					</InputGroup> : null}
 
 					<InputGroup className="mb-3">
 						<InputGroup.Prepend><InputGroup.Text>Create Stereo Audio Track</InputGroup.Text></InputGroup.Prepend>
