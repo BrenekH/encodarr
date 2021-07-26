@@ -155,7 +155,7 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			RawMediaInfo: mediaInfo,
 		}
 
-		logger.Trace(fmt.Sprintf("%v Encode=%v Stereo=%v Codec=%v", videoFilepath, !encodeVideo, !stereoAudioTrackExists, mapTargetCodecToFFmpegParameter(l.Pipeline.TargetVideoCodec)))
+		logger.Trace(fmt.Sprintf("%v Encode=%v Stereo=%v Codec=%v", videoFilepath, !encodeVideo, !stereoAudioTrackExists, ffmpegCodec))
 
 		l.Queue.Push(job)
 		logger.Info(fmt.Sprintf("Added %v to the queue", job.Path))
