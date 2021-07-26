@@ -166,6 +166,8 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				target_video_codec={this.state.target_video_codec}
 				create_stereo_audio={this.state.create_stereo_audio}
 				skip_hdr={this.state.skip_hdr}
+				use_hardware={this.state.use_hardware}
+				hardware_codec={this.state.hardware_codec}
 			/>) : null}
 
 			{(this.state.showQueueModal) ? (<QueueModal
@@ -336,6 +338,8 @@ interface IEditLibraryModalProps {
 	target_video_codec: string,
 	create_stereo_audio: boolean,
 	skip_hdr: boolean,
+	use_hardware: boolean,
+	hardware_codec: string,
 }
 
 interface IEditLibraryModalState {
@@ -346,6 +350,8 @@ interface IEditLibraryModalState {
 	target_video_codec: string,
 	create_stereo_audio: boolean,
 	skip_hdr: boolean,
+	use_hardware: boolean,
+	hardware_codec: string,
 }
 
 class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibraryModalState> {
@@ -360,6 +366,8 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 			target_video_codec: props.target_video_codec,
 			create_stereo_audio: props.create_stereo_audio,
 			skip_hdr: props.skip_hdr,
+			use_hardware: props.use_hardware,
+			hardware_codec: props.hardware_codec,
 		}
 
 		this.putChanges = this.putChanges.bind(this);
@@ -376,6 +384,8 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 				target_video_codec: this.state.target_video_codec,
 				create_stereo_audio: this.state.create_stereo_audio,
 				skip_hdr: this.state.skip_hdr,
+				use_hardware: this.state.use_hardware,
+				hardware_codec: this.state.hardware_codec,
 			},
 		};
 		axios.put(`/api/web/v1/library/${this.props.id}`, data).then(() => {
@@ -449,6 +459,27 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 							<option value="VP9">VP9</option>
 						</FormControl>
 					</InputGroup>
+
+					<InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Use Hardware</InputGroup.Text></InputGroup.Prepend>
+						<InputGroup.Checkbox
+							aria-label="Use Hardware Checkbox"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ use_hardware: event.target.checked }); }}
+							checked={this.state.use_hardware}
+						/>
+					</InputGroup>
+
+					{(this.state.use_hardware) ? <InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Hardware Codec</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder=""
+							aria-label="Hardware Codec"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ hardware_codec: event.target.value }); }}
+							value={this.state.hardware_codec}
+						/>
+					</InputGroup> : null}
 
 					<InputGroup className="mb-3">
 						<InputGroup.Prepend><InputGroup.Text>Create Stereo Audio Track</InputGroup.Text></InputGroup.Prepend>
