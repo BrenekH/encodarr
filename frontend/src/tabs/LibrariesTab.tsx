@@ -88,9 +88,11 @@ interface ILibraryCardState {
 	target_video_codec: string,
 	create_stereo_audio: boolean,
 	skip_hdr: boolean,
+	use_hardware: boolean,
+	hardware_codec: string,
 
-	showEditModal: Boolean,
-	showQueueModal: Boolean,
+	showEditModal: boolean,
+	showQueueModal: boolean,
 }
 
 class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> {
@@ -106,6 +108,8 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 			target_video_codec: "HEVC",
 			create_stereo_audio: true,
 			skip_hdr: true,
+			use_hardware: false,
+			hardware_codec: "",
 
 			showEditModal: false,
 			showQueueModal: false,
@@ -127,6 +131,8 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				target_video_codec: response.data.pipeline.target_video_codec,
 				create_stereo_audio: response.data.pipeline.create_stereo_audio,
 				skip_hdr: response.data.pipeline.skip_hdr,
+				use_hardware: response.data.pipeline.use_hardware,
+				hardware_codec: response.data.pipeline.hardware_codec,
 			});
 		}).catch((error) => {
 			console.error(`Request to /api/web/v1/library/${this.props.id} failed with error: ${error}`)
@@ -143,6 +149,8 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				<p className="text-center">Target Video Codec: {this.state.target_video_codec}</p>
 				<p className="text-center">Create Stereo Audio Track: {(this.state.create_stereo_audio) ? "True" : "False"}</p>
 				<p className="text-center">Skip HDR Files: {(this.state.skip_hdr) ? "True" : "False"}</p>
+				<p className="text-center">Use Hardware: {(this.state.use_hardware) ? "True" : "False"}</p>
+				<p className="text-center">Hardware Codec: {this.state.hardware_codec}</p>
 				{(this.state.path_masks.length !== 0) ? <p className="text-center">Path Masks: {this.state.path_masks}</p> : null }
 				<Button variant="secondary" onClick={() => {this.setState({showQueueModal: true})}}>Queue</Button>
 				<Button variant="primary" onClick={() => {this.setState({showEditModal: true})}}>Edit</Button>
