@@ -136,6 +136,13 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			continue
 		}
 
+		var ffmpegCodec string
+		if l.Pipeline.UseHardware {
+			ffmpegCodec = l.Pipeline.HardwareCodec
+		} else {
+			ffmpegCodec = mapTargetCodecToFFmpegParameter(l.Pipeline.TargetVideoCodec)
+		}
+
 		u := uuid.New()
 		job := dispatched.Job{
 			UUID: u.String(),
@@ -143,7 +150,7 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			Parameters: dispatched.JobParameters{
 				Encode: !encodeVideo,
 				Stereo: !stereoAudioTrackExists,
-				Codec:  mapTargetCodecToFFmpegParameter(l.Pipeline.TargetVideoCodec),
+				Codec:  ffmpegCodec,
 			},
 			RawMediaInfo: mediaInfo,
 		}
