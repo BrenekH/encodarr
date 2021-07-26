@@ -150,7 +150,7 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				<p className="text-center">Create Stereo Audio Track: {(this.state.create_stereo_audio) ? "True" : "False"}</p>
 				<p className="text-center">Skip HDR Files: {(this.state.skip_hdr) ? "True" : "False"}</p>
 				<p className="text-center">Use Hardware: {(this.state.use_hardware) ? "True" : "False"}</p>
-				<p className="text-center">Hardware Codec: {this.state.hardware_codec}</p>
+				{(this.state.use_hardware) ? <p className="text-center">Hardware Codec: {this.state.hardware_codec}</p> : null }
 				{(this.state.path_masks.length !== 0) ? <p className="text-center">Path Masks: {this.state.path_masks}</p> : null }
 				<Button variant="secondary" onClick={() => {this.setState({showQueueModal: true})}}>Queue</Button>
 				<Button variant="primary" onClick={() => {this.setState({showEditModal: true})}}>Edit</Button>
