@@ -11,6 +11,7 @@ import "./LibrariesTab.css";
 import "../spacers.css";
 
 import addLibraryIcon from "./addLibraryIcon.svg";
+import TerminalIcon from "./shared/TerminalIcon";
 
 interface ILibrariesTabState {
 	libraries: Array<number>
@@ -542,7 +543,7 @@ function TableEntry(props: ITableEntryProps) {
 		<th scope="row">{props.index}</th>
 		<td>{props.path}</td>
 		<td>
-			<span className={"showQueueCommand"} title={props.command}>?</span>
+			<TerminalIcon title={props.command}/>
 		</td>
 	</tr>);
 }
