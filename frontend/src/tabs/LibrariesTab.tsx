@@ -511,6 +511,7 @@ class QueueModal extends React.Component<IQueueModalProps> {
 							<tr>
 								<th scope="col">#</th>
 								<th scope="col">File</th>
+								<th scope="col">Cmd</th>
 							</tr>
 						</thead>
 						<tbody>
