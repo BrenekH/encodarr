@@ -5,9 +5,9 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   width="121.17943mm"
-   height="88.091476mm"
-   viewBox="0 0 121.17943 88.091476"
+   width="107.33487mm"
+   height="88.091469mm"
+   viewBox="0 0 107.33487 88.091468"
    version="1.1"
    id="svg8">
   <defs
@@ -26,22 +26,22 @@
   </metadata>
   <g
      id="layer1"
-     transform="translate(-40.678701,-66.33658)">
+     transform="translate(-40.678703,-66.336582)">
     <rect
-       style="fill:none;stroke:#ffffff;stroke-width:10.0919;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal;stop-color:#000000"
+       style="fill:none;stroke:#ffffff;stroke-width:9.50602;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal;stop-color:#000000"
        id="rect833"
-       width="111.08753"
-       height="77.999573"
-       x="45.724651"
-       y="71.38253"
-       ry="20.710232" />
+       width="97.82885"
+       height="78.585449"
+       x="45.431713"
+       y="71.089592"
+       ry="20.865793" />
     <path
        style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:10.5833;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 66.282841,92.207986 89.535291,110.64959 66.282843,130.6948"
        id="path963" />
     <path
-       style="fill:none;stroke:#ffffff;stroke-width:10.5833;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 107.35699,130.65594 26.56542,0.0138"
+       style="fill:none;stroke:#ffffff;stroke-width:12.3723;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.571655,130.6524 24.006435,0.0209"
        id="path965" />
   </g>
 </svg>

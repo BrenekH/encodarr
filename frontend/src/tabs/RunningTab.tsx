@@ -11,6 +11,7 @@ import "./RunningTab.css";
 import "../spacers.css";
 
 import infoI from "./Info-I.svg";
+import TerminalIcon from "./shared/TerminalIcon";
 
 interface IRunningJob {
 	runner_name: string,
@@ -165,7 +166,7 @@ function RunningCard(props: IRunningCardProps) {
 			<Card.Header className="text-center">
 				<div className="file-image-container">
 					<h5>{props.filename}</h5>
-					<div className="showCommand" title=""><p>?</p></div>
+					<TerminalIcon title={props.command}/>
 				</div>
 
 				<h6>Stage: {props.stageValue}</h6>
