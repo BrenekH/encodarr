@@ -17,7 +17,7 @@ The repo is broken up into 3 main folders: `controller`, `runner`, and `frontend
 
 ## Controller
 
-The Controller can be built locally and ran using the standard Go build commands, `go build main.go` and `go run main.go`, from within the `controller` folder.
+The Controller can be built locally and ran using the standard Go build commands, `go build cmd/main.go` and `go run cmd/main.go`, from within the `controller` folder.
 Unit tests can be ran using `go test ./...`.
 
 ## Runner
