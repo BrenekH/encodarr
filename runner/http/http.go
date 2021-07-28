@@ -226,9 +226,10 @@ type job struct {
 
 // jobParameters represents the actions that need to be taken against a job.
 type jobParameters struct {
-	Encode bool   `json:"encode"` // true when the file's video stream needs to be encoded
-	Stereo bool   `json:"stereo"` // true when the file is missing a stereo audio track
-	Codec  string `json:"codec"`  // the ffmpeg compatible video codec
+	Encode   bool   `json:"encode"`    // true when the file's video stream needs to be encoded
+	Stereo   bool   `json:"stereo"`    // true when the file is missing a stereo audio track
+	Codec    string `json:"codec"`     // the ffmpeg compatible video codec
+	HWDevice string `json:"hw_device"` // The hardware device to use for encoding. If HWDevice is an empty string, a device should not be added to the FFmpeg command.
 }
 
 type historyEntry struct {
