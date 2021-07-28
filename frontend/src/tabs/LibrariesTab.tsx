@@ -171,6 +171,7 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				skip_hdr={this.state.skip_hdr}
 				use_hardware={this.state.use_hardware}
 				hardware_codec={this.state.hardware_codec}
+				hw_device={this.state.hw_device}
 			/>) : null}
 
 			{(this.state.showQueueModal) ? (<QueueModal
@@ -385,6 +386,7 @@ interface IEditLibraryModalProps {
 	skip_hdr: boolean,
 	use_hardware: boolean,
 	hardware_codec: string,
+	hw_device: string,
 }
 
 interface IEditLibraryModalState {
@@ -397,6 +399,7 @@ interface IEditLibraryModalState {
 	skip_hdr: boolean,
 	use_hardware: boolean,
 	hardware_codec: string,
+	hw_device: string,
 }
 
 class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibraryModalState> {
@@ -413,6 +416,7 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 			skip_hdr: props.skip_hdr,
 			use_hardware: props.use_hardware,
 			hardware_codec: props.hardware_codec,
+			hw_device: props.hw_device,
 		}
 
 		this.putChanges = this.putChanges.bind(this);
@@ -431,6 +435,7 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 				skip_hdr: this.state.skip_hdr,
 				use_hardware: this.state.use_hardware,
 				hardware_codec: this.state.hardware_codec,
+				hw_device: this.state.hw_device,
 			},
 		};
 		axios.put(`/api/web/v1/library/${this.props.id}`, data).then(() => {
@@ -523,6 +528,18 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 							aria-describedby="basic-addon1"
 							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ hardware_codec: event.target.value }); }}
 							value={this.state.hardware_codec}
+						/>
+					</InputGroup> : null}
+
+					{(this.state.use_hardware) ? <InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Hardware Device</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="/dev/dri/renderD128"
+							aria-label="Hardware Device"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ hw_device: event.target.value }); }}
+							value={this.state.hw_device}
 						/>
 					</InputGroup> : null}
 
