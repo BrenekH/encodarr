@@ -136,9 +136,10 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			continue
 		}
 
-		var ffmpegCodec string
+		var ffmpegCodec, hwDevice string
 		if l.Pipeline.UseHardware {
 			ffmpegCodec = l.Pipeline.HardwareCodec
+			hwDevice = l.Pipeline.HWDevice
 		} else {
 			ffmpegCodec = mapTargetCodecToFFmpegParameter(l.Pipeline.TargetVideoCodec)
 		}
@@ -148,14 +149,15 @@ func updateLibraryQueue(l libraries.Library, wg *sync.WaitGroup, completeMap *ma
 			UUID: u.String(),
 			Path: videoFilepath,
 			Parameters: dispatched.JobParameters{
-				Encode: !encodeVideo,
-				Stereo: !stereoAudioTrackExists,
-				Codec:  ffmpegCodec,
+				Encode:   !encodeVideo,
+				Stereo:   !stereoAudioTrackExists,
+				Codec:    ffmpegCodec,
+				HWDevice: hwDevice,
 			},
 			RawMediaInfo: mediaInfo,
 		}
 
-		logger.Trace(fmt.Sprintf("%v Encode=%v Stereo=%v Codec=%v", videoFilepath, !encodeVideo, !stereoAudioTrackExists, ffmpegCodec))
+		logger.Trace(fmt.Sprintf("%v Encode=%v Stereo=%v Codec=%v HWDevice=%v", videoFilepath, !encodeVideo, !stereoAudioTrackExists, ffmpegCodec, hwDevice))
 
 		l.Queue.Push(job)
 		logger.Info(fmt.Sprintf("Added %v to the queue", job.Path))
