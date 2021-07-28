@@ -310,6 +310,8 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 						/>
 					</InputGroup>
 
+					{(this.state.use_hardware) ? <h6>WARNING: Hardware encoding is untested and highly experimental. Use at your own risk. <a href="https://github.com/BrenekH/encodarr/wiki/Hardware-Encoding" target="_blank" rel="noreferrer">More info.</a></h6> : null}
+
 					{(this.state.use_hardware) ? <InputGroup className="mb-3">
 						<InputGroup.Prepend><InputGroup.Text>Hardware Codec</InputGroup.Text></InputGroup.Prepend>
 						<FormControl
@@ -518,6 +520,8 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 							checked={this.state.use_hardware}
 						/>
 					</InputGroup>
+
+					{(this.state.use_hardware) ? <h6>WARNING: Hardware encoding is untested and highly experimental. Use at your own risk. <a href="https://github.com/BrenekH/encodarr/wiki/Hardware-Encoding" target="_blank" rel="noreferrer">More info.</a></h6> : null}
 
 					{(this.state.use_hardware) ? <InputGroup className="mb-3">
 						<InputGroup.Prepend><InputGroup.Text>Hardware Codec</InputGroup.Text></InputGroup.Prepend>
