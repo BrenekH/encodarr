@@ -197,6 +197,7 @@ interface ICreateLibraryModalState {
 	skip_hdr: boolean,
 	use_hardware: boolean,
 	hardware_codec: string,
+	hw_device: string,
 }
 
 class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICreateLibraryModalState> {
@@ -213,6 +214,7 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			skip_hdr: true,
 			use_hardware: false,
 			hardware_codec: "",
+			hw_device: "",
 		}
 
 		this.submitLib = this.submitLib.bind(this);
@@ -230,6 +232,7 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 				skip_hdr: this.state.skip_hdr,
 				use_hardware: this.state.use_hardware,
 				hardware_codec: this.state.hardware_codec,
+				hw_device: this.state.hw_device,
 			},
 		};
 		axios.post("/api/web/v1/library/new", data).then(() => {
@@ -315,6 +318,18 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 							aria-describedby="basic-addon1"
 							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ hardware_codec: event.target.value }); }}
 							value={this.state.hardware_codec}
+						/>
+					</InputGroup> : null}
+
+					{(this.state.use_hardware) ? <InputGroup className="mb-3">
+						<InputGroup.Prepend><InputGroup.Text>Hardware Device</InputGroup.Text></InputGroup.Prepend>
+						<FormControl
+							className="dark-text-input"
+							placeholder="/dev/dri/renderD128"
+							aria-label="Hardware Device"
+							aria-describedby="basic-addon1"
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => { this.setState({ hw_device: event.target.value }); }}
+							value={this.state.hw_device}
 						/>
 					</InputGroup> : null}
 
