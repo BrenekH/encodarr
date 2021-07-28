@@ -10,5 +10,11 @@ func genFFmpegCmd(inputFname, outputFname string, params jobParameters) []string
 	} else if params.Encode {
 		s = []string{"-i", inputFname, "-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", params.Codec, outputFname}
 	}
+
+	// Add hardware device if it is not empty
+	if params.HWDevice != "" {
+		s = append([]string{"-hwaccel_device", params.HWDevice}, s...)
+	}
+
 	return s
 }
