@@ -183,7 +183,7 @@ func TestSendNewJobRequest(t *testing.T) {
 		}{
 			{
 				name:  "Filled in (Encode to HEVC)",
-				inStr: `{"uuid": "uuid-4", "path": "/media/testFile.mp4", "parameters": {"encode": true, "stereo": false, "codec": "hevc"}, "media_info": {"general": {"duration": "0"}}}`,
+				inStr: `{"uuid": "uuid-4", "path": "/media/testFile.mp4", "parameters": {"encode": true, "stereo": false, "codec": "hevc", "hw_device": ""}, "media_info": {"general": {"duration": "0"}}}`,
 				expected: runner.JobInfo{
 					UUID:          "uuid-4",
 					File:          "/media/testFile.mp4",

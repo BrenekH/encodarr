@@ -71,7 +71,7 @@ func TestToDBLibrary(t *testing.T) {
 			PathMasks:       []string{},
 		}, want: dBLibrary{
 			FsCheckInterval: "1h1m1s",
-			Pipeline:        []byte("{\"target_video_codec\":\"\",\"create_stereo_audio\":false,\"skip_hdr\":false,\"use_hardware\":false,\"hardware_codec\":\"\"}"),
+			Pipeline:        []byte("{\"target_video_codec\":\"\",\"create_stereo_audio\":false,\"skip_hdr\":false,\"use_hardware\":false,\"hardware_codec\":\"\",\"hw_device\":\"\"}"),
 			Queue:           []byte("{\"Items\":null}"),
 			FileCache:       []byte("{}"),
 			PathMasks:       []byte("[]"),

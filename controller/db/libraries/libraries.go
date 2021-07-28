@@ -26,6 +26,7 @@ type PluginPipeline struct { // TODO: Implement
 	SkipHDR           bool   `json:"skip_hdr"`
 	UseHardware       bool   `json:"use_hardware"`
 	HardwareCodec     string `json:"hardware_codec"`
+	HWDevice          string `json:"hw_device"`
 }
 
 type fileCache struct{} // TODO: Complete
