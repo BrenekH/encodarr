@@ -53,12 +53,18 @@ func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) ([]stri
 		return []string{}, fmt.Errorf("file already matches requirements")
 	}
 
-	ffmpegCodecParam, ok := codecParams[settings.TargetVideoCodec]
-	if !ok {
-		return []string{}, fmt.Errorf("couldn't identify ffmpeg parameter for '%v' target codec", settings.TargetVideoCodec)
+	var ffmpegCodecParam string
+	if settings.UseHardware {
+		ffmpegCodecParam = settings.HardwareCodec
+	} else {
+		var ok bool
+		ffmpegCodecParam, ok = codecParams[settings.TargetVideoCodec]
+		if !ok {
+			return []string{}, fmt.Errorf("couldn't identify ffmpeg parameter for '%v' target codec", settings.TargetVideoCodec)
+		}
 	}
 
-	cmd := genFFmpegCmd(!stereoAudioTrackExists, !alreadyTargetVideoCodec, ffmpegCodecParam)
+	cmd := genFFmpegCmd(!stereoAudioTrackExists, !alreadyTargetVideoCodec, ffmpegCodecParam, settings.HWDevice)
 
 	return cmd, nil
 }
@@ -73,7 +79,7 @@ type CmdDeciderSettings struct {
 }
 
 // genFFmpegCmd creates the correct ffmpeg arguments for the input/output filenames and the job parameters.
-func genFFmpegCmd(stereo, encode bool, codec string) []string {
+func genFFmpegCmd(stereo, encode bool, codec, hwDevice string) []string {
 	var s []string
 	if stereo && encode {
 		s = []string{"-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", codec, "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE"}
