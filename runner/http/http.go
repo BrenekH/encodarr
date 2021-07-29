@@ -173,7 +173,7 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 	dur := jobInfo.Metadata.General.Duration
 
 	return runner.JobInfo{
-		CommandArgs:   append(append([]string{"-i", fPath}, jobInfo.Command...), outputFname),
+		CommandArgs:   parseFFmpegCmd(fPath, outputFname, jobInfo.Command),
 		UUID:          jobInfo.UUID,
 		File:          jobInfo.Path,
 		InFile:        fPath,
