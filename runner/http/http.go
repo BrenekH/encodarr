@@ -220,13 +220,6 @@ type job struct {
 	Metadata FileMetadata `json:"metadata"`
 }
 
-// jobParameters represents the actions that need to be taken against a job.
-type jobParameters struct {
-	Encode bool   `json:"encode"` // true when the file's video stream needs to be encoded
-	Stereo bool   `json:"stereo"` // true when the file is missing a stereo audio track
-	Codec  string `json:"codec"`  // the ffmpeg compatible video codec
-}
-
 type historyEntry struct {
 	UUID    string  `json:"uuid"`
 	Failed  bool    `json:"failed"`

@@ -1,14 +1,20 @@
 package http
 
-// genFFmpegCmd creates the correct ffmpeg arguments for the input/output filenames and the job parameters.
-func genFFmpegCmd(inputFname, outputFname string, params jobParameters) []string {
-	var s []string
-	if params.Stereo && params.Encode {
-		s = []string{"-i", inputFname, "-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", params.Codec, "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", outputFname}
-	} else if params.Stereo {
-		s = []string{"-i", inputFname, "-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", "copy", "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE", outputFname}
-	} else if params.Encode {
-		s = []string{"-i", inputFname, "-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", params.Codec, outputFname}
+// parseFFmpegCmd takes a string slice and creates a valid parameter list for FFmpeg
+func parseFFmpegCmd(inputFname, outputFname string, cmd []string) []string {
+	if len(cmd) == 0 {
+		return nil
 	}
-	return s
+
+	var s []string = make([]string, len(cmd))
+
+	for i := range cmd {
+		if cmd[i] == "ENCODARR_INPUT_FILE" {
+			s[i] = inputFname
+		} else {
+			s[i] = cmd[i]
+		}
+	}
+
+	return append(s, outputFname)
 }
