@@ -64,7 +64,7 @@ func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) ([]stri
 		}
 	}
 
-	cmd := genFFmpegCmd(!stereoAudioTrackExists, !alreadyTargetVideoCodec, ffmpegCodecParam, settings.HWDevice)
+	cmd := genFFmpegCmd(!stereoAudioTrackExists, !alreadyTargetVideoCodec, ffmpegCodecParam, settings.UseHardware, settings.HWDevice)
 
 	return cmd, nil
 }
@@ -79,14 +79,20 @@ type CmdDeciderSettings struct {
 }
 
 // genFFmpegCmd creates the correct ffmpeg arguments for the input/output filenames and the job parameters.
-func genFFmpegCmd(stereo, encode bool, codec, hwDevice string) []string {
+func genFFmpegCmd(stereo, encode bool, codec string, useHW bool, hwDevice string) []string {
 	var s []string
+
 	if stereo && encode {
-		s = []string{"-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", codec, "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE"}
+		s = []string{"-i", "ENCODARR_INPUT_FILE", "-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", codec, "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE"}
 	} else if stereo {
-		s = []string{"-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", "copy", "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE"}
+		s = []string{"-i", "ENCODARR_INPUT_FILE", "-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", "copy", "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE"}
 	} else if encode {
-		s = []string{"-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", codec}
+		s = []string{"-i", "ENCODARR_INPUT_FILE", "-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", codec}
 	}
+
+	if hwDevice != "" && useHW {
+		s = append([]string{"-hwaccel_device", hwDevice}, s...)
+	}
+
 	return s
 }
