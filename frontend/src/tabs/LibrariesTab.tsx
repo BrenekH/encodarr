@@ -135,9 +135,9 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 				create_stereo_audio: cmd_decider_settings.create_stereo_audio,
 				skip_hdr: cmd_decider_settings.skip_hdr,
 
-				use_hardware: response.data.pipeline.use_hardware,
-				hardware_codec: response.data.pipeline.hardware_codec,
-				hw_device: response.data.pipeline.hw_device,
+				use_hardware: cmd_decider_settings.use_hardware,
+				hardware_codec: cmd_decider_settings.hardware_codec,
+				hw_device: cmd_decider_settings.hw_device,
 			});
 		}).catch((error) => {
 			console.error(`Request to /api/web/v1/library/${this.props.id} failed with error: ${error}`)
@@ -229,14 +229,14 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			priority: parseInt(this.state.priority),
 			fs_check_interval: this.state.fs_check_interval,
 			path_masks: this.state.path_masks.split(","),
-			pipeline: {
+			cmd_decider_settings: JSON.stringify({
 				target_video_codec: this.state.target_video_codec,
 				create_stereo_audio: this.state.create_stereo_audio,
 				skip_hdr: this.state.skip_hdr,
 				use_hardware: this.state.use_hardware,
 				hardware_codec: this.state.hardware_codec,
 				hw_device: this.state.hw_device,
-			},
+			}),
 		};
 		axios.post("/api/web/v1/library/new", data).then(() => {
 			this.props.closeHandler();
