@@ -183,7 +183,7 @@ func TestSendNewJobRequest(t *testing.T) {
 		}{
 			{
 				name:  "Filled in (Encode to HEVC)",
-				inStr: `{"uuid": "uuid-4", "path": "/media/testFile.mp4", "command": ["-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", "hevc"], "metadata": {"general": {"duration": 0}}}`,
+				inStr: `{"uuid": "uuid-4", "path": "/media/testFile.mp4", "command": ["-i", "ENCODARR_INPUT_FILE", "-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", "hevc"], "metadata": {"general": {"duration": 0}}}`,
 				expected: runner.JobInfo{
 					UUID:          "uuid-4",
 					File:          "/media/testFile.mp4",
