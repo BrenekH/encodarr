@@ -98,9 +98,6 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 				});
 			} else {
 				let runStr = response.data.Runners.toString();
-				if (response.data.Runners.length !== 1) {
-					runStr = runStr.slice(1);
-				}
 				this.setState({
 					waitingRunnersText: runStr,
 				});
