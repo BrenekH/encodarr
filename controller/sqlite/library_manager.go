@@ -7,18 +7,22 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewLibraryManagerAdapter(db *SQLiteDatabase, logger controller.Logger) LibraryManagerAdapter {
+// NewLibraryManagerAdapter returns an instantiated LibraryManagerAdapter
+func NewLibraryManagerAdapter(db *Database, logger controller.Logger) LibraryManagerAdapter {
 	return LibraryManagerAdapter{
 		db:     db,
 		logger: logger,
 	}
 }
 
+// LibraryManagerAdapter is a struct that satisfies the interface that connects a LibraryManager
+// to a storage medium.
 type LibraryManagerAdapter struct {
-	db     *SQLiteDatabase
+	db     *Database
 	logger controller.Logger
 }
 
+// Libraries returns all of the libraries available in the database.
 func (l *LibraryManagerAdapter) Libraries() ([]controller.Library, error) {
 	rows, err := l.db.Client.Query("SELECT id, folder, priority, fs_check_interval, cmd_decider_settings, queue, path_masks FROM libraries;")
 	if err != nil {
@@ -48,6 +52,7 @@ func (l *LibraryManagerAdapter) Libraries() ([]controller.Library, error) {
 	return returnSlice, nil
 }
 
+// Library returns a specific library in the database.
 func (l *LibraryManagerAdapter) Library(id int) (controller.Library, error) {
 	row := l.db.Client.QueryRow("SELECT id, folder, priority, fs_check_interval, cmd_decider_settings, queue, path_masks FROM libraries WHERE id = $1;", id)
 
@@ -61,6 +66,7 @@ func (l *LibraryManagerAdapter) Library(id int) (controller.Library, error) {
 	return fromDBLibrary(d)
 }
 
+// SaveLibrary puts the provided controller.Library into the database.
 func (l *LibraryManagerAdapter) SaveLibrary(lib controller.Library) error {
 	d, err := toDBLibrary(lib)
 	if err != nil {
@@ -113,6 +119,7 @@ func (l *LibraryManagerAdapter) IsPathDispatched(path string) (bool, error) {
 	return false, nil
 }
 
+// PopDispatchedJob returns a specific dispatched job and removes it from the database.
 func (l *LibraryManagerAdapter) PopDispatchedJob(uuid controller.UUID) (controller.DispatchedJob, error) {
 	// Get data from table
 	row := l.db.Client.QueryRow("SELECT job, status, runner, last_updated FROM dispatched_jobs WHERE uuid = $1", uuid)
@@ -147,6 +154,7 @@ func (l *LibraryManagerAdapter) PopDispatchedJob(uuid controller.UUID) (controll
 	return dJob, nil
 }
 
+// PushHistory adds an entry to the history table.
 func (l *LibraryManagerAdapter) PushHistory(h controller.History) error {
 	bW, err := json.Marshal(h.Warnings)
 	if err != nil {

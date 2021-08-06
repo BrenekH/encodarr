@@ -6,17 +6,19 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewHealthCheckerAdapter(db *SQLiteDatabase, logger controller.Logger) HealthCheckerAdapter {
+// NewHealthCheckerAdapter returns a new instantiated HealthCheckerAdapter.
+func NewHealthCheckerAdapter(db *Database, logger controller.Logger) HealthCheckerAdapter {
 	return HealthCheckerAdapter{db: db, logger: logger}
 }
 
 // HealthCheckerAdapter satisfies the controller.HealthCheckerDataStorer interface by turning interface
 // requests into SQL requests that are passed on to an underlying SQLiteDatabase.
 type HealthCheckerAdapter struct {
-	db     *SQLiteDatabase
+	db     *Database
 	logger controller.Logger
 }
 
+// DispatchedJobs returns all of the dispatched jobs in the database.
 func (h *HealthCheckerAdapter) DispatchedJobs() []controller.DispatchedJob {
 	returnSlice := make([]controller.DispatchedJob, 0)
 
@@ -57,6 +59,7 @@ func (h *HealthCheckerAdapter) DispatchedJobs() []controller.DispatchedJob {
 	return returnSlice
 }
 
+// DeleteJob deletes a specific job from the database.
 func (h *HealthCheckerAdapter) DeleteJob(uuid controller.UUID) error {
 	_, err := h.db.Client.Exec("DELETE FROM dispatched_jobs WHERE uuid = $1;", uuid)
 	return err

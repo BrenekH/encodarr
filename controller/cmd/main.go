@@ -14,7 +14,7 @@ import (
 	"github.com/BrenekH/encodarr/controller/httpserver"
 	"github.com/BrenekH/encodarr/controller/jobhealth"
 	"github.com/BrenekH/encodarr/controller/library"
-	"github.com/BrenekH/encodarr/controller/library/command_decider"
+	"github.com/BrenekH/encodarr/controller/library/commanddecider"
 	"github.com/BrenekH/encodarr/controller/library/mediainfo"
 	"github.com/BrenekH/encodarr/controller/runnercommunicator"
 	"github.com/BrenekH/encodarr/controller/settings"
@@ -69,7 +69,7 @@ func main() {
 	}()
 
 	sqliteDBBuilderLogger := logange.NewLogger("sqlite.DBBuilder")
-	sqliteDatabase, err := sqlite.NewSQLiteDatabase(configDir, &sqliteDBBuilderLogger)
+	sqliteDatabase, err := sqlite.NewDatabase(configDir, &sqliteDBBuilderLogger)
 	if err != nil {
 		mainLogger.Critical("%v", err)
 	}
@@ -101,7 +101,7 @@ func main() {
 	metadataCacheMiddleware := library.NewCache(&metadataReader, &fileCacheDS, &cacheMiddlewareLogger)
 
 	cmdDeciderLogger := logange.NewLogger("library/command_decider.CmdDecider")
-	commandDecider := command_decider.New(&cmdDeciderLogger)
+	commandDecider := commanddecider.New(&cmdDeciderLogger)
 
 	lmLogger := logange.NewLogger("library.Manager")
 	lm := library.NewManager(&lmLogger, &lmDBAdapter, &metadataCacheMiddleware, &commandDecider)
