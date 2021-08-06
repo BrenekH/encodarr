@@ -30,7 +30,7 @@ func (r *mockCmdRunner) Start(ji JobInfo) {
 func (r *mockCmdRunner) Status() JobStatus {
 	r.statusCalled = true
 
-	r.statusLoops += 1
+	r.statusLoops++
 	if r.statusLoops >= r.statusLoopout {
 		r.done = true
 	}
@@ -74,7 +74,7 @@ func (c *mockCommunicator) SendNewJobRequest(ctx *context.Context) (JobInfo, err
 }
 
 func (c *mockCommunicator) SendStatus(ctx *context.Context, uuid string, js JobStatus) error {
-	c.statusTimesCalled += 1
+	c.statusTimesCalled++
 	if c.statusSetOnlyFirst && !c.statusCalled {
 		c.statusUUID = uuid
 		c.statusJobStatus = js

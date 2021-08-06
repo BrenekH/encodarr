@@ -2,6 +2,7 @@ package runner
 
 import "time"
 
+// JobInfo defines the information about a Job that is sent from the Controller.
 type JobInfo struct {
 	UUID          string
 	File          string
@@ -11,6 +12,7 @@ type JobInfo struct {
 	MediaDuration float32
 }
 
+// JobStatus defines the information to be reported about the current state of a running job.
 type JobStatus struct {
 	Stage                       string `json:"stage"`
 	Percentage                  string `json:"percentage"`
@@ -20,6 +22,7 @@ type JobStatus struct {
 	StageEstimatedTimeRemaining string `json:"stage_estimated_time_remaining"`
 }
 
+// CommandResults is the results of the FFmpeg command that the Runner was told by the Controller to run.
 type CommandResults struct {
 	Failed         bool
 	JobElapsedTime time.Duration
