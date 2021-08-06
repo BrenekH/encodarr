@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/BrenekH/encodarr/runner"
-	"github.com/BrenekH/encodarr/runner/cmd_runner"
+	"github.com/BrenekH/encodarr/runner/cmdrunner"
 	"github.com/BrenekH/encodarr/runner/http"
 	"github.com/BrenekH/encodarr/runner/options"
 	"github.com/BrenekH/logange"
@@ -35,7 +35,7 @@ func main() {
 		cancel()
 	}()
 
-	cmdRun := cmd_runner.NewCmdRunner()
+	cmdRun := cmdrunner.NewCmdRunner()
 
 	apiV1, err := http.NewAPIv1(
 		options.TempDir(),
