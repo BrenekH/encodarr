@@ -4,8 +4,10 @@ go 1.16
 
 require (
 	github.com/BrenekH/logange v0.5.0
+	github.com/golang-migrate/migrate/v4 v4.15.0-beta.1
 	github.com/google/uuid v1.2.0
-	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	golang.org/x/tools v0.1.1 // indirect
 	modernc.org/ccgo/v3 v3.9.4 // indirect
 	modernc.org/sqlite v1.10.6
