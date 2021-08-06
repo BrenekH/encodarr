@@ -121,7 +121,7 @@ func gotoDBVer(dbFile string, targetVersion uint, configDir string, backupWriter
 		return err
 	}
 
-	logger.Info("Migrating database to schema version %v", targetVersion)
+	logger.Info("Migrating database to schema version %v.", targetVersion)
 	return mig.Migrate(targetVersion)
 }
 
@@ -131,7 +131,7 @@ func backupFile(from string, to io.Writer, logger controller.Logger) error {
 		return err
 	}
 
-	logger.Warn("Backing up database")
+	logger.Info("Backing up database.")
 	_, err = io.Copy(to, fromReader)
 	return err
 }
