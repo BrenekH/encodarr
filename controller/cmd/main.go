@@ -19,7 +19,7 @@ import (
 	"github.com/BrenekH/encodarr/controller/runner_communicator"
 	"github.com/BrenekH/encodarr/controller/settings"
 	"github.com/BrenekH/encodarr/controller/sqlite"
-	"github.com/BrenekH/encodarr/controller/user_interfacer"
+	"github.com/BrenekH/encodarr/controller/userinterfacer"
 	"github.com/BrenekH/logange"
 )
 
@@ -116,7 +116,7 @@ func main() {
 	uiaLogger := logange.NewLogger("sqlite.UIA")
 	uiDBAdapter := sqlite.NewUserInterfacerAdapter(&sqliteDatabase, &uiaLogger)
 	uiLogger := logange.NewLogger("userInterfacer")
-	ui := user_interfacer.NewWebHTTPv1(&uiLogger, &httpServer, &settingsStore, &uiDBAdapter, false)
+	ui := userinterfacer.NewWebHTTPv1(&uiLogger, &httpServer, &settingsStore, &uiDBAdapter, false)
 
 	runLogger := logange.NewLogger("run")
 	controller.Run(&ctx, &runLogger, &healthChecker, &lm, &rc, &ui, getSetFileLogLevelFunc(&rootFileHandler, &settingsStore), false)
