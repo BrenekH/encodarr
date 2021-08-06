@@ -7,12 +7,12 @@ import (
 	"io"
 	"os"
 
-	_ "modernc.org/sqlite"
+	_ "modernc.org/sqlite" // The SQLite database driver
 
 	"github.com/BrenekH/encodarr/controller"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/database/sqlite" // Add the sqlite database source to golang-migrate
+	_ "github.com/golang-migrate/migrate/v4/source/file"     // Add the file migrations source to golang-migrate
 )
 
 //go:embed migrations
@@ -20,17 +20,19 @@ var migrations embed.FS
 
 const targetMigrationVersion uint = 2
 
-type SQLiteDatabase struct {
+// Database is a wrapper around the database driver client
+type Database struct {
 	Client *sql.DB
 }
 
-func NewSQLiteDatabase(configDir string, logger controller.Logger) (SQLiteDatabase, error) {
+// NewDatabase returns an instantiated SQLiteDatabase.
+func NewDatabase(configDir string, logger controller.Logger) (Database, error) {
 	dbFile := configDir + "/data.db"
 	dbBckpFile := configDir + "/data.db.backup"
 
 	client, err := sql.Open("sqlite", dbFile)
 	if err != nil {
-		return SQLiteDatabase{Client: client}, err
+		return Database{Client: client}, err
 	}
 
 	// Set max connections to 1 to prevent "database is locked" errors
@@ -38,12 +40,12 @@ func NewSQLiteDatabase(configDir string, logger controller.Logger) (SQLiteDataba
 
 	dbBackup, err := os.Create(dbBckpFile)
 	if err != nil {
-		return SQLiteDatabase{Client: client}, err
+		return Database{Client: client}, err
 	}
 
 	err = gotoDBVer(dbFile, targetMigrationVersion, configDir, dbBackup, logger)
 
-	return SQLiteDatabase{Client: client}, err
+	return Database{Client: client}, err
 }
 
 // gotoDBVer uses github.com/golang-migrate/migrate to move the db version up or down to the passed target version.
@@ -125,6 +127,7 @@ func gotoDBVer(dbFile string, targetVersion uint, configDir string, backupWriter
 	return mig.Migrate(targetVersion)
 }
 
+// backupFile backups a file to an io.Writer and logs about it.
 func backupFile(from string, to io.Writer, logger controller.Logger) error {
 	fromReader, err := os.Open(from)
 	if err != nil {

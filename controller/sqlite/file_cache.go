@@ -7,14 +7,15 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewFileCacheAdapter(db *SQLiteDatabase) FileCacheAdapter {
+// NewFileCacheAdapter returns an instantiated FileCacheAdapter.
+func NewFileCacheAdapter(db *Database) FileCacheAdapter {
 	return FileCacheAdapter{db: db}
 }
 
 // FileCacheAdapter satisfies the controller.FilesCacheDataStorer interface by turning interface
 // requests into SQL requests that are passed on to an underlying SQLiteDatabase.
 type FileCacheAdapter struct {
-	db *SQLiteDatabase
+	db *Database
 }
 
 // Modtime uses a SQL SELECT statement to obtain the modtime associated with the provided path.

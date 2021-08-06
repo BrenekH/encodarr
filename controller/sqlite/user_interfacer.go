@@ -6,15 +6,19 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-func NewUserInterfacerAdapter(db *SQLiteDatabase, logger controller.Logger) UserInterfacerAdapter {
+// NewUserInterfacerAdapter returns an instantiated UserInterfacerAdapter.
+func NewUserInterfacerAdapter(db *Database, logger controller.Logger) UserInterfacerAdapter {
 	return UserInterfacerAdapter{db: db, logger: logger}
 }
 
+// UserInterfacerAdapter is a struct that satisfies the interface that connects a UserInterfacer
+// to a storage medium.
 type UserInterfacerAdapter struct {
-	db     *SQLiteDatabase
+	db     *Database
 	logger controller.Logger
 }
 
+// DispatchedJobs returns the content of the dispatched jobs table.
 func (u *UserInterfacerAdapter) DispatchedJobs() ([]controller.DispatchedJob, error) {
 	returnSlice := make([]controller.DispatchedJob, 0)
 
@@ -54,6 +58,7 @@ func (u *UserInterfacerAdapter) DispatchedJobs() ([]controller.DispatchedJob, er
 	return returnSlice, nil
 }
 
+// HistoryEntries returns the content of the history table.
 func (u *UserInterfacerAdapter) HistoryEntries() ([]controller.History, error) {
 	returnSlice := make([]controller.History, 0)
 
@@ -92,6 +97,7 @@ func (u *UserInterfacerAdapter) HistoryEntries() ([]controller.History, error) {
 	return returnSlice, nil
 }
 
+// DeleteLibrary deletes the specified library from the libraries table.
 func (u *UserInterfacerAdapter) DeleteLibrary(id int) error {
 	_, err := u.db.Client.Exec("DELETE FROM libraries WHERE ID = $1;", id)
 	return err
