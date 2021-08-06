@@ -1,4 +1,4 @@
-package cmd_runner
+package cmdrunner
 
 import (
 	"fmt"
@@ -43,16 +43,18 @@ func init() {
 	}
 }
 
+// NewCmdRunner returns an instantiated CmdRunner struct.
 func NewCmdRunner() CmdRunner {
 	return CmdRunner{
 		Executable: "ffmpeg",
 		BaseArgs:   []string{"-hide_banner", "-loglevel", "warning", "-stats", "-y"},
 
-		timeSince: TimeSince{},
-		cmdr:      ExecCommander{},
+		timeSince: timeSince{},
+		cmdr:      execCommander{},
 	}
 }
 
+// CmdRunner implements the runner.CommandExecutor interface using os/exec.
 type CmdRunner struct {
 	Executable   string
 	BaseArgs     []string
@@ -70,10 +72,13 @@ type CmdRunner struct {
 	cmdr      Commander
 }
 
+// Done returns a boolean indicating whether or not the command is complete.
 func (r *CmdRunner) Done() bool {
 	return r.done
 }
 
+// Start starts the CmdRunner using the provided job info.
+// Does not block the thread.
 func (r *CmdRunner) Start(ji runner.JobInfo) {
 	// These variables need to be reset on every run because they only apply to one run,
 	// but the CmdRunner persists over many command runs.
@@ -130,6 +135,7 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 	}()
 }
 
+// Status returns the current status of the job.
 func (r *CmdRunner) Status() runner.JobStatus {
 	currentFileTime, err := parseColonTimeToDuration(r.time)
 	if err != nil {
@@ -146,6 +152,7 @@ func (r *CmdRunner) Status() runner.JobStatus {
 	}
 }
 
+// Results returns the final results of the running FFmpeg command.
 func (r *CmdRunner) Results() runner.CommandResults {
 	return runner.CommandResults{
 		Failed:         r.failed,
