@@ -74,7 +74,7 @@ func main() {
 		mainLogger.Critical("%v", err)
 	}
 
-	settingsStore, err := settings.NewSettingsStore(configDir)
+	settingsStore, err := settings.NewStore(configDir)
 	if err != nil {
 		mainLogger.Critical("NewSettingsStore Error: %v", err)
 	}
