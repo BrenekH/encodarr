@@ -10,18 +10,19 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
-type ReadWriteSeekCloser interface {
+type readWriteSeekCloser interface {
 	io.ReadWriteCloser
 	io.Seeker
 	Truncate(size int64) error
 }
 
-type SettingsStore struct {
+// Store satisfies the controller.SettingsStorer interface using a JSON file.
+type Store struct {
 	healthCheckInterval uint64
 	healthCheckTimeout  uint64
 	logVerbosity        string
 
-	file   ReadWriteSeekCloser
+	file   readWriteSeekCloser
 	closed bool
 }
 
@@ -33,7 +34,8 @@ type settings struct {
 	LogVerbosity        string
 }
 
-func (s *SettingsStore) Load() error {
+// Load loads the settings from the file.
+func (s *Store) Load() error {
 	if s.closed {
 		return controller.ErrClosed
 	}
@@ -57,7 +59,8 @@ func (s *SettingsStore) Load() error {
 	return nil
 }
 
-func (s *SettingsStore) Save() error {
+// Save saves the settings to the file.
+func (s *Store) Save() error {
 	if s.closed {
 		return controller.ErrClosed
 	}
@@ -83,38 +86,46 @@ func (s *SettingsStore) Save() error {
 	return nil
 }
 
-func (s *SettingsStore) Close() error {
+// Close closes the underlying file
+func (s *Store) Close() error {
 	s.closed = true
 	return s.file.Close()
 }
 
 // SettingsStore Getters and Setters
 
-func (s *SettingsStore) HealthCheckInterval() uint64 {
+// HealthCheckInterval returns the currently set health check interval.
+func (s *Store) HealthCheckInterval() uint64 {
 	return s.healthCheckInterval
 }
 
-func (s *SettingsStore) SetHealthCheckInterval(n uint64) {
+// SetHealthCheckInterval sets the health check interval to the provided value.
+func (s *Store) SetHealthCheckInterval(n uint64) {
 	s.healthCheckInterval = n
 }
 
-func (s *SettingsStore) HealthCheckTimeout() uint64 {
+// HealthCheckTimeout returns the currently set health check timeout value.
+func (s *Store) HealthCheckTimeout() uint64 {
 	return s.healthCheckTimeout
 }
 
-func (s *SettingsStore) SetHealthCheckTimeout(n uint64) {
+// SetHealthCheckTimeout sets the health check timeout to the provided value.
+func (s *Store) SetHealthCheckTimeout(n uint64) {
 	s.healthCheckTimeout = n
 }
 
-func (s *SettingsStore) LogVerbosity() string {
+// LogVerbosity returns the currently set log verbosity value.
+func (s *Store) LogVerbosity() string {
 	return s.logVerbosity
 }
 
-func (s *SettingsStore) SetLogVerbosity(n string) {
+// SetLogVerbosity sets the log verbosity to the provided value.
+func (s *Store) SetLogVerbosity(n string) {
 	s.logVerbosity = n
 }
 
-func NewSettingsStore(configDir string) (SettingsStore, error) {
+// NewStore returns an instantiated SettingsStore.
+func NewStore(configDir string) (Store, error) {
 	// Setup a SettingsStore struct with sensible defaults
 	s := defaultSettings()
 
@@ -142,8 +153,8 @@ func NewSettingsStore(configDir string) (SettingsStore, error) {
 }
 
 // defaultSettings returns a SettingsStore struct with sensible defaults applied.
-func defaultSettings() SettingsStore {
-	return SettingsStore{
+func defaultSettings() Store {
+	return Store{
 		healthCheckInterval: uint64(1 * time.Minute),
 		healthCheckTimeout:  uint64(1 * time.Hour),
 		logVerbosity:        "INFO",
