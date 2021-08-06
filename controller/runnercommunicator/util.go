@@ -1,4 +1,4 @@
-package runner_communicator
+package runnercommunicator
 
 func inferMIMETypeFromExt(ext string) string {
 	switch ext {

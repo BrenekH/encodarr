@@ -12,11 +12,11 @@ import (
 	"github.com/BrenekH/encodarr/controller/cmd/options"
 	"github.com/BrenekH/encodarr/controller/globals"
 	"github.com/BrenekH/encodarr/controller/httpserver"
-	"github.com/BrenekH/encodarr/controller/job_health"
+	"github.com/BrenekH/encodarr/controller/jobhealth"
 	"github.com/BrenekH/encodarr/controller/library"
 	"github.com/BrenekH/encodarr/controller/library/command_decider"
 	"github.com/BrenekH/encodarr/controller/library/mediainfo"
-	"github.com/BrenekH/encodarr/controller/runner_communicator"
+	"github.com/BrenekH/encodarr/controller/runnercommunicator"
 	"github.com/BrenekH/encodarr/controller/settings"
 	"github.com/BrenekH/encodarr/controller/sqlite"
 	"github.com/BrenekH/encodarr/controller/userinterfacer"
@@ -87,7 +87,7 @@ func main() {
 	hcDBAdapter := sqlite.NewHealthCheckerAdapter(&sqliteDatabase, &sqliteHCLogger)
 
 	healthCheckerLogger := logange.NewLogger("JobHealth.Checker")
-	healthChecker := job_health.NewChecker(&hcDBAdapter, &settingsStore, &healthCheckerLogger)
+	healthChecker := jobhealth.NewChecker(&hcDBAdapter, &settingsStore, &healthCheckerLogger)
 
 	// --------------- LibraryManager ---------------
 	sqliteLMLogger := logange.NewLogger("sqlite.LMA")
@@ -110,7 +110,7 @@ func main() {
 	rcDSLogger := logange.NewLogger("sqlite.RCA")
 	rcDS := sqlite.NewRunnerCommunicatorAdapter(&sqliteDatabase, &rcDSLogger)
 	rcLogger := logange.NewLogger("runnerCommunicator")
-	rc := runner_communicator.NewRunnerHTTPApiV1(&rcLogger, &httpServer, &rcDS)
+	rc := runnercommunicator.NewRunnerHTTPApiV1(&rcLogger, &httpServer, &rcDS)
 
 	// --------------- UserInterfacer ---------------
 	uiaLogger := logange.NewLogger("sqlite.UIA")
