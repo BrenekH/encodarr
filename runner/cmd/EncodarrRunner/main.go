@@ -37,7 +37,7 @@ func main() {
 
 	cmdRun := cmd_runner.NewCmdRunner()
 
-	apiV1, err := http.NewApiV1(
+	apiV1, err := http.NewAPIv1(
 		options.TempDir(),
 		options.RunnerName(),
 		options.ControllerIP(),

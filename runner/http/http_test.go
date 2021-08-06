@@ -15,7 +15,7 @@ import (
 )
 
 func TestSendJobComplete(t *testing.T) {
-	apiV1, err := NewApiV1(options.TempDir(), "", "", "")
+	apiV1, err := NewAPIv1(options.TempDir(), "", "", "")
 	if err != nil {
 		t.Errorf("Unexpected error creating apiV1: %v", err)
 		return
@@ -162,7 +162,7 @@ func TestSendJobComplete(t *testing.T) {
 }
 
 func TestSendNewJobRequest(t *testing.T) {
-	apiV1, err := NewApiV1("/tmp", "test", "", "")
+	apiV1, err := NewAPIv1("/tmp", "test", "", "")
 	if err != nil {
 		t.Errorf("Unexpected error creating apiV1: %v", err)
 		return
@@ -293,7 +293,7 @@ func TestSendNewJobRequest(t *testing.T) {
 }
 
 func TestApiV1SendStatus(t *testing.T) {
-	apiV1, err := NewApiV1(options.TempDir(), "", "", "")
+	apiV1, err := NewAPIv1(options.TempDir(), "", "", "")
 	if err != nil {
 		t.Errorf("Unexpected error creating apiV1: %v", err)
 		return
