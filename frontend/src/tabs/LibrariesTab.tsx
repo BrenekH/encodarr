@@ -90,8 +90,8 @@ interface ILibraryCardState {
 	hardware_codec: string,
 	hw_device: string,
 
-	showEditModal: Boolean,
-	showQueueModal: Boolean,
+	showEditModal: boolean,
+	showQueueModal: boolean,
 }
 
 class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> {
