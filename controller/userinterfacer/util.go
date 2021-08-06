@@ -1,4 +1,4 @@
-package user_interfacer
+package userinterfacer
 
 import "github.com/BrenekH/encodarr/controller"
 
