@@ -1,4 +1,4 @@
-package job_health
+package jobhealth
 
 import (
 	"testing"

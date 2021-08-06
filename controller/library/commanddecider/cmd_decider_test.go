@@ -1,4 +1,4 @@
-package command_decider
+package commanddecider
 
 import (
 	"fmt"
