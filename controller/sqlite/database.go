@@ -3,6 +3,8 @@ package sqlite
 import (
 	"database/sql"
 	"embed"
+	"io"
+	"os"
 
 	_ "modernc.org/sqlite"
 
@@ -23,6 +25,7 @@ type SQLiteDatabase struct {
 
 func NewSQLiteDatabase(configDir string, logger controller.Logger) (SQLiteDatabase, error) {
 	dbFile := configDir + "/data.db"
+	dbBckpFile := configDir + "/data.db.backup"
 
 	client, err := sql.Open("sqlite", dbFile)
 	if err != nil {
@@ -32,15 +35,18 @@ func NewSQLiteDatabase(configDir string, logger controller.Logger) (SQLiteDataba
 	// Set max connections to 1 to prevent "database is locked" errors
 	client.SetMaxOpenConns(1)
 
-	err = gotoDBVer(dbFile, targetMigrationVersion, logger)
+	dbBackup, err := os.Create(dbBckpFile)
+	if err != nil {
+		return SQLiteDatabase{Client: client}, err
+	}
+
+	err = gotoDBVer(dbFile, targetMigrationVersion, dbBackup, logger)
 
 	return SQLiteDatabase{Client: client}, err
 }
 
 // gotoDBVer uses github.com/golang-migrate/migrate to move the db version up or down to the passed target version.
-func gotoDBVer(dbFile string, targetVersion uint, logger controller.Logger) error {
-	// TODO: Backup db file if migrating to a passed io.Writer
-
+func gotoDBVer(dbFile string, targetVersion uint, backupWriter io.Writer, logger controller.Logger) error {
 	// TODO: Solve issue where embed won't include newer down files for downgrading
 	migrationsSource, err := iofs.New(migrations, "migrations")
 	if err != nil {
@@ -59,6 +65,11 @@ func gotoDBVer(dbFile string, targetVersion uint, logger controller.Logger) erro
 		if err == migrate.ErrNilVersion {
 			// DB is likely before golang-migrate was introduced. Upgrade to new version
 			logger.Warn("Database does not have a schema version. Attempting to migrate up.")
+			err = backupFile(dbFile, backupWriter, logger)
+			if err != nil {
+				return err
+			}
+
 			return mig.Migrate(targetVersion)
 		}
 		return err
@@ -68,6 +79,22 @@ func gotoDBVer(dbFile string, targetVersion uint, logger controller.Logger) erro
 		return nil
 	}
 
+	err = backupFile(dbFile, backupWriter, logger)
+	if err != nil {
+		return err
+	}
+
 	logger.Info("Migrating database to schema version %v", targetVersion)
 	return mig.Migrate(targetVersion)
+}
+
+func backupFile(from string, to io.Writer, logger controller.Logger) error {
+	fromReader, err := os.Open(from)
+	if err != nil {
+		return err
+	}
+
+	logger.Warn("Backing up database")
+	_, err = io.Copy(to, fromReader)
+	return err
 }
