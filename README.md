@@ -144,7 +144,7 @@ In a container, this is pre-set to `/config`.
 (default: `<platform user config directory>/encodarr/runner-<time of runner startup>/config`)
 
 `ENCODARR_TEMP_DIR`, `--temp-dir` sets the directory that the media files are saved to when they are being worked on.
-If you want to protect your flash memory(SSDs and SD Cards), you can set this to be on a hard drive.
+If you want to protect your flash memory(SSDs and SD Cards) from excessive reads and writes, you can set this to be on another storage medium.
 (default: `<platform user temp directory>`)
 
 `ENCODARR_LOG_LEVEL`, `--log-level` sets the level of output from the logging system to both the log file and the terminal output.
@@ -167,16 +167,12 @@ Possible values are: `trace`, `debug`, `info`, `warn` (or `warning`, they are id
 > If you do verify please let me know in the [Discussions](https://github.com/BrenekH/encodarr/discussions) page, but if they don't please open a [new issue](https://github.com/BrenekH/encodarr/issues/new/choose).
 
 If you want to contribute to this project, head over to [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
-Do note that the Controller is going to be rewritten soon to more closely follow clean architecture guidelines, so contributing to it on the `master` or `development` branches is not recommended at this time.
-However, contributions for the Runner or React frontend are welcome.
 
 ## Code of Conduct
 
 This project holds all maintainers, contributors, and participants to the standards outlined by the Contributor Covenant, a copy of which can be found in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Future Plans
-
-* Rewrite Controller to conform to Clean Architecture guidelines
 
 * Instead of configuring with dropdowns and checkboxes, use a plugin system
 
