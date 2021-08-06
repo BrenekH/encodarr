@@ -49,6 +49,8 @@ github.com/Azure/go-autorest/logger v0.2.1/go.mod h1:T9E3cAhj2VqvPOtCYAvby9aBXkZ
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
 github.com/BrenekH/logange v0.5.0 h1:tiDlJ5X4s3dDvWQqtYqrxQF6Hotap/bJ0rgZQJ9PRhk=
 github.com/BrenekH/logange v0.5.0/go.mod h1:688zEc1nhUoKOa0z+2c3whFyrQRB9yX68AGQS627fao=
+github.com/BrenekH/logange v0.6.0 h1:RojQiBZRR1Oru1z4OLrW07EUyQMqIsoi+Vx3iWaFH0w=
+github.com/BrenekH/logange v0.6.0/go.mod h1:688zEc1nhUoKOa0z+2c3whFyrQRB9yX68AGQS627fao=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/ClickHouse/clickhouse-go v1.4.3/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHgv5+JMS9NSr2smCJI=
