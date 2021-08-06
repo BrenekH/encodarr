@@ -8,7 +8,7 @@ type JobInfo struct {
 	InFile        string
 	OutFile       string
 	CommandArgs   []string
-	MediaDuration int64
+	MediaDuration float32
 }
 
 type JobStatus struct {

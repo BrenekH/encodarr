@@ -82,8 +82,8 @@ func (r *CmdRunner) Start(ji runner.JobInfo) {
 	r.warnings = []string{}
 	r.errors = []string{}
 
-	// ji.MediaDuration is in milliseconds
-	r.fileDuration = time.Duration(ji.MediaDuration) * time.Millisecond
+	// ji.MediaDuration is in ~~milliseconds~~ seconds
+	r.fileDuration = time.Duration(ji.MediaDuration) * time.Second //* time.Millisecond
 
 	a := append(r.BaseArgs, ji.CommandArgs...)
 	c := r.cmdr.Command(r.Executable, a...)
