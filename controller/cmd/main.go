@@ -24,8 +24,8 @@ import (
 )
 
 var (
-	webApiVersions    = []string{"v1"}
-	runnerApiVersions = []string{"v1"}
+	webAPIVersions    = []string{"v1"}
+	runnerAPIVersions = []string{"v1"}
 )
 
 func main() {
@@ -80,7 +80,7 @@ func main() {
 	}
 
 	httpSrvLogger := logange.NewLogger("httpServer")
-	httpServer := httpserver.NewServer(&httpSrvLogger, httpServerPort, webApiVersions, runnerApiVersions)
+	httpServer := httpserver.NewServer(&httpSrvLogger, httpServerPort, webAPIVersions, runnerAPIVersions)
 
 	// --------------- HealthChecker ---------------
 	sqliteHCLogger := logange.NewLogger("sqlite.HCA")
