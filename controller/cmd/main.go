@@ -68,7 +68,8 @@ func main() {
 		cancel()
 	}()
 
-	sqliteDatabase, err := sqlite.NewSQLiteDatabase(configDir)
+	sqliteDBBuilderLogger := logange.NewLogger("sqlite.DBBuilder")
+	sqliteDatabase, err := sqlite.NewSQLiteDatabase(configDir, &sqliteDBBuilderLogger)
 	if err != nil {
 		mainLogger.Critical("%v", err)
 	}
