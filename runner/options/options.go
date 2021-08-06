@@ -1,4 +1,4 @@
-// options is a centralized location to read all supported command-line/environment variable options for Encodarr Runner
+// Package options is a centralized location to read all supported command-line/environment variable options for Encodarr Runner
 package options
 
 import (
@@ -121,11 +121,13 @@ func ConfigDir() string {
 	return configDir
 }
 
+// TempDir returns a valid temporary directory. Whether it's from the user or automatically generated.
 func TempDir() string {
 	parseInputs()
 	return tempDir
 }
 
+// LogLevel returns the user's choice of logging verbosity.
 func LogLevel() logange.Level {
 	parseInputs()
 
@@ -150,21 +152,25 @@ func LogLevel() logange.Level {
 	return logange.LevelInfo
 }
 
+// RunnerName returns the name to be used when connecting to a Controller.
 func RunnerName() string {
 	parseInputs()
 	return runnerName
 }
 
+// ControllerIP returns the ip to connect to a Controller with.
 func ControllerIP() string {
 	parseInputs()
 	return controllerIP
 }
 
+// ControllerPort returns the port to connect to a Controller with.
 func ControllerPort() string {
 	parseInputs()
 	return controllerPort
 }
 
+// InTestMode indicates whether the package is running under go test or normal conditions.
 func InTestMode() bool {
 	return inTestMode
 }

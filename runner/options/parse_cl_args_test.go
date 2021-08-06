@@ -12,7 +12,7 @@ func TestStringVar(t *testing.T) {
 		var s string
 
 		stringVar(&s, "test", "", "")
-		expected := []flagger{StringFlag{name: "test", description: "", usage: "", pointer: &s}}
+		expected := []flagger{stringFlag{name: "test", description: "", usage: "", pointer: &s}}
 
 		if !reflect.DeepEqual(flags, expected) {
 			t.Errorf("expected %v but got %v", expected, flags)
@@ -22,7 +22,7 @@ func TestStringVar(t *testing.T) {
 
 func TestStringFlag(t *testing.T) {
 	s := "default"
-	sF := StringFlag{
+	sF := stringFlag{
 		name:    "test",
 		usage:   "Use test",
 		pointer: &s,
