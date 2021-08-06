@@ -10,7 +10,6 @@ import "./SettingsTab.css";
 import "../spacers.css";
 
 interface IInputValues {
-	smallerFilesCheck: Boolean,
 	healthCheckInterval: string,
 	unresponsiveRunnerTimeout: string,
 	logVerbosity: string
@@ -26,7 +25,6 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 		super(props);
 		this.state = {
 			inputValues: {
-				"smallerFilesCheck": false,
 				"healthCheckInterval": "",
 				"unresponsiveRunnerTimeout": "",
 				"logVerbosity": "",
@@ -59,7 +57,6 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 
 	handleClick(): void {
 		axios.put("/api/web/v1/settings", {
-			"SmallerFiles": this.state.inputValues.smallerFilesCheck,
 			"HealthCheckInterval": this.state.inputValues.healthCheckInterval,
 			"HealthCheckTimeout": this.state.inputValues.unresponsiveRunnerTimeout,
 			"LogVerbosity": this.state.inputValues.logVerbosity,
@@ -80,7 +77,6 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 		axios.get("/api/web/v1/settings").then((response) => {
 			this.setState({
 				inputValues: {
-					"smallerFilesCheck": response.data.SmallerFiles,
 					"healthCheckInterval": response.data.HealthCheckInterval,
 					"unresponsiveRunnerTimeout": response.data.HealthCheckTimeout,
 					"logVerbosity": response.data.LogVerbosity,
@@ -98,26 +94,6 @@ export class SettingsTab extends React.Component<any, ISettingsTabState> {
 		}
 
 		return (<><div>
-			<h5>General</h5>
-
-			<InputGroup className="mb-3">
-				<InputGroup.Prepend>
-					<InputGroup.Text>Prefer Smaller Files</InputGroup.Text>
-					<InputGroup.Checkbox
-						aria-label="Prefer Smaller Files Checkbox"
-						onChange={this.createChangeHandler("smallerFilesCheck", true)}
-						checked={this.state.inputValues["smallerFilesCheck"]}
-					/>
-				</InputGroup.Prepend>
-				<FormControl
-					className="dark-text-input"
-					value="Only keep encoded files if they are smaller than the original."
-					disabled
-					readOnly
-				/>
-			</InputGroup>
-
-			<div className="spacer"></div>
 
 			<h5>Runner Health</h5>
 

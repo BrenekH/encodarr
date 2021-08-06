@@ -11,7 +11,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/BrenekH/encodarr/runner"
@@ -171,13 +170,10 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 
 	outputFname := a.Dir + "/output.mkv"
 
-	dur, err := strconv.ParseInt(jobInfo.RawMediaInfo.General.Duration, 10, 64)
-	if err != nil {
-		return runner.JobInfo{}, err
-	}
+	dur := jobInfo.Metadata.General.Duration
 
 	return runner.JobInfo{
-		CommandArgs:   genFFmpegCmd(fPath, outputFname, jobInfo.Parameters),
+		CommandArgs:   parseFFmpegCmd(fPath, outputFname, jobInfo.Command),
 		UUID:          jobInfo.UUID,
 		File:          jobInfo.Path,
 		InFile:        fPath,
@@ -218,18 +214,10 @@ func (a *ApiV1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatu
 
 // job represents a job in the Encodarr ecosystem.
 type job struct {
-	UUID         string        `json:"uuid"`
-	Path         string        `json:"path"`
-	Parameters   jobParameters `json:"parameters"`
-	RawMediaInfo MediaInfo     `json:"media_info"`
-}
-
-// jobParameters represents the actions that need to be taken against a job.
-type jobParameters struct {
-	Encode   bool   `json:"encode"`    // true when the file's video stream needs to be encoded
-	Stereo   bool   `json:"stereo"`    // true when the file is missing a stereo audio track
-	Codec    string `json:"codec"`     // the ffmpeg compatible video codec
-	HWDevice string `json:"hw_device"` // The hardware device to use for encoding. If HWDevice is an empty string, a device should not be added to the FFmpeg command.
+	UUID     string       `json:"uuid"`
+	Path     string       `json:"path"`
+	Command  []string     `json:"command"`
+	Metadata FileMetadata `json:"metadata"`
 }
 
 type historyEntry struct {

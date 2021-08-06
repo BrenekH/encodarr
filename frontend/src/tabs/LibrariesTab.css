@@ -14,6 +14,11 @@
 	margin-right: auto;
 }
 
+.showQueueCommand {
+	font-size: 14pt;
+	cursor: pointer;
+}
+
 /* Override Bootstrap CSS */
 .dark-text-input {
 	/* I know !important isn't great practice,
