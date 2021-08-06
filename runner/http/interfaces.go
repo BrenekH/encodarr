@@ -19,12 +19,14 @@ type CurrentTimer interface {
 }
 
 // FSer is a mock interface for the ApiV1 struct which allows
-// file operations to be mocked out during testing.
+// file system operations to be mocked out during testing.
 type FSer interface {
 	Create(name string) (Filer, error)
 	Open(name string) (Filer, error)
 }
 
+// Filer is a mock interface for the ApiV1 struct which allows
+// reading, writing, closing, and naming of a file.
 type Filer interface {
 	io.Closer
 	io.Reader

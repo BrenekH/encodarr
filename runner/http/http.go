@@ -23,22 +23,22 @@ func init() {
 	logger = logange.NewLogger("http")
 }
 
-// NewApiV1 returns an instantiated ApiV1 struct after creating
+// NewAPIv1 returns an instantiated ApiV1 struct after creating
 // a proper temporary directory inside of the provided tempDir argument.
 // tempDir will almost always be the result of os.TempDir().
-func NewApiV1(tempDir, runnerName, controllerIP, controllerPort string) (ApiV1, error) {
+func NewAPIv1(tempDir, runnerName, controllerIP, controllerPort string) (APIv1, error) {
 	dir := tempDir + "/Encodarr/Runner"
 
 	if err := os.MkdirAll(dir, 0777); err != nil {
-		return ApiV1{}, err
+		return APIv1{}, err
 	}
 
 	finalDir, err := os.MkdirTemp(dir, "*")
 	if err != nil {
-		return ApiV1{}, err
+		return APIv1{}, err
 	}
 
-	return ApiV1{
+	return APIv1{
 		Dir:          finalDir,
 		RunnerName:   runnerName,
 		ControllerIP: fmt.Sprintf("http://%v:%v", controllerIP, controllerPort),
@@ -48,8 +48,8 @@ func NewApiV1(tempDir, runnerName, controllerIP, controllerPort string) (ApiV1, 
 	}, nil
 }
 
-// ApiV1 is a struct which implements the runner.Communicator interface using HTTP.
-type ApiV1 struct {
+// APIv1 is a struct which implements the runner.Communicator interface using HTTP.
+type APIv1 struct {
 	Dir          string
 	RunnerName   string
 	ControllerIP string
@@ -58,7 +58,8 @@ type ApiV1 struct {
 	currentTime  CurrentTimer
 }
 
-func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR runner.CommandResults) error {
+// SendJobComplete lets the Controller know that the job was completed and sends the resulting file if there is one.
+func (a *APIv1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR runner.CommandResults) error {
 	var request *http.Request
 	var err error
 
@@ -131,7 +132,9 @@ func (a *ApiV1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 	return err
 }
 
-func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) {
+// SendNewJobRequest requests a new job from the Controller and downloads the file to be worked on.
+// This method blocks the thread until a job is assigned to this Runner.
+func (a *APIv1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) {
 	req, err := http.NewRequestWithContext(*ctx, http.MethodGet, fmt.Sprintf("%v/api/runner/v1/job/request", a.ControllerIP), nil)
 	if err != nil {
 		return runner.JobInfo{}, err
@@ -182,7 +185,8 @@ func (a *ApiV1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 	}, err
 }
 
-func (a *ApiV1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatus) error {
+// SendStatus updates the Controller with the status of the current job.
+func (a *APIv1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatus) error {
 	b, err := json.Marshal(struct {
 		UUID   string           `json:"uuid"`
 		Status runner.JobStatus `json:"status"`
@@ -193,6 +197,8 @@ func (a *ApiV1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatu
 	if err != nil {
 		return err
 	}
+
+	// TODO: Set a timeout for the http request (using context.Deadline)
 
 	req, err := http.NewRequestWithContext(*ctx, http.MethodPost, fmt.Sprintf("%v/api/runner/v1/job/status", a.ControllerIP), bytes.NewBuffer(b))
 	if err != nil {
