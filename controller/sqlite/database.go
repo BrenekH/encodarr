@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"embed"
+	"errors"
 	"io"
 	"os"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 //go:embed migrations
@@ -40,21 +41,57 @@ func NewSQLiteDatabase(configDir string, logger controller.Logger) (SQLiteDataba
 		return SQLiteDatabase{Client: client}, err
 	}
 
-	err = gotoDBVer(dbFile, targetMigrationVersion, dbBackup, logger)
+	err = gotoDBVer(dbFile, targetMigrationVersion, configDir, dbBackup, logger)
 
 	return SQLiteDatabase{Client: client}, err
 }
 
 // gotoDBVer uses github.com/golang-migrate/migrate to move the db version up or down to the passed target version.
-func gotoDBVer(dbFile string, targetVersion uint, backupWriter io.Writer, logger controller.Logger) error {
-	// TODO: Solve issue where embed won't include newer down files for downgrading
-	migrationsSource, err := iofs.New(migrations, "migrations")
+func gotoDBVer(dbFile string, targetVersion uint, configDir string, backupWriter io.Writer, logger controller.Logger) error {
+	// Instead of directly using the embedded files, write them out to {configDir}/migrations. This allows the files for downgrading the
+	// database to be present even when the executable doesn't contain them.
+	fsMigrationsDir := configDir + "/migrations"
+
+	if err := os.MkdirAll(fsMigrationsDir, 0777); err != nil {
+		return err
+	}
+
+	dirEntries, err := migrations.ReadDir("migrations")
 	if err != nil {
 		return err
 	}
-	defer migrationsSource.Close()
 
-	mig, err := migrate.NewWithSourceInstance("file://migrations", migrationsSource, "sqlite://"+dbFile)
+	var copyErred bool
+	for _, v := range dirEntries {
+		f, err := os.Create(fsMigrationsDir + "/" + v.Name())
+		if err != nil {
+			logger.Error("%v", err)
+			copyErred = true
+			continue
+		}
+
+		embeddedFile, err := migrations.Open("migrations/" + v.Name())
+		if err != nil {
+			logger.Error("%v", err)
+			copyErred = true
+			f.Close()
+			continue
+		}
+
+		if _, err := io.Copy(f, embeddedFile); err != nil {
+			logger.Error("%v", err)
+			copyErred = true
+			// Don't continue right here so that the files are closed before looping again
+		}
+
+		f.Close()
+		embeddedFile.Close()
+	}
+	if copyErred {
+		return errors.New("error(s) while copying migrations, check logs for more details")
+	}
+
+	mig, err := migrate.New("file://"+configDir+"/migrations", "sqlite://"+dbFile)
 	if err != nil {
 		return err
 	}
