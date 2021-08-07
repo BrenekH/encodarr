@@ -129,7 +129,7 @@ func (a *APIv1) SendJobComplete(ctx *context.Context, ji runner.JobInfo, cmdR ru
 		return runner.ErrUnresponsive
 	}
 
-	return err
+	return nil
 }
 
 // SendNewJobRequest requests a new job from the Controller and downloads the file to be worked on.
@@ -182,7 +182,7 @@ func (a *APIv1) SendNewJobRequest(ctx *context.Context) (runner.JobInfo, error) 
 		InFile:        fPath,
 		OutFile:       outputFname,
 		MediaDuration: dur,
-	}, err
+	}, nil
 }
 
 // SendStatus updates the Controller with the status of the current job.
@@ -215,7 +215,7 @@ func (a *APIv1) SendStatus(ctx *context.Context, uuid string, js runner.JobStatu
 		return runner.ErrUnresponsive
 	}
 
-	return err
+	return nil
 }
 
 // job represents a job in the Encodarr ecosystem.
