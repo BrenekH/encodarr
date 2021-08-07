@@ -2,12 +2,12 @@ package jobhealth
 
 import "time"
 
-type TimeNowSince struct{}
+type timeNowSince struct{}
 
-func (t TimeNowSince) Now() time.Time {
+func (t timeNowSince) Now() time.Time {
 	return time.Now()
 }
 
-func (t TimeNowSince) Since(tt time.Time) time.Duration {
+func (t timeNowSince) Since(tt time.Time) time.Duration {
 	return time.Since(tt)
 }
