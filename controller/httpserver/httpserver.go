@@ -12,8 +12,9 @@ import (
 	"github.com/BrenekH/encodarr/controller/globals"
 )
 
-func NewServer(logger controller.Logger, port string, webApiVersions, runnerApiVersions []string) Server {
-	registerVersionHandlers(webApiVersions, runnerApiVersions)
+// NewServer returns a new Server.
+func NewServer(logger controller.Logger, port string, webAPIVersions, runnerAPIVersions []string) Server {
+	registerVersionHandlers(webAPIVersions, runnerAPIVersions)
 
 	return Server{
 		port:   port,
@@ -21,6 +22,7 @@ func NewServer(logger controller.Logger, port string, webApiVersions, runnerApiV
 	}
 }
 
+// Server allows multiple locations to start the same HTTP server.
 type Server struct {
 	serverAlreadyStarted bool
 	port                 string
@@ -58,10 +60,12 @@ func (s *Server) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	}()
 }
 
+// Handle wraps net/http.Handle.
 func (s *Server) Handle(pattern string, handler http.Handler) {
 	http.Handle(pattern, handler)
 }
 
+// HandleFunc wraps net/http.HandleFunc.
 func (s *Server) HandleFunc(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
 	http.HandleFunc(pattern, handlerFunc)
 }
