@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// NewManager return a new Manager.
 func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer, metadataReader MetadataReader, commandDecider CommandDecider) Manager {
 	return Manager{
 		logger:         logger,
@@ -32,6 +33,7 @@ func NewManager(logger controller.Logger, ds controller.LibraryManagerDataStorer
 	}
 }
 
+// Manager satisfies the conroller.LibraryManager interface.
 type Manager struct {
 	logger         controller.Logger
 	ds             controller.LibraryManagerDataStorer
@@ -49,6 +51,7 @@ type Manager struct {
 	workerCompletedMap map[int]bool
 }
 
+// Start starts the library manager without blocking the thread.
 func (m *Manager) Start(ctx *context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
@@ -161,6 +164,7 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 	}
 }
 
+// ImportCompletedJobs takes a list of completed jobs and imports them and their files into the system.
 func (m *Manager) ImportCompletedJobs(jobs []controller.CompletedJob) {
 	for _, cJob := range jobs {
 		// Pop job from dispatched_jobs
@@ -219,6 +223,7 @@ func (m *Manager) ImportCompletedJobs(jobs []controller.CompletedJob) {
 	}
 }
 
+// LibrarySettings returns the current settings of each library in the data store.
 func (m *Manager) LibrarySettings() ([]controller.Library, error) {
 	libs, err := m.ds.Libraries()
 
@@ -229,6 +234,7 @@ func (m *Manager) LibrarySettings() ([]controller.Library, error) {
 	return libs, err
 }
 
+// PopNewJob returns and deletes a job from the library queues in order of priority.
 func (m *Manager) PopNewJob() (controller.Job, error) {
 	// Get every library from DataStorer (m.ds.Libraries())
 	libs, err := m.ds.Libraries()

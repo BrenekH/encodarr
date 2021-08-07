@@ -9,6 +9,7 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
+// NewCache returns a new Cache.
 func NewCache(m MetadataReader, f controller.FileCacheDataStorer, l controller.Logger) Cache {
 	return Cache{
 		metadataReader: m,
@@ -27,6 +28,7 @@ type Cache struct {
 	stater         stater
 }
 
+// Read uses the data storer and file.Stat to determine whether or not to call the MetadataReader or return from the cache.
 func (c *Cache) Read(path string) (controller.FileMetadata, error) {
 	fileInfo, err := c.stater.Stat(path)
 	if err != nil {

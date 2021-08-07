@@ -6,10 +6,12 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
+// The MetadataReader interface defines how a MetadataReader should behave.
 type MetadataReader interface {
 	Read(path string) (controller.FileMetadata, error)
 }
 
+// The CommandDecider interface defines how a CommandDecider should behave.
 type CommandDecider interface {
 	Decide(m controller.FileMetadata, cmdDeciderSettings string) (cmd []string, err error)
 	DefaultSettings() string
