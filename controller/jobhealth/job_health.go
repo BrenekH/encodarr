@@ -7,24 +7,26 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
+// NewChecker returns a new Checker.
 func NewChecker(ds controller.HealthCheckerDataStorer, ss controller.SettingsStorer, logger controller.Logger) Checker {
 	return Checker{
 		ds: ds,
 		ss: ss,
 
 		lastCheckTime: time.Unix(0, 0),
-		nowSincer:     TimeNowSince{},
+		nowSincer:     timeNowSince{},
 
 		logger: logger,
 	}
 }
 
+// Checker implements the controller.HealthChecker interface.
 type Checker struct {
 	ds controller.HealthCheckerDataStorer
 	ss controller.SettingsStorer
 
 	lastCheckTime time.Time
-	nowSincer     NowSincer
+	nowSincer     nowSincer
 
 	logger controller.Logger
 }
