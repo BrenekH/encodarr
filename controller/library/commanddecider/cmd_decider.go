@@ -10,18 +10,22 @@ import (
 // codecParams is a map which correlates the TargetVideoCodec settings to the actual parameter to pass to FFMpeg
 var codecParams map[string]string = map[string]string{"HEVC": "hevc", "AVC": "libx264", "VP9": "libvpx-vp9"}
 
+// New returns a new CmdDecider.
 func New(logger controller.Logger) CmdDecider {
 	return CmdDecider{logger: logger}
 }
 
+// CmdDecider satisfies the library.CommandDecider interface.
 type CmdDecider struct {
 	logger controller.Logger
 }
 
+// DefaultSettings returns the default settings string.
 func (c *CmdDecider) DefaultSettings() string {
 	return `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`
 }
 
+// Decide uses the file metadata and settings to decide on a command to run, if any is required.
 func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) ([]string, error) {
 	settings := CmdDeciderSettings{}
 	err := json.Unmarshal([]byte(sSettings), &settings)
@@ -69,6 +73,7 @@ func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) ([]stri
 	return cmd, nil
 }
 
+// CmdDeciderSettings defines the structure to unmarshal the settings string into.
 type CmdDeciderSettings struct {
 	TargetVideoCodec  string `json:"target_video_codec"`
 	CreateStereoAudio bool   `json:"create_stereo_audio"`

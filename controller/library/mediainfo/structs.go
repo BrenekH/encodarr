@@ -2,9 +2,9 @@ package mediainfo
 
 import "os/exec"
 
-type ExecCommander struct{}
+type execCommander struct{}
 
-func (e ExecCommander) Command(name string, args ...string) Cmder {
+func (e execCommander) Command(name string, args ...string) Cmder {
 	return exec.Command(name, args...)
 }
 
@@ -47,7 +47,7 @@ type track struct {
 	FileExtension            string `json:"FileExtension"`
 	Format                   string `json:"Format"`
 	FormatString             string `json:"Format_String"`
-	FormatUrl                string `json:"Format_Url"`
+	FormatURL                string `json:"Format_Url"`
 	FormatExtensions         string `json:"Format_Extensions"`
 	FormatCommercial         string `json:"Format_Commercial"`
 	FormatVersion            string `json:"Format_Version"`

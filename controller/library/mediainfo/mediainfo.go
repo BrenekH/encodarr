@@ -7,19 +7,22 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
+// NewMetadataReader returns a new MetadataReader.
 func NewMetadataReader(logger controller.Logger) MetadataReader {
 	return MetadataReader{
 		logger: logger,
-		cmdr:   ExecCommander{},
+		cmdr:   execCommander{},
 	}
 }
 
+// MetadataReader satisfies the library.MetadataReader interface using MediaInfo.
 type MetadataReader struct {
 	logger controller.Logger
 
 	cmdr Commander
 }
 
+// Read uses MediaInfo to read the file metadata.
 func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 	cmd := m.cmdr.Command("mediainfo", "--Output=JSON", "--Full", path)
 	b, err := cmd.Output()
