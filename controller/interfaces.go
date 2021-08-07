@@ -98,11 +98,13 @@ type SettingsStorer interface {
 	SetLogVerbosity(string)
 }
 
+// HealthCheckerDataStorer defines how a HealthChecker stores data.
 type HealthCheckerDataStorer interface {
 	DispatchedJobs() []DispatchedJob
 	DeleteJob(uuid UUID) error
 }
 
+// LibraryManagerDataStorer defines how a LibraryManager stores data.
 type LibraryManagerDataStorer interface {
 	Libraries() ([]Library, error)
 	Library(id int) (Library, error)
@@ -114,11 +116,13 @@ type LibraryManagerDataStorer interface {
 	PushHistory(History) error
 }
 
+// RunnerCommunicatorDataStorer defines how a RunnerCommunicator stores data.
 type RunnerCommunicatorDataStorer interface {
 	DispatchedJob(uuid UUID) (DispatchedJob, error)
 	SaveDispatchedJob(DispatchedJob) error
 }
 
+// FileCacheDataStorer defines how the FileCache stores data.
 type FileCacheDataStorer interface {
 	Modtime(path string) (time.Time, error)
 	Metadata(path string) (FileMetadata, error)
@@ -127,6 +131,7 @@ type FileCacheDataStorer interface {
 	SaveMetadata(path string, f FileMetadata) error
 }
 
+// UserInterfacerDataStorer defines how a UserInterfacer stores data.
 type UserInterfacerDataStorer interface {
 	DispatchedJobs() ([]DispatchedJob, error)
 
@@ -135,6 +140,7 @@ type UserInterfacerDataStorer interface {
 	DeleteLibrary(id int) error
 }
 
+// The Logger interface defines how a logger should behave.
 type Logger interface {
 	Trace(s string, i ...interface{})
 	Debug(s string, i ...interface{})
@@ -144,6 +150,7 @@ type Logger interface {
 	Critical(s string, i ...interface{})
 }
 
+// HTTPServer defines how an HTTPServer should behave.
 type HTTPServer interface {
 	// Start starts the HTTPServer. If Start is called again, it is a no-op.
 	Start(*context.Context, *sync.WaitGroup)

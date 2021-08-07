@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// The UUID type defines a Universally Unique Identifier
 type UUID string
 
 // Job represents a job to be carried out by a Runner.
@@ -15,6 +16,7 @@ type Job struct {
 	Metadata FileMetadata `json:"metadata"`
 }
 
+// CompletedJob represents a job that has been completed by a Runner.
 type CompletedJob struct {
 	UUID    UUID    `json:"uuid"`
 	Failed  bool    `json:"failed"`
@@ -22,6 +24,7 @@ type CompletedJob struct {
 	InFile  string  `json:"-"`
 }
 
+// History represents a previously completed job.
 type History struct {
 	Filename          string    `json:"file"`
 	DateTimeCompleted time.Time `json:"datetime_completed"`
@@ -29,6 +32,7 @@ type History struct {
 	Errors            []string  `json:"errors"`
 }
 
+// DispatchedJob represents a job that is currently being worked on by a Runner.
 type DispatchedJob struct {
 	UUID        UUID      `json:"uuid"`
 	Runner      string    `json:"runner"`
@@ -37,6 +41,7 @@ type DispatchedJob struct {
 	LastUpdated time.Time `json:"last_updated"`
 }
 
+// JobStatus represents the current status of a dispatched job.
 type JobStatus struct {
 	Stage                       string `json:"stage"`
 	Percentage                  string `json:"percentage"`
@@ -57,6 +62,7 @@ type Library struct {
 	CommandDeciderSettings string        `json:"command_decider_settings"` // We are using a string for the CommandDecider settings because it is easier for the frontend to convert back and forth from when setting and reading values.
 }
 
+// File represents a file for the purposes of metadata reading.
 type File struct {
 	Path     string
 	ModTime  time.Time
