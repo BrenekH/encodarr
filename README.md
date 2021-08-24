@@ -2,17 +2,19 @@
   <img src="images/Encodarr-Text-Logo.png" height="175"/>
 </p>
 
-[![https://img.shields.io/badge/license-MPL--2.0-blue](https://img.shields.io/badge/license-MPL--2.0-blue)](https://github.com/BrenekH/encodarr/blob/master/LICENSE)
-![GitHub all releases](https://img.shields.io/github/downloads/brenekh/encodarr/total?label=github%20downloads)
-![Docker Pulls](https://img.shields.io/docker/pulls/brenekh/encodarr-controller?label=controller%20docker%20pulls)
-![Docker Pulls](https://img.shields.io/docker/pulls/brenekh/encodarr-runner?label=runner%20docker%20pulls)
-![Docker Image Size (tag)](https://img.shields.io/docker/image-size/brenekh/encodarr-controller/latest?label=controller%20image%20size)
-![Docker Image Size (tag)](https://img.shields.io/docker/image-size/brenekh/encodarr-runner/latest?label=runner%20image%20size)
-![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=controller%2Fgo.mod&label=Controller%20Go%20Version)
-![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=runner%2Fgo.mod&label=Runner%20Go%20Version)
-[![Go Report Card](https://goreportcard.com/badge/github.com/BrenekH/encodarr)](https://goreportcard.com/report/github.com/BrenekH/encodarr)
-[![Controller CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml)
-[![Runner CI/CD](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml/badge.svg)](https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml)
+<p align="center">
+  <a href="https://github.com/BrenekH/encodarr/blob/master/LICENSE" alt="https://img.shields.io/badge/license-MPL--2.0-blue"><img src="https://img.shields.io/badge/license-MPL--2.0-blue" /></a>
+  <img alt="GitHub all releases" src="https://img.shields.io/github/downloads/brenekh/encodarr/total?label=github%20downloads" />
+  <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/brenekh/encodarr-controller?label=controller%20docker%20pulls" />
+  <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/brenekh/encodarr-runner?label=runner%20docker%20pulls" />
+  <img alt="Docker Image Size (tag)" src="https://img.shields.io/docker/image-size/brenekh/encodarr-controller/latest?label=controller%20image%20size" />
+  <img alt="Docker Image Size (tag)" src="https://img.shields.io/docker/image-size/brenekh/encodarr-runner/latest?label=runner%20image%20size" />
+  <img alt="GitHub go.mod Go version (Controller)" src="https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=controller%2Fgo.mod&label=Controller%20Go%20Version" />
+  <img alt="GitHub go.mod Go version (Runner)" src="https://img.shields.io/github/go-mod/go-version/brenekh/encodarr?filename=runner%2Fgo.mod&label=Runner%20Go%20Version" />
+  <a href="https://goreportcard.com/report/github.com/BrenekH/encodarr" alt="Go Report Card"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/BrenekH/encodarr" /></a>
+  <a href="https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml" alt="Controller CI/CD"><img alt="Controller CI/CD" src="https://github.com/BrenekH/encodarr/actions/workflows/controller.yaml/badge.svg" /></a>
+  <a href="https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml" alt="Runner CI/CD"><img alt="Runner CI/CD" src="https://github.com/BrenekH/encodarr/actions/workflows/runner.yaml/badge.svg" /></a>
+</p>
 
 ## What is Encodarr?
 
