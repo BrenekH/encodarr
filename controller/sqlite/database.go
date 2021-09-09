@@ -27,10 +27,10 @@ type Database struct {
 
 // NewDatabase returns an instantiated SQLiteDatabase.
 func NewDatabase(configDir string, logger controller.Logger) (Database, error) {
-	dbFile := configDir + "/data.db"
-	dbBckpFile := configDir + "/data.db.backup"
+	dbFilename := configDir + "/data.db"
+	dbBackupFilename := configDir + "/data.db.backup"
 
-	client, err := sql.Open("sqlite", dbFile)
+	client, err := sql.Open("sqlite", dbFilename)
 	if err != nil {
 		return Database{Client: client}, err
 	}
@@ -38,18 +38,13 @@ func NewDatabase(configDir string, logger controller.Logger) (Database, error) {
 	// Set max connections to 1 to prevent "database is locked" errors
 	client.SetMaxOpenConns(1)
 
-	dbBackup, err := os.Create(dbBckpFile)
-	if err != nil {
-		return Database{Client: client}, err
-	}
-
-	err = gotoDBVer(dbFile, targetMigrationVersion, configDir, dbBackup, logger)
+	err = gotoDBVer(dbFilename, targetMigrationVersion, configDir, dbBackupFilename, logger)
 
 	return Database{Client: client}, err
 }
 
 // gotoDBVer uses github.com/golang-migrate/migrate to move the db version up or down to the passed target version.
-func gotoDBVer(dbFile string, targetVersion uint, configDir string, backupWriter io.Writer, logger controller.Logger) error {
+func gotoDBVer(dbFilename string, targetVersion uint, configDir string, backupFilename string, logger controller.Logger) error {
 	// Instead of directly using the embedded files, write them out to {configDir}/migrations. This allows the files for downgrading the
 	// database to be present even when the executable doesn't contain them.
 	fsMigrationsDir := configDir + "/migrations"
@@ -93,7 +88,7 @@ func gotoDBVer(dbFile string, targetVersion uint, configDir string, backupWriter
 		return errors.New("error(s) while copying migrations, check logs for more details")
 	}
 
-	mig, err := migrate.New("file://"+configDir+"/migrations", "sqlite://"+dbFile)
+	mig, err := migrate.New("file://"+configDir+"/migrations", "sqlite://"+dbFilename)
 	if err != nil {
 		return err
 	}
@@ -104,7 +99,7 @@ func gotoDBVer(dbFile string, targetVersion uint, configDir string, backupWriter
 		if err == migrate.ErrNilVersion {
 			// DB is likely before golang-migrate was introduced. Upgrade to new version
 			logger.Warn("Database does not have a schema version. Attempting to migrate up.")
-			err = backupFile(dbFile, backupWriter, logger)
+			err = backupFile(dbFilename, backupFilename, logger)
 			if err != nil {
 				return err
 			}
@@ -118,7 +113,7 @@ func gotoDBVer(dbFile string, targetVersion uint, configDir string, backupWriter
 		return nil
 	}
 
-	err = backupFile(dbFile, backupWriter, logger)
+	err = backupFile(dbFilename, backupFilename, logger)
 	if err != nil {
 		return err
 	}
@@ -128,13 +123,18 @@ func gotoDBVer(dbFile string, targetVersion uint, configDir string, backupWriter
 }
 
 // backupFile backups a file to an io.Writer and logs about it.
-func backupFile(from string, to io.Writer, logger controller.Logger) error {
+func backupFile(from, to string, logger controller.Logger) error {
 	fromReader, err := os.Open(from)
 	if err != nil {
 		return err
 	}
 
+	toWriter, err := os.Create(to)
+	if err != nil {
+		return err
+	}
+
 	logger.Info("Backing up database.")
-	_, err = io.Copy(to, fromReader)
+	_, err = io.Copy(toWriter, fromReader)
 	return err
 }
