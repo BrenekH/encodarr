@@ -32,8 +32,8 @@ interface IRunningJob {
 
 interface IRunningTabState {
 	jobs: Array<IRunningJob>,
-	waitingOnServer: Boolean,
-	showModal: Boolean,
+	waitingOnServer: boolean,
+	showModal: boolean,
 	waitingRunnersText: String,
 }
 
