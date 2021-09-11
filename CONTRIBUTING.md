@@ -31,8 +31,8 @@ The frontend code can be run in debug mode using `npm run start`.
 It is recommended to run a Controller using the default port on your local machine so that the development Web UI can make requests to it.
 If you want to point React at a different Controller, you can modify the `proxy` field in the `package.json` file, just make sure to change it back before committing anything or submitting changes.
 
-To "deploy" the frontend to the Controller, run `npm run build` and copy the generated `build` folder to `controller/user_interfacer/webfiles`.
-To perform both actions with one command on Linux systems, use `npm run build && cp -r build/. ../controller/user_interfacer/webfiles/` from within the `frontend` directory.
+To "deploy" the frontend to the Controller, run `npm run build` and copy the generated `build` folder to `controller/userinterfacer/webfiles`.
+To perform both actions with one command on Linux systems, use `npm run build && cp -r build/. ../controller/userinterfacer/webfiles/` from within the `frontend` directory.
 
 ## Docker
 

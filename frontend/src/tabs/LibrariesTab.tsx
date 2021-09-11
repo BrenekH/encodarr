@@ -15,8 +15,8 @@ import TerminalIcon from "./shared/TerminalIcon";
 
 interface ILibrariesTabState {
 	libraries: Array<number>
-	waitingOnServer: Boolean
-	showCreateLibModal: Boolean
+	waitingOnServer: boolean
+	showCreateLibModal: boolean
 }
 
 export class LibrariesTab extends React.Component<{}, ILibrariesTabState> {
@@ -186,7 +186,7 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 }
 
 interface ICreateLibraryModalProps {
-	show: Boolean,
+	show: boolean,
 	closeHandler: any,
 }
 
@@ -228,7 +228,7 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			folder: this.state.folder,
 			priority: parseInt(this.state.priority),
 			fs_check_interval: this.state.fs_check_interval,
-			path_masks: this.state.path_masks.split(","),
+			path_masks: this.state.path_masks.split(",").filter(function(el) { return el.length !== 0 }),
 			cmd_decider_settings: JSON.stringify({
 				target_video_codec: this.state.target_video_codec,
 				create_stereo_audio: this.state.create_stereo_audio,
@@ -378,7 +378,7 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 }
 
 interface IEditLibraryModalProps {
-	show: Boolean,
+	show: boolean,
 	closeHandler: any,
 	id: number,
 	folder: string,
@@ -432,7 +432,7 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 			folder: this.state.folder,
 			priority: parseInt(this.state.priority),
 			fs_check_interval: this.state.fs_check_interval,
-			path_masks: this.state.path_masks.split(","),
+			path_masks: this.state.path_masks.split(",").filter((el) => { return el.length !== 0 }),
 			command_decider_settings: JSON.stringify({
 				target_video_codec: this.state.target_video_codec,
 				create_stereo_audio: this.state.create_stereo_audio,
@@ -590,7 +590,7 @@ class EditLibraryModal extends React.Component<IEditLibraryModalProps, IEditLibr
 }
 
 interface IQueueModalProps {
-	show: Boolean,
+	show: boolean,
 	closeHandler: any,
 	queue: Array<IQueuedJob>,
 }
