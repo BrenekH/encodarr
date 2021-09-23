@@ -1,14 +1,13 @@
 package library
 
 import (
+	"io/fs"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/BrenekH/encodarr/controller"
 )
-
-// TODO: Test Cache
-//   = Read - Reading from metadataReader when the modtimes are different. Returning stored metadata when modtimes are same.
 
 func TestNewCacheSetsInternalFields(t *testing.T) {
 	//? I'm not sure that using a uniqueId is the best way to validate that the internal fields are set properly.
@@ -31,6 +30,33 @@ func TestNewCacheSetsInternalFields(t *testing.T) {
 	if (*(receivedStruct.logger.(*mockLogger))).uniqueId != l.uniqueId {
 		t.Errorf("Logger inside Cache struct is not the same one that was passed to NewCache")
 	}
+}
+
+// TODO: Test Cache
+//   = Read - Reading from metadataReader when the modtimes are different. Returning stored metadata when modtimes are same.
+
+func TestCacheReadDifferentModtimes(t *testing.T) {
+	m := mockMetadataReader{}
+	f := mockFileCacheDataStorer{}
+	l := mockLogger{}
+
+	cache := NewCache(&m, &f, &l)
+	s := mockStater{}
+	cache.stater = &s
+
+	// TODO: Check that metadata reader's Read function is called.
+}
+
+func TestCacheReadSameModtimes(t *testing.T) {
+	m := mockMetadataReader{}
+	f := mockFileCacheDataStorer{}
+	l := mockLogger{}
+
+	cache := NewCache(&m, &f, &l)
+	s := mockStater{}
+	cache.stater = &s
+
+	// TODO: Check that data storer's Read function is called.
 }
 
 type mockMetadataReader struct {
@@ -71,3 +97,10 @@ func (m *mockLogger) Info(s string, i ...interface{})     {}
 func (m *mockLogger) Warn(s string, i ...interface{})     {}
 func (m *mockLogger) Error(s string, i ...interface{})    {}
 func (m *mockLogger) Critical(s string, i ...interface{}) {}
+
+type mockStater struct {
+}
+
+func (m *mockStater) Stat(name string) (fs.FileInfo, error) {
+	return os.Stat(name)
+}
