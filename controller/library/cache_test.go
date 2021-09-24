@@ -20,62 +20,83 @@ func TestNewCacheSetsInternalFields(t *testing.T) {
 	receivedStruct := NewCache(&m, &f, &l)
 
 	if (*(receivedStruct.metadataReader.(*mockMetadataReader))).uniqueId != m.uniqueId {
-		t.Errorf("MetadataReader inside Cache struct is not the same one that was passed to NewCache")
+		t.Error("MetadataReader inside Cache struct is not the same one that was passed to NewCache")
 	}
 
 	if (*(receivedStruct.ds.(*mockFileCacheDataStorer))).uniqueId != f.uniqueId {
-		t.Errorf("FileCacheDataStorer inside Cache struct is not the same one that was passed to NewCache")
+		t.Error("FileCacheDataStorer inside Cache struct is not the same one that was passed to NewCache")
 	}
 
 	if (*(receivedStruct.logger.(*mockLogger))).uniqueId != l.uniqueId {
-		t.Errorf("Logger inside Cache struct is not the same one that was passed to NewCache")
+		t.Error("Logger inside Cache struct is not the same one that was passed to NewCache")
 	}
 }
 
-// TODO: Test Cache
-//   = Read - Reading from metadataReader when the modtimes are different. Returning stored metadata when modtimes are same.
-
 func TestCacheReadDifferentModtimes(t *testing.T) {
 	m := mockMetadataReader{}
-	f := mockFileCacheDataStorer{}
+	f := mockFileCacheDataStorer{modtimeReturnData: time.Unix(10000, 100)}
 	l := mockLogger{}
 
 	cache := NewCache(&m, &f, &l)
-	s := mockStater{}
+	s := mockStater{statReturnValue: &fileInfo{modtime: time.Unix(20000, 200)}}
 	cache.stater = &s
 
-	// TODO: Check that metadata reader's Read function is called.
+	cache.Read("test")
+
+	if !m.readCalled {
+		t.Error("MetadataReader.Read() was not called even though it should have been")
+	}
+
+	if f.metadataCalled {
+		t.Error("FileCacheDataStorer.Metadata() was called even though it should not have been")
+	}
 }
 
 func TestCacheReadSameModtimes(t *testing.T) {
+	mtime := time.Unix(10000, 100)
+
 	m := mockMetadataReader{}
-	f := mockFileCacheDataStorer{}
+	f := mockFileCacheDataStorer{modtimeReturnData: mtime}
 	l := mockLogger{}
 
 	cache := NewCache(&m, &f, &l)
-	s := mockStater{}
+	s := mockStater{statReturnValue: &fileInfo{modtime: mtime}}
 	cache.stater = &s
 
-	// TODO: Check that data storer's Read function is called.
+	cache.Read("test")
+
+	if !f.metadataCalled {
+		t.Error("FileCacheDataStorer.Metdata() was not called even though it should have been")
+	}
+
+	if m.readCalled {
+		t.Error("MetadataReader.Read() was called even though it should not have been")
+	}
 }
 
 type mockMetadataReader struct {
-	uniqueId string
+	uniqueId       string
+	readReturnData controller.FileMetadata
+	readCalled     bool
 }
 
 func (m *mockMetadataReader) Read(path string) (controller.FileMetadata, error) {
-	return controller.FileMetadata{}, nil
+	m.readCalled = true
+	return m.readReturnData, nil
 }
 
 type mockFileCacheDataStorer struct {
-	uniqueId string
+	uniqueId          string
+	metadataCalled    bool
+	modtimeReturnData time.Time
 }
 
 func (m *mockFileCacheDataStorer) Modtime(path string) (time.Time, error) {
-	return time.Now(), nil
+	return m.modtimeReturnData, nil
 }
 
 func (m *mockFileCacheDataStorer) Metadata(path string) (controller.FileMetadata, error) {
+	m.metadataCalled = true
 	return controller.FileMetadata{}, nil
 }
 
@@ -99,8 +120,37 @@ func (m *mockLogger) Error(s string, i ...interface{})    {}
 func (m *mockLogger) Critical(s string, i ...interface{}) {}
 
 type mockStater struct {
+	statReturnValue fs.FileInfo
 }
 
 func (m *mockStater) Stat(name string) (fs.FileInfo, error) {
-	return os.Stat(name)
+	return m.statReturnValue, nil
+}
+
+type fileInfo struct {
+	modtime time.Time
+}
+
+func (f *fileInfo) Name() string {
+	return ""
+}
+
+func (f *fileInfo) Size() int64 {
+	return 0
+}
+
+func (f *fileInfo) Mode() os.FileMode {
+	return 0777
+}
+
+func (f *fileInfo) ModTime() time.Time {
+	return f.modtime
+}
+
+func (f *fileInfo) IsDir() bool {
+	return false
+}
+
+func (f *fileInfo) Sys() interface{} {
+	return nil
 }
