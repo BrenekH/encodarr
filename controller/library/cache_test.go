@@ -9,6 +9,8 @@ import (
 	"github.com/BrenekH/encodarr/controller"
 )
 
+// TODO: Test Cache.Read when stater and data storer error.
+
 func TestNewCacheSetsInternalFields(t *testing.T) {
 	//? I'm not sure that using a uniqueId is the best way to validate that the internal fields are set properly.
 	//? Maybe instead it should check the object locations or something similar to validate.
