@@ -9,6 +9,12 @@ import (
 )
 
 func TestCmdDeciderDecide(t *testing.T) {
+	// TODO: Other test cases
+	//   - Settings string is invalid
+	//   - create_stereo_audio is true and a stereo track already exists
+	//   - There are no video tracks
+	//   - target_video_codec is one that is not a part of the codecParams map
+
 	tests := []struct {
 		name        string
 		metadata    controller.FileMetadata
