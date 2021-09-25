@@ -4,9 +4,109 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/BrenekH/encodarr/controller"
 )
 
-// TODO: Test CmdDecider.Decide
+func TestCmdDeciderDecide(t *testing.T) {
+	tests := []struct {
+		name        string
+		metadata    controller.FileMetadata
+		settings    string
+		errExpected bool
+		expected    []string
+	}{
+		{
+			name: "Encode to HEVC",
+			metadata: controller.FileMetadata{
+				VideoTracks: []controller.VideoTrack{
+					{
+						Codec: "AVC",
+					},
+				},
+			},
+			settings: `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
+			expected: []string{"-i", "ENCODARR_INPUT_FILE", "-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", "hevc"},
+		},
+		{
+			name: "Add Stereo Audio Track",
+			metadata: controller.FileMetadata{
+				VideoTracks: []controller.VideoTrack{
+					{
+						Codec: "HEVC",
+					},
+				},
+				AudioTracks: []controller.AudioTrack{
+					{
+						Channels: 6,
+					},
+				},
+			},
+			settings: `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
+			expected: []string{"-i", "ENCODARR_INPUT_FILE", "-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", "copy", "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE"},
+		},
+		{
+			name: "Encode to HEVC and Add Stereo Audio Track",
+			metadata: controller.FileMetadata{
+				VideoTracks: []controller.VideoTrack{
+					{
+						Codec: "AVC",
+					},
+				},
+				AudioTracks: []controller.AudioTrack{
+					{
+						Channels: 6,
+					},
+				},
+			},
+			settings: `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
+			expected: []string{"-i", "ENCODARR_INPUT_FILE", "-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", "hevc", "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE"},
+		},
+		{
+			name: "Encode to HEVC using hardware",
+			metadata: controller.FileMetadata{
+				VideoTracks: []controller.VideoTrack{
+					{
+						Codec: "AVC",
+					},
+				},
+			},
+			settings: `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": true, "hardware_codec": "hevc_vaapi", "hw_device": "/dev/dri/renderD128"}`,
+			expected: []string{"-hwaccel_device", "/dev/dri/renderD128", "-i", "ENCODARR_INPUT_FILE", "-map", "0:s?", "-map", "0:a", "-c", "copy", "-map", "0:v", "-vcodec", "hevc_vaapi"},
+		},
+		{
+			name: "All False Params",
+			metadata: controller.FileMetadata{
+				VideoTracks: []controller.VideoTrack{
+					{
+						Codec: "HEVC",
+					},
+				},
+			},
+			settings:    `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
+			errExpected: true,
+			expected:    []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%v", tt.name)
+		mLogger := mockLogger{}
+		cmdDecider := CmdDecider{logger: &mLogger}
+
+		t.Run(testname, func(t *testing.T) {
+			ans, err := cmdDecider.Decide(tt.metadata, tt.settings)
+
+			if err != nil && !tt.errExpected {
+				t.Errorf("error was expected to be nil, but instead it was '%v'", err)
+			}
+
+			if !reflect.DeepEqual(ans, tt.expected) {
+				t.Errorf("got %v, expected %v", ans, tt.expected)
+			}
+		})
+	}
+}
 
 func TestGenFFmpegCmd(t *testing.T) {
 	tests := []struct {
@@ -66,3 +166,12 @@ type jobParameters struct {
 	UseHW    bool
 	HWDevice string
 }
+
+type mockLogger struct{}
+
+func (m *mockLogger) Trace(s string, i ...interface{})    {}
+func (m *mockLogger) Debug(s string, i ...interface{})    {}
+func (m *mockLogger) Info(s string, i ...interface{})     {}
+func (m *mockLogger) Warn(s string, i ...interface{})     {}
+func (m *mockLogger) Error(s string, i ...interface{})    {}
+func (m *mockLogger) Critical(s string, i ...interface{}) {}
