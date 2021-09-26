@@ -1,12 +1,25 @@
 package commanddecider
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/BrenekH/encodarr/controller"
 )
+
+func TestDefaultSettingsUnmarshals(t *testing.T) {
+	cmdDecider := CmdDecider{}
+	defaultSettingsString := cmdDecider.DefaultSettings()
+	cmdDeciderSettings := CmdDeciderSettings{}
+
+	err := json.Unmarshal([]byte(defaultSettingsString), &cmdDeciderSettings)
+
+	if err != nil {
+		t.Errorf("unexpected error while unmarshaling CmdDecider.DefaultSettings() into CmdDeciderSettings: '%v'", err)
+	}
+}
 
 func TestCmdDeciderDecide(t *testing.T) {
 	// TODO: Other test cases
