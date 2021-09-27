@@ -116,12 +116,17 @@ func (m *Manager) updateLibraryQueue(ctx *context.Context, wg *sync.WaitGroup, l
 		// Check path against Library path masks
 		maskedOut := false
 		for _, v := range lib.PathMasks {
+			if v == "" {
+				m.logger.Trace("Skipping an empty path mask string")
+				continue
+			}
 			if strings.Contains(videoFilepath, v) {
 				m.logger.Debug("%v skipped because of a mask (%v)", videoFilepath, v)
 				maskedOut = true
 				break
 			}
 		}
+		// Use the maskedOut variable to continue the iteration over discovered media and not the path masks
 		if maskedOut {
 			continue
 		}
