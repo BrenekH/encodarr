@@ -24,7 +24,6 @@ func TestDefaultSettingsUnmarshals(t *testing.T) {
 func TestCmdDeciderDecide(t *testing.T) {
 	// TODO: Other test cases
 	//   - Settings string is invalid
-	//   - create_stereo_audio is true and a stereo track already exists
 	//   - There are no video tracks
 	//   - target_video_codec is one that is not a part of the codecParams map
 
@@ -99,6 +98,24 @@ func TestCmdDeciderDecide(t *testing.T) {
 				VideoTracks: []controller.VideoTrack{
 					{
 						Codec: "HEVC",
+					},
+				},
+			},
+			settings:    `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
+			errExpected: true,
+			expected:    []string{},
+		},
+		{
+			name: "create_stereo_audio is true and a stereo track already exists",
+			metadata: controller.FileMetadata{
+				VideoTracks: []controller.VideoTrack{
+					{
+						Codec: "HEVC",
+					},
+				},
+				AudioTracks: []controller.AudioTrack{
+					{
+						Channels: 2,
 					},
 				},
 			},
