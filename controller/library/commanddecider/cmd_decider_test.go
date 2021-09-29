@@ -25,7 +25,6 @@ func TestCmdDeciderDecide(t *testing.T) {
 	// TODO: Other test cases
 	//   - Settings string is invalid
 	//   - There are no video tracks
-	//   - target_video_codec is one that is not a part of the codecParams map
 
 	tests := []struct {
 		name        string
@@ -120,6 +119,19 @@ func TestCmdDeciderDecide(t *testing.T) {
 				},
 			},
 			settings:    `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
+			errExpected: true,
+			expected:    []string{},
+		},
+		{
+			name: "target_video_codec is one that is not a part of the codecParams map",
+			metadata: controller.FileMetadata{
+				VideoTracks: []controller.VideoTrack{
+					{
+						Codec: "AVC",
+					},
+				},
+			},
+			settings:    `{"target_video_codec": "CODEC", "create_stereo_audio": false, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
 			errExpected: true,
 			expected:    []string{},
 		},
