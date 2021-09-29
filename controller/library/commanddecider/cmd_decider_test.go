@@ -23,7 +23,6 @@ func TestDefaultSettingsUnmarshals(t *testing.T) {
 
 func TestCmdDeciderDecide(t *testing.T) {
 	// TODO: Other test cases
-	//   - Settings string is invalid
 	//   - There are no video tracks
 
 	tests := []struct {
@@ -132,6 +131,13 @@ func TestCmdDeciderDecide(t *testing.T) {
 				},
 			},
 			settings:    `{"target_video_codec": "CODEC", "create_stereo_audio": false, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
+			errExpected: true,
+			expected:    []string{},
+		},
+		{
+			name:        "Settings string is invalid",
+			metadata:    controller.FileMetadata{},
+			settings:    `target_video_codec": "CODEC", "create_stereo_audio": false, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
 			errExpected: true,
 			expected:    []string{},
 		},
