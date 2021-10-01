@@ -84,3 +84,4 @@ func TestRunFuncsCalled(t *testing.T) {
 //   - ui.SetWaitingRunners() is called with the return value of rc.WaitingRunners()
 //   - rc.NewJob() is called with the return value of lm.PopNewJob() only when rc.NeedNewJob() returns true
 //   - lm.ImportCompletedJobs() is called with the return value of rc.CompletedJobs()
+//   - run breaks when context is done (test mode is false and context canceled after a few milliseconds)
