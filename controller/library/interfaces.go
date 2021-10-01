@@ -34,7 +34,3 @@ type fileRemover interface {
 type fileMover interface {
 	Move(from string, to string) error
 }
-
-type fileStater interface {
-	Stat(path string) (fs.FileInfo, error)
-}

@@ -36,10 +36,15 @@ func (c *CmdDecider) Decide(m controller.FileMetadata, sSettings string) ([]stri
 
 	stereoAudioTrackExists := true
 	if settings.CreateStereoAudio {
-		stereoAudioTrackExists = false
 		for _, v := range m.AudioTracks {
+			// stereoAudioTrackExists is reassigned in every loop so that if there are no audio tracks,
+			// the decider thinks that there is already a stereo audio track. This still works because
+			// if the loop does find a stereo audio track, it breaks instead of running again.
+			stereoAudioTrackExists = false
+
 			if v.Channels == 2 {
 				stereoAudioTrackExists = true
+				break
 			}
 		}
 	}
@@ -78,7 +83,7 @@ type CmdDeciderSettings struct {
 	TargetVideoCodec  string `json:"target_video_codec"`
 	CreateStereoAudio bool   `json:"create_stereo_audio"`
 	SkipHDR           bool   `json:"skip_hdr"`
-	UseHardware       bool   `bool:"use_hardware"`
+	UseHardware       bool   `json:"use_hardware"`
 	HardwareCodec     string `json:"hardware_codec"`
 	HWDevice          string `json:"hw_device"`
 }
