@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS libraries (
 );
 
 CREATE TABLE IF NOT EXISTS files (
-    path text,
+    path text UNIQUE,
     modtime timestamp,
     mediainfo binary
 );
