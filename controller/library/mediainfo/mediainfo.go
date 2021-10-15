@@ -66,17 +66,17 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 
 			vidTrack.ColorPrimaries = v.ColourPrimaries
 
-			if vidTrack.Index, err = strconv.Atoi(v.StreamOrder); err != nil {
+			if vidTrack.Index, err = strconv.ParseInt(v.StreamOrder, 10, 64); err != nil {
 				m.logger.Debug("error while converting vidTrack.Index (StreamOrder) for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
 
-			if vidTrack.Width, err = strconv.Atoi(v.Width); err != nil {
+			if vidTrack.Width, err = strconv.ParseInt(v.Width, 10, 64); err != nil {
 				m.logger.Debug("error while converting vidTrack.Width for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
 
-			if vidTrack.Height, err = strconv.Atoi(v.Height); err != nil {
+			if vidTrack.Height, err = strconv.ParseInt(v.Height, 10, 64); err != nil {
 				m.logger.Debug("error while converting vidTrack.Height for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
@@ -85,12 +85,12 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 		case "Audio":
 			audioTrack := controller.AudioTrack{}
 
-			if audioTrack.Index, err = strconv.Atoi(v.StreamOrder); err != nil {
+			if audioTrack.Index, err = strconv.ParseInt(v.StreamOrder, 10, 64); err != nil {
 				m.logger.Debug("error while converting audioTrack.Index (StreamOrder) for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
 
-			if audioTrack.Channels, err = strconv.Atoi(v.Channels); err != nil {
+			if audioTrack.Channels, err = strconv.ParseInt(v.Channels, 10, 64); err != nil {
 				m.logger.Debug("error while converting audioTrack.Channels for %v: %v", path, err)
 				return controller.FileMetadata{}, err
 			}
@@ -99,8 +99,8 @@ func (m *MetadataReader) Read(path string) (controller.FileMetadata, error) {
 		case "Text":
 			textTrack := controller.SubtitleTrack{}
 
-			if textTrack.Index, err = strconv.Atoi(v.StreamOrder); err != nil {
-				if textTrack.Index, err = strconv.Atoi(v.UniqueID); err != nil {
+			if textTrack.Index, err = strconv.ParseInt(v.StreamOrder, 10, 64); err != nil {
+				if textTrack.Index, err = strconv.ParseInt(v.UniqueID, 10, 64); err != nil {
 					m.logger.Warn("error while converting textTrack.Index (StreamOrder, UniqueID) for %v: %v", path, err)
 					continue
 				}

@@ -28,7 +28,8 @@ type Cache struct {
 	stater         stater
 }
 
-// Read uses the data storer and file.Stat to determine whether or not to call the MetadataReader or return from the cache.
+// Read returns the cached metadata when the file's modtime has not changed.
+// If the modtime has changed, then metadataReader is called and the result is stored for caching purposes and returned to the caller.
 func (c *Cache) Read(path string) (controller.FileMetadata, error) {
 	fileInfo, err := c.stater.Stat(path)
 	if err != nil {
