@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/BrenekH/encodarr/controller"
 )
@@ -27,36 +28,53 @@ func (h *HealthCheckerAdapter) DispatchedJobs() []controller.DispatchedJob {
 		h.logger.Error("%v", err)
 		return returnSlice
 	}
+	defer rows.Close()
 
 	for rows.Next() {
-		// Variables to scan into
-		dj := controller.DispatchedJob{}
-		bJ := []byte("") // bytesJob. For intermediate loading into when scanning the rows
-		bS := []byte("") // bytesStatus. For intermediate loading into when scanning the rows
+		var job DispatchedJob
 
-		err = rows.Scan(&dj.UUID, &dj.Runner, &bJ, &bS, &dj.LastUpdated)
+		err = rows.Scan(&job.UUID, &job.Runner, &job.Job, &job.Status, &job.LastUpdated)
 		if err != nil {
 			h.logger.Error("%v", err)
 			continue
 		}
 
-		err = json.Unmarshal(bJ, &dj.Job)
+		result, err := job.ToController()
 		if err != nil {
 			h.logger.Error("%v", err)
 			continue
 		}
 
-		err = json.Unmarshal(bS, &dj.Status)
-		if err != nil {
-			h.logger.Error("%v", err)
-			continue
-		}
-
-		returnSlice = append(returnSlice, dj)
+		returnSlice = append(returnSlice, result)
 	}
-	rows.Close()
 
 	return returnSlice
+}
+
+type DispatchedJob struct {
+	UUID        string
+	Runner      string
+	Job         []byte
+	Status      []byte
+	LastUpdated time.Time
+}
+
+func (dj *DispatchedJob) ToController() (controller.DispatchedJob, error) {
+	result := controller.DispatchedJob{
+		UUID:        controller.UUID(dj.UUID),
+		Runner:      dj.Runner,
+		LastUpdated: dj.LastUpdated,
+	}
+
+	if err := json.Unmarshal(dj.Job, &result.Job); err != nil {
+		return result, err
+	}
+
+	if err := json.Unmarshal(dj.Status, &result.Status); err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
 // DeleteJob deletes a specific job from the database.
