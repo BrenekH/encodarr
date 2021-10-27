@@ -1,6 +1,7 @@
 package library
 
 import (
+	"errors"
 	"io/fs"
 	"os"
 	"testing"
@@ -8,8 +9,6 @@ import (
 
 	"github.com/BrenekH/encodarr/controller"
 )
-
-// TODO: Test Cache.Read when stater and data storer error.
 
 func TestNewCacheSetsInternalFields(t *testing.T) {
 	//? I'm not sure that using a uniqueId is the best way to validate that the internal fields are set properly.
@@ -68,11 +67,147 @@ func TestCacheReadSameModtimes(t *testing.T) {
 	cache.Read("test")
 
 	if !f.metadataCalled {
-		t.Error("FileCacheDataStorer.Metdata() was not called even though it should have been")
+		t.Error("FileCacheDataStorer.Metadata() was not called even though it should have been")
 	}
 
 	if m.readCalled {
 		t.Error("MetadataReader.Read() was called even though it should not have been")
+	}
+}
+
+func TestCacheReadStaterErr(t *testing.T) {
+	mtime := time.Unix(10000, 100)
+
+	m := mockMetadataReader{}
+	f := mockFileCacheDataStorer{modtimeReturnData: mtime}
+	l := mockLogger{}
+
+	cache := NewCache(&m, &f, &l)
+	s := mockStater{statReturnValue: &fileInfo{modtime: mtime}, err: errors.New("some error")}
+	cache.stater = &s
+
+	cache.Read("test")
+
+	if !m.readCalled {
+		t.Error("MetadataReader.Read() was not called even though it should have been")
+	}
+}
+
+func TestCacheReadModtimeErr(t *testing.T) {
+	mtime := time.Unix(10000, 100)
+
+	m := mockMetadataReader{}
+	f := mockFileCacheDataStorer{
+		modtimeReturnData: mtime,
+		modtimeErr:        errors.New("some error"),
+	}
+	l := mockLogger{}
+
+	cache := NewCache(&m, &f, &l)
+	s := mockStater{statReturnValue: &fileInfo{modtime: mtime}}
+	cache.stater = &s
+
+	cache.Read("test")
+
+	if !f.modtimeCalled {
+		t.Error("FileCacheDataStorer.Modtime() was not called even though it should have been")
+	}
+
+	if !m.readCalled {
+		t.Error("MetadataReader.Read() was not called even though it should have been")
+	}
+}
+
+func TestCacheReadMetadataErr(t *testing.T) {
+	mtime := time.Unix(10000, 100)
+
+	m := mockMetadataReader{}
+	f := mockFileCacheDataStorer{
+		modtimeReturnData: mtime,
+		metadataErr:       errors.New("some error"),
+	}
+	l := mockLogger{}
+
+	cache := NewCache(&m, &f, &l)
+	s := mockStater{statReturnValue: &fileInfo{modtime: mtime}}
+	cache.stater = &s
+
+	cache.Read("test")
+
+	if !f.metadataCalled {
+		t.Error("FileCacheDataStorer.Metadata() was not called even though it should have been")
+	}
+
+	if !m.readCalled {
+		t.Error("MetadataReader.Read() was not called even though it should have been")
+	}
+}
+
+func TestCacheReadSaveMetadataErr(t *testing.T) {
+	mtime := time.Unix(10000, 100)
+
+	m := mockMetadataReader{}
+	f := mockFileCacheDataStorer{
+		modtimeReturnData: mtime,
+		saveMetadataErr:   errors.New("some error"),
+	}
+	l := mockLogger{}
+
+	cache := NewCache(&m, &f, &l)
+	s := mockStater{
+		statReturnValue: &fileInfo{modtime: mtime.Add(time.Duration(-10) * time.Minute)},
+	}
+	cache.stater = &s
+
+	cache.Read("test")
+
+	if !m.readCalled {
+		t.Error("MetadataReader.Read() was not called even though it should have been")
+	}
+
+	if !f.saveMetadataCalled {
+		t.Error("FileCacheDataStorer.SaveMetadata() was not called even though it should have been")
+	}
+}
+
+func TestCacheReadSaveModTimeErr(t *testing.T) {
+	mtime := time.Unix(10000, 100)
+
+	m := mockMetadataReader{}
+	f := mockFileCacheDataStorer{
+		modtimeReturnData: mtime,
+		saveModTimeErr:    errors.New("some error"),
+	}
+	l := mockLogger{}
+
+	cache := NewCache(&m, &f, &l)
+	s := mockStater{
+		statReturnValue: &fileInfo{modtime: mtime.Add(time.Duration(-10) * time.Minute)},
+	}
+	cache.stater = &s
+
+	cache.Read("test")
+
+	if !m.readCalled {
+		t.Error("MetadataReader.Read() was not called even though it should have been")
+	}
+
+	if !f.saveModTimeCalled {
+		t.Error("FileCacheDataStorer.SaveModTime() was not called even though it should have been")
+	}
+}
+
+func TestStat(t *testing.T) {
+	m := mockMetadataReader{}
+	f := mockFileCacheDataStorer{}
+	l := mockLogger{}
+
+	c := NewCache(&m, &f, &l)
+
+	_, got := c.stater.Stat("some file")
+
+	if got == nil {
+		t.Errorf("got %v, but want %v", got, "not nil")
 	}
 }
 
@@ -88,26 +223,36 @@ func (m *mockMetadataReader) Read(path string) (controller.FileMetadata, error) 
 }
 
 type mockFileCacheDataStorer struct {
-	uniqueId          string
-	metadataCalled    bool
-	modtimeReturnData time.Time
+	uniqueId           string
+	metadataCalled     bool
+	modtimeCalled      bool
+	saveModTimeCalled  bool
+	saveMetadataCalled bool
+	metadataErr        error
+	modtimeErr         error
+	saveModTimeErr     error
+	saveMetadataErr    error
+	modtimeReturnData  time.Time
 }
 
 func (m *mockFileCacheDataStorer) Modtime(path string) (time.Time, error) {
-	return m.modtimeReturnData, nil
+	m.modtimeCalled = true
+	return m.modtimeReturnData, m.modtimeErr
 }
 
 func (m *mockFileCacheDataStorer) Metadata(path string) (controller.FileMetadata, error) {
 	m.metadataCalled = true
-	return controller.FileMetadata{}, nil
+	return controller.FileMetadata{}, m.metadataErr
 }
 
 func (m *mockFileCacheDataStorer) SaveModtime(path string, t time.Time) error {
-	return nil
+	m.saveModTimeCalled = true
+	return m.saveModTimeErr
 }
 
 func (m *mockFileCacheDataStorer) SaveMetadata(path string, f controller.FileMetadata) error {
-	return nil
+	m.saveMetadataCalled = true
+	return m.saveMetadataErr
 }
 
 type mockLogger struct {
@@ -123,10 +268,11 @@ func (m *mockLogger) Critical(s string, i ...interface{}) {}
 
 type mockStater struct {
 	statReturnValue fs.FileInfo
+	err             error
 }
 
 func (m *mockStater) Stat(name string) (fs.FileInfo, error) {
-	return m.statReturnValue, nil
+	return m.statReturnValue, m.err
 }
 
 type fileInfo struct {
