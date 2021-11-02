@@ -40,7 +40,10 @@ func (s *Store) Load() error {
 		return controller.ErrClosed
 	}
 
-	s.file.Seek(0, io.SeekStart)
+	if _, err := s.file.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
+
 	b, err := io.ReadAll(s.file)
 	if err != nil {
 		return err
@@ -66,10 +69,14 @@ func (s *Store) Save() error {
 	}
 
 	// Erase current contents
-	s.file.Truncate(0)
+	if err := s.file.Truncate(0); err != nil {
+		return err
+	}
 
 	// Move file pointer to start
-	s.file.Seek(0, io.SeekStart)
+	if _, err := s.file.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
 
 	se := settings{
 		HealthCheckInterval: s.healthCheckInterval,
@@ -81,7 +88,9 @@ func (s *Store) Save() error {
 		return err
 	}
 
-	io.Copy(s.file, bytes.NewReader(b))
+	if _, err := io.Copy(s.file, bytes.NewReader(b)); err != nil {
+		return err
+	}
 
 	return nil
 }
