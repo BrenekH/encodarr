@@ -141,6 +141,31 @@ func TestCmdDeciderDecide(t *testing.T) {
 			errExpected: true,
 			expected:    []string{},
 		},
+		{
+			name: "Add Stereo Audio Track (No Video Tracks)",
+			metadata: controller.FileMetadata{
+				AudioTracks: []controller.AudioTrack{
+					{
+						Channels: 6,
+					},
+				},
+			},
+			settings: `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
+			expected: []string{"-i", "ENCODARR_INPUT_FILE", "-map", "0:v", "-map", "0:s?", "-map", "0:a", "-map", "0:a", "-c:v", "copy", "-c:s", "copy", "-c:a:1", "copy", "-c:a:0", "aac", "-filter:a:0", "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE"},
+		},
+		{
+			name: "No Video Track and 2-Channel Audio Track",
+			metadata: controller.FileMetadata{
+				AudioTracks: []controller.AudioTrack{
+					{
+						Channels: 2,
+					},
+				},
+			},
+			settings:    `{"target_video_codec": "HEVC", "create_stereo_audio": true, "skip_hdr": true, "use_hardware": false, "hardware_codec": "", "hw_device": ""}`,
+			errExpected: true,
+			expected:    []string{},
+		},
 	}
 
 	for _, tt := range tests {
