@@ -15,6 +15,8 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags timetzdat
 # Acquire FFmpeg stage
 FROM --platform=$BUILDPLATFORM alpine as ffmpeg-extracter
 
+ARG TARGETARCH
+
 WORKDIR /usr/bin
 
 RUN apk add --no-cache wget
