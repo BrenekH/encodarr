@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.16-buster AS builder
+FROM --platform=$BUILDPLATFORM golang:1.16-buster AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -13,16 +13,14 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags timetzdata -o runner -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${LDFLAGS_VERSION}'" cmd/EncodarrRunner/main.go
 
 # Acquire FFmpeg stage
-FROM alpine as ffmpeg-extracter
-
-ARG TARGETARCH
+FROM --platform=$BUILDPLATFORM alpine as ffmpeg-extracter
 
 WORKDIR /usr/bin
 
-RUN apk add --no-cache wget && \
-	wget -q https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-${TARGETARCH}-static.tar.xz -O ffmpeg.tar.xz && \
-	mkdir /usr/bin/ffmpeg && \
-	tar -xf ffmpeg.tar.xz -C /usr/bin/ffmpeg --strip-components 1
+RUN apk add --no-cache wget
+RUN wget -q https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-${TARGETARCH}-static.tar.xz -O ffmpeg.tar.xz
+RUN mkdir /usr/bin/ffmpeg
+RUN tar -xf ffmpeg.tar.xz -C /usr/bin/ffmpeg --strip-components 1
 
 # Run stage
 FROM scratch
