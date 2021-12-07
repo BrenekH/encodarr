@@ -153,7 +153,8 @@ jobs:
         with:
           context: ./runner
           push: true
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          # linux/arm/v7 was removed so that the static ffmpeg binaries could be downloaded easily. This removes support for Raspberry Pi 1 & 2 devices as well as OS's that are not upgraded to Arm v8 (arm64)
+          platforms: linux/amd64,linux/arm64
           build-args: LDFLAGS_VERSION=${{ env.LDFLAGS_VERSION }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
