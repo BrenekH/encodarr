@@ -15,10 +15,12 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags timetzdat
 # Acquire FFmpeg stage
 FROM alpine as ffmpeg-extracter
 
+ARG TARGETARCH
+
 WORKDIR /usr/bin
 
 RUN apk add --no-cache wget && \
-	wget -q https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz -O ffmpeg.tar.xz && \
+	wget -q https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-${TARGETARCH}-static.tar.xz -O ffmpeg.tar.xz && \
 	mkdir /usr/bin/ffmpeg && \
 	tar -xf ffmpeg.tar.xz -C /usr/bin/ffmpeg --strip-components 1
 
