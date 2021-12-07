@@ -12,21 +12,26 @@ COPY . .
 # Disable CGO so that we have a static binary
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags timetzdata -o runner -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${LDFLAGS_VERSION}'" cmd/EncodarrRunner/main.go
 
+# Acquire FFmpeg stage
+FROM alpine as ffmpeg-extracter
+
+WORKDIR /usr/bin
+
+RUN apk add --no-cache wget && \
+	wget -q https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz -O ffmpeg.tar.xz && \
+	mkdir /usr/bin/ffmpeg && \
+	tar -xf ffmpeg.tar.xz -C /usr/bin/ffmpeg --strip-components 1
 
 # Run stage
-FROM ubuntu:20.04
+FROM scratch
 
 ENV TZ=Etc/GMT \
 	ENCODARR_CONFIG_DIR="/config"
 
 WORKDIR /usr/src/app
 
-RUN chmod 777 /usr/src/app \
-	&& apt-get update -qq \
-	&& DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y ffmpeg
-
 COPY --from=builder /go/src/encodarr/runner/runner ./runner
 
-RUN chmod 777 ./runner
+COPY --from=ffmpeg-extracter /usr/bin/ffmpeg/ffmpeg ./ffmpeg
 
 CMD ["./runner"]
