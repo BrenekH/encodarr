@@ -10,7 +10,7 @@ WORKDIR /go/src/encodarr/runner
 COPY . .
 
 # Disable CGO so that we have a static binary
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o runner -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${LDFLAGS_VERSION}'" cmd/EncodarrRunner/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags timetzdata -o runner -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${LDFLAGS_VERSION}'" cmd/EncodarrRunner/main.go
 
 
 # Run stage
@@ -23,7 +23,7 @@ WORKDIR /usr/src/app
 
 RUN chmod 777 /usr/src/app \
 	&& apt-get update -qq \
-	&& DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata ffmpeg
+	&& DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y ffmpeg
 
 COPY --from=builder /go/src/encodarr/runner/runner ./runner
 
