@@ -28,12 +28,13 @@ RUN tar -xf ffmpeg.tar.xz -C /usr/bin/ffmpeg --strip-components 1
 FROM scratch
 
 ENV TZ=Etc/GMT \
+	PATH="/bin" \
 	ENCODARR_CONFIG_DIR="/config"
 
 WORKDIR /usr/src/app
 
 COPY --from=builder /go/src/encodarr/runner/runner ./runner
 
-COPY --from=ffmpeg-extracter /usr/bin/ffmpeg/ffmpeg ./ffmpeg
+COPY --from=ffmpeg-extracter /usr/bin/ffmpeg/ffmpeg /bin/ffmpeg
 
 CMD ["./runner"]
