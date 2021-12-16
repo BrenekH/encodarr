@@ -22,16 +22,20 @@ type RunnerCommunicatorAdapter struct {
 func (r *RunnerCommunicatorAdapter) DispatchedJob(uuid controller.UUID) (controller.DispatchedJob, error) {
 	row := r.db.Client.QueryRow("SELECT job, status, runner, last_updated FROM dispatched_jobs WHERE uuid = $1;", uuid)
 
-	d := controller.DispatchedJob{UUID: uuid}
-	bJob := []byte{}
-	bStatus := []byte{}
+	var (
+		d       = controller.DispatchedJob{UUID: uuid}
+		bJob    = []byte{}
+		bStatus = []byte{}
+	)
 
-	row.Scan(
+	if err := row.Scan(
 		&bJob,
 		&bStatus,
 		&d.Runner,
 		&d.LastUpdated,
-	)
+	); err != nil {
+		return d, err
+	}
 
 	if err := json.Unmarshal(bJob, &d.Job); err != nil {
 		return d, err
