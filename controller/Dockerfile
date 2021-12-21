@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.16-buster AS builder
+FROM golang:1.17-buster AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -12,18 +12,19 @@ COPY . .
 # Disable CGO so that we have a static binary, set the platform for multi-arch builds, and embed the Version into globals.Version.
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o encodarr -ldflags="-X 'github.com/BrenekH/encodarr/controller/globals.Version=${LDFLAGS_VERSION}'" cmd/main.go
 
-
 # Run stage
 FROM ubuntu:20.04
 
 ENV TZ=Etc/GMT \
-ENCODARR_CONFIG_DIR="/config"
+  ENCODARR_CONFIG_DIR="/config"
 
 WORKDIR /usr/src/app
 
 RUN chmod 777 /usr/src/app \
- && apt-get update -qq \
- && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y tzdata mediainfo
+  && apt-get update -qq \
+  && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y --no-install-recommends tzdata mediainfo \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /go/src/encodarr/controller/encodarr ./encodarr
 
