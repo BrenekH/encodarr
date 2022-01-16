@@ -10,7 +10,7 @@ import Table from "react-bootstrap/Table";
 import "./LibrariesTab.css";
 import "../spacers.css";
 
-import addLibraryIcon from "./addLibraryIcon.svg";
+import AddLibraryIcon from "./AddLibraryIcon";
 import TerminalIcon from "./shared/TerminalIcon";
 
 interface ILibrariesTabState {
@@ -31,7 +31,7 @@ export class LibrariesTab extends React.Component<{}, ILibrariesTabState> {
 		};
 
 		// This is just so Typescript doesn't whine about timerID not being instantiated.
-		this.timerID = setTimeout(() => {}, Number.POSITIVE_INFINITY);
+		this.timerID = setTimeout(() => { }, Number.POSITIVE_INFINITY);
 		clearInterval(this.timerID);
 	}
 
@@ -65,8 +65,8 @@ export class LibrariesTab extends React.Component<{}, ILibrariesTabState> {
 		});
 
 		return (<>
-			<img className="add-lib-ico" src={addLibraryIcon} alt="" height="20px" onClick={() => { this.setState({showCreateLibModal: true}); }} />
-			<CreateLibraryModal show={this.state.showCreateLibModal} closeHandler={() => { this.setState({showCreateLibModal: false}); }} />
+			<AddLibraryIcon className="add-lib-ico" height="20px" onClick={() => { this.setState({ showCreateLibModal: true }); }} />
+			<CreateLibraryModal show={this.state.showCreateLibModal} closeHandler={() => { this.setState({ showCreateLibModal: false }); }} />
 			<div className="smol-spacer"></div>
 			{libsList}
 		</>);
@@ -146,42 +146,42 @@ class LibraryCard extends React.Component<ILibraryCardProps, ILibraryCardState> 
 
 	render() {
 		return (
-		<>
-			<Card>
-				<Card.Header className="text-center"><h5>{this.state.folder}</h5></Card.Header>
-				<p className="text-center">Priority: {this.state.priority}</p>
-				<p className="text-center">File System Check Interval: {this.state.fs_check_interval}</p>
-				<p className="text-center">Target Video Codec: {this.state.target_video_codec}</p>
-				<p className="text-center">Create Stereo Audio Track: {(this.state.create_stereo_audio) ? "True" : "False"}</p>
-				<p className="text-center">Skip HDR Files: {(this.state.skip_hdr) ? "True" : "False"}</p>
-				{(this.state.use_hardware) ? <p className="text-center">Hardware Codec: {this.state.hardware_codec}</p> : null }
-				{(this.state.use_hardware) ? <p className="text-center">Hardware Device: {this.state.hw_device}</p> : null }
-				{(this.state.path_masks.length !== 0) ? <p className="text-center">Path Masks: {this.state.path_masks}</p> : null }
-				<Button variant="secondary" onClick={() => {this.setState({showQueueModal: true})}}>Queue</Button>
-				<Button variant="primary" onClick={() => {this.setState({showEditModal: true})}}>Edit</Button>
-			</Card>
-			{(this.state.showEditModal) ? (<EditLibraryModal
-				show={true}
-				closeHandler={() => { this.setState({showEditModal: false}); this.getLibraryData(); }}
-				id={this.props.id}
-				folder={this.state.folder}
-				priority={this.state.priority}
-				fs_check_interval={this.state.fs_check_interval}
-				path_masks={this.state.path_masks}
-				target_video_codec={this.state.target_video_codec}
-				create_stereo_audio={this.state.create_stereo_audio}
-				skip_hdr={this.state.skip_hdr}
-				use_hardware={this.state.use_hardware}
-				hardware_codec={this.state.hardware_codec}
-				hw_device={this.state.hw_device}
-			/>) : null}
+			<>
+				<Card>
+					<Card.Header className="text-center"><h5>{this.state.folder}</h5></Card.Header>
+					<p className="text-center">Priority: {this.state.priority}</p>
+					<p className="text-center">File System Check Interval: {this.state.fs_check_interval}</p>
+					<p className="text-center">Target Video Codec: {this.state.target_video_codec}</p>
+					<p className="text-center">Create Stereo Audio Track: {(this.state.create_stereo_audio) ? "True" : "False"}</p>
+					<p className="text-center">Skip HDR Files: {(this.state.skip_hdr) ? "True" : "False"}</p>
+					{(this.state.use_hardware) ? <p className="text-center">Hardware Codec: {this.state.hardware_codec}</p> : null}
+					{(this.state.use_hardware) ? <p className="text-center">Hardware Device: {this.state.hw_device}</p> : null}
+					{(this.state.path_masks.length !== 0) ? <p className="text-center">Path Masks: {this.state.path_masks}</p> : null}
+					<Button variant="secondary" onClick={() => { this.setState({ showQueueModal: true }) }}>Queue</Button>
+					<Button variant="primary" onClick={() => { this.setState({ showEditModal: true }) }}>Edit</Button>
+				</Card>
+				{(this.state.showEditModal) ? (<EditLibraryModal
+					show={true}
+					closeHandler={() => { this.setState({ showEditModal: false }); this.getLibraryData(); }}
+					id={this.props.id}
+					folder={this.state.folder}
+					priority={this.state.priority}
+					fs_check_interval={this.state.fs_check_interval}
+					path_masks={this.state.path_masks}
+					target_video_codec={this.state.target_video_codec}
+					create_stereo_audio={this.state.create_stereo_audio}
+					skip_hdr={this.state.skip_hdr}
+					use_hardware={this.state.use_hardware}
+					hardware_codec={this.state.hardware_codec}
+					hw_device={this.state.hw_device}
+				/>) : null}
 
-			{(this.state.showQueueModal) ? (<QueueModal
-				show={true}
-				closeHandler={() => { this.setState({showQueueModal: false}); }}
-				queue={this.state.queue}
-			/>) : null}
-		</>);
+				{(this.state.showQueueModal) ? (<QueueModal
+					show={true}
+					closeHandler={() => { this.setState({ showQueueModal: false }); }}
+					queue={this.state.queue}
+				/>) : null}
+			</>);
 	}
 }
 
@@ -228,7 +228,7 @@ class CreateLibraryModal extends React.Component<ICreateLibraryModalProps, ICrea
 			folder: this.state.folder,
 			priority: parseInt(this.state.priority),
 			fs_check_interval: this.state.fs_check_interval,
-			path_masks: this.state.path_masks.split(",").filter(function(el) { return el.length !== 0 }),
+			path_masks: this.state.path_masks.split(",").filter(function (el) { return el.length !== 0 }),
 			cmd_decider_settings: JSON.stringify({
 				target_video_codec: this.state.target_video_codec,
 				create_stereo_audio: this.state.create_stereo_audio,
@@ -603,7 +603,7 @@ class QueueModal extends React.Component<IQueueModalProps> {
 		}
 
 		const qList = propsQueue.map((v: IQueuedJob, i: number) => {
-			return <TableEntry key={v.uuid} index={i+1} path={v.path} command={v.command.join(" ")}/>;
+			return <TableEntry key={v.uuid} index={i + 1} path={v.path} command={v.command.join(" ")} />;
 		});
 
 		return (<div>
@@ -650,7 +650,7 @@ function TableEntry(props: ITableEntryProps) {
 		<th scope="row">{props.index}</th>
 		<td>{props.path}</td>
 		<td>
-			<TerminalIcon title={props.command}/>
+			<TerminalIcon title={props.command} />
 		</td>
 	</tr>);
 }
