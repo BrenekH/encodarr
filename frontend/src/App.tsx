@@ -13,8 +13,7 @@ import "./App.css";
 
 function Title() {
 	return (<div className="header-flex header-content text-center">
-		{/* 100px for Circle; 60px for bare logo; */}
-		<EncodarrLogo height="60px" />
+		<EncodarrLogo width="60px" height="60px" />
 		<h1>ncodarr</h1>
 	</div>);
 }

@@ -65,7 +65,7 @@ export class LibrariesTab extends React.Component<{}, ILibrariesTabState> {
 		});
 
 		return (<>
-			<AddLibraryIcon className="add-lib-ico" height="20px" onClick={() => { this.setState({ showCreateLibModal: true }); }} />
+			<AddLibraryIcon className="add-lib-ico" height="20px" width="20px" onClick={() => { this.setState({ showCreateLibModal: true }); }} />
 			<CreateLibraryModal show={this.state.showCreateLibModal} closeHandler={() => { this.setState({ showCreateLibModal: false }); }} />
 			<div className="smol-spacer"></div>
 			{libsList}
@@ -650,7 +650,7 @@ function TableEntry(props: ITableEntryProps) {
 		<th scope="row">{props.index}</th>
 		<td>{props.path}</td>
 		<td>
-			<TerminalIcon title={props.command} />
+			<TerminalIcon height="20px" width="25px" title={props.command} />
 		</td>
 	</tr>);
 }

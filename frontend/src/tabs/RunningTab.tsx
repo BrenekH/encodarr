@@ -128,7 +128,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 		});
 
 		return (<div>
-			<InfoIIcon className="info-i" height="20px" onClick={handleShow} />
+			<InfoIIcon className="info-i" height="20px" width="20px" onClick={handleShow} />
 			{(jobsList.length !== 0) ? jobsList : <h5 className="text-center">No running jobs</h5>}
 
 			<Modal show={this.state.showModal} onHide={handleClose}>
@@ -163,7 +163,7 @@ function RunningCard(props: IRunningCardProps) {
 			<Card.Header className="text-center">
 				<div className="file-image-container">
 					<h5>{props.filename}</h5>
-					<TerminalIcon title={props.command} />
+					<TerminalIcon height="20px" width="25px" title={props.command} />
 				</div>
 
 				<h6>Stage: {props.stageValue}</h6>
