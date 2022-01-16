@@ -1,15 +1,13 @@
-import { SvgImage } from "./SvgImage";
-
-import terminalIcon from "./terminalIcon.svg";
+import TerminalIconSvg from "./TerminalIconSvg";
 
 export interface ITerminalIconProps {
 	title: string,
+	height?: string,
+	width?: string,
 }
 
 export default function TerminalIcon(props: ITerminalIconProps) {
-	return (<SvgImage
-		location={terminalIcon}
-		alt="Terminal"
-		title={props.title}
-	/>);
+	return (<div style={{ display: "inline" }} title={props.title}>
+		<TerminalIconSvg height={props.height} width={props.width} />
+	</div>);
 }

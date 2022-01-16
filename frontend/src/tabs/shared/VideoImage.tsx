@@ -1,11 +1,7 @@
-import { SvgImage } from "./SvgImage";
-
-import playButton from "./play_button.svg";
+import PlayButton from "./PlayButton";
 
 export function VideoImage() {
-	return (<SvgImage
-		location={playButton}
-		alt="Play Button"
-		title="File will be encoded to HEVC"
-	/>);
+	return (<div style={{ display: "inline" }} title="File will be encoded to HEVC">
+		<PlayButton />
+	</div>);
 }
