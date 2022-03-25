@@ -42,7 +42,7 @@ type Manager struct {
 	videoFileser   videoFileser
 	fileRemover    fileRemover
 	fileMover      fileMover
-	fileStater     fileStater
+	fileStater     stater
 
 	// lastCheckedTimes is a map of Library ids and the last time that they were checked.
 	lastCheckedTimes map[int]time.Time
