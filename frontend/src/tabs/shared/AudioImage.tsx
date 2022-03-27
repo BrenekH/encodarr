@@ -1,11 +1,7 @@
-import { SvgImage } from "./SvgImage";
-
-import headphones from "./headphones.svg";
+import HeadphonesIcon from "./HeadphonesIcon";
 
 export function AudioImage() {
-	return (<SvgImage
-		location={headphones}
-		alt="Headphones"
-		title="An additional stereo audio track will be created"
-	/>);
+	return (<div style={{ display: "inline" }} title="An additional stereo audio track will be created">
+		<HeadphonesIcon />
+	</div>);
 }
