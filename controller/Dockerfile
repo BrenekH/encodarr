@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.17-buster AS builder
+FROM golang:1.18-buster AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -13,7 +13,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o encodarr -ldflags="-X 'github.com/BrenekH/encodarr/controller/globals.Version=${LDFLAGS_VERSION}'" cmd/main.go
 
 # Run stage
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ENV TZ=Etc/GMT \
   ENCODARR_CONFIG_DIR="/config"
