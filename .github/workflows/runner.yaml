@@ -8,8 +8,8 @@ jobs:
 
     strategy:
       matrix:
-        os: ['ubuntu-latest']
-        go-version: ['1.16']
+        os: ["ubuntu-latest"]
+        go-version: ["1.16"]
 
     defaults:
       run:
@@ -36,9 +36,17 @@ jobs:
 
     strategy:
       matrix:
-        os: ['ubuntu-latest']
-        go-version: ['1.16']
-        go-os-arch: ['linux/amd64', 'linux/arm64', 'linux/arm', 'windows/amd64', 'darwin/amd64', 'darwin/arm64']
+        os: ["ubuntu-latest"]
+        go-version: ["1.16"]
+        go-os-arch:
+          [
+            "linux/amd64",
+            "linux/arm64",
+            "linux/arm",
+            "windows/amd64",
+            "darwin/amd64",
+            "darwin/arm64",
+          ]
 
     defaults:
       run:
@@ -153,7 +161,9 @@ jobs:
         with:
           context: ./runner
           push: true
-          # linux/arm/v7 was removed so that the static ffmpeg binaries could be downloaded easily. This removes support for Raspberry Pi 1 & 2 devices as well as OS's that are not upgraded to Arm v8 (arm64)
+          # linux/arm/v7 was removed so that the static ffmpeg binaries could be downloaded easily.
+          # This removes support for Raspberry Pi 1 & 2 devices as well as OS's that are not upgraded to Arm v8 (arm64).
+          # Eventually, I would like to build the binaries using CI so that we can support linux/arm/v7 again.
           platforms: linux/amd64,linux/arm64
           build-args: LDFLAGS_VERSION=${{ env.LDFLAGS_VERSION }}
           tags: ${{ steps.meta.outputs.tags }}
