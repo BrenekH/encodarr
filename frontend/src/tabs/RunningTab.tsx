@@ -10,7 +10,7 @@ import Row from "react-bootstrap/Row";
 import "./RunningTab.css";
 import "../spacers.css";
 
-import infoI from "./Info-I.svg";
+import InfoIIcon from "./InfoIIcon";
 import TerminalIcon from "./shared/TerminalIcon";
 
 interface IRunningJob {
@@ -50,7 +50,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 		};
 
 		// This is just so Typescript doesn't whine about timerID not being instantiated.
-		this.timerID = setTimeout(() => {}, Number.POSITIVE_INFINITY);
+		this.timerID = setTimeout(() => { }, Number.POSITIVE_INFINITY);
 		clearInterval(this.timerID);
 	}
 
@@ -108,8 +108,8 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 	}
 
 	render(): React.ReactNode {
-		const handleClose = () => this.setState({showModal: false});
-		const handleShow = () => this.setState({showModal: true});
+		const handleClose = () => this.setState({ showModal: false });
+		const handleShow = () => this.setState({ showModal: true });
 
 		const jobsList = this.state.jobs.map((v) => {
 			return (<RunningCard
@@ -128,7 +128,7 @@ export class RunningTab extends React.Component<{}, IRunningTabState> {
 		});
 
 		return (<div>
-			<img className="info-i" src={infoI} alt="" height="20px" onClick={handleShow} />
+			<InfoIIcon className="info-i" height="20px" width="20px" onClick={handleShow} />
 			{(jobsList.length !== 0) ? jobsList : <h5 className="text-center">No running jobs</h5>}
 
 			<Modal show={this.state.showModal} onHide={handleClose}>
@@ -163,7 +163,7 @@ function RunningCard(props: IRunningCardProps) {
 			<Card.Header className="text-center">
 				<div className="file-image-container">
 					<h5>{props.filename}</h5>
-					<TerminalIcon title={props.command}/>
+					<TerminalIcon height="20px" width="25px" title={props.command} />
 				</div>
 
 				<h6>Stage: {props.stageValue}</h6>
