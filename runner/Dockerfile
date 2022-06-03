@@ -1,5 +1,5 @@
 # Build stage
-FROM --platform=$BUILDPLATFORM golang:1.16-buster AS builder
+FROM --platform=$BUILDPLATFORM golang:1.18-buster AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
