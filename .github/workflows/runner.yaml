@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        go-version: ["1.17"]
+        go-version: ["1.18"]
 
     defaults:
       run:
@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        go-version: ["1.17"]
+        go-version: ["1.18"]
         go-os-arch:
           [
             "linux/amd64",
