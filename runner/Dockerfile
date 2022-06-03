@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.17-buster AS builder
+FROM --platform=$BUILDPLATFORM golang:1.16-buster AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -10,24 +10,31 @@ WORKDIR /go/src/encodarr/runner
 COPY . .
 
 # Disable CGO so that we have a static binary
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o runner -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${LDFLAGS_VERSION}'" cmd/EncodarrRunner/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags timetzdata -o runner -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${LDFLAGS_VERSION}'" cmd/EncodarrRunner/main.go
+
+# Acquire FFmpeg stage
+FROM --platform=$BUILDPLATFORM alpine as ffmpeg-extracter
+
+ARG TARGETARCH
+
+WORKDIR /usr/bin
+
+RUN apk add --no-cache wget
+RUN wget -q https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-${TARGETARCH}-static.tar.xz -O ffmpeg.tar.xz
+RUN mkdir /usr/bin/ffmpeg
+RUN tar -xf ffmpeg.tar.xz -C /usr/bin/ffmpeg --strip-components 1
 
 # Run stage
-FROM ubuntu:20.04
+FROM scratch
 
 ENV TZ=Etc/GMT \
-  ENCODARR_CONFIG_DIR="/config"
+	PATH="/bin" \
+	ENCODARR_CONFIG_DIR="/config"
 
 WORKDIR /usr/src/app
 
-RUN chmod 777 /usr/src/app \
-  && apt-get update -qq \
-  && DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y --no-install-recommends tzdata ffmpeg \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
 COPY --from=builder /go/src/encodarr/runner/runner ./runner
 
-RUN chmod 777 ./runner
+COPY --from=ffmpeg-extracter /usr/bin/ffmpeg/ffmpeg /bin/ffmpeg
 
 CMD ["./runner"]
