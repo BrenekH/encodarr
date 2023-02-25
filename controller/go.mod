@@ -17,7 +17,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	go.uber.org/atomic v1.6.0 // indirect
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/sys v0.0.0-20210521090106-6ca3eb03dfc2 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/tools v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	modernc.org/cc/v3 v3.33.5 // indirect
