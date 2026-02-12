@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.20-buster AS builder
+FROM golang:1.26-buster AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -14,7 +14,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o encodarr -ld
 
 
 # Run stage
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 ENV TZ=Etc/GMT \
 ENCODARR_CONFIG_DIR="/config"
