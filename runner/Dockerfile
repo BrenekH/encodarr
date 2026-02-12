@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.26-buster AS builder
+FROM golang:1.26-bookworm AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
