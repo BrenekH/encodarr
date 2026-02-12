@@ -9,17 +9,17 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        go-version: ["1.17", "1.18"]
+        go-version: ["1.25", "1.26"]
 
     defaults:
       run:
         working-directory: ./runner
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: Setup Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        go-version: ["1.18"]
+        go-version: ["1.26"]
         go-os-arch:
           [
             "linux/amd64",
@@ -53,10 +53,10 @@ jobs:
         working-directory: ./runner
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: Setup Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -94,7 +94,7 @@ jobs:
         run: go build -o encodarr-runner-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }} -ldflags="-X 'github.com/BrenekH/encodarr/runner/options.Version=${{ env.LDFLAGS_VERSION }}'" ./cmd/EncodarrRunner/main.go
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v6
         with:
           name: encodarr-runner-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }}
           path: ${{ github.workspace }}/runner/encodarr-runner-${{ env.COMP_GOOS }}-${{ env.COMP_GOARCH }}${{ env.EXEC_SUFFIX }}
@@ -105,11 +105,11 @@ jobs:
     if: github.repository_owner == 'BrenekH' && github.actor != 'dependabot[bot]' # Ensure secrets are defined
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: Generate Docker Metadata
         id: meta
-        uses: crazy-max/ghaction-docker-meta@v2
+        uses: docker/metadata-action@v5
         with:
           images: |
             brenekh/encodarr-runner
@@ -122,13 +122,13 @@ jobs:
             type=semver,pattern={{major}}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v5
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-runner-buildx-${{ github.sha }}
@@ -136,13 +136,13 @@ jobs:
             ${{ runner.os }}-runner-buildx-
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -158,7 +158,7 @@ jobs:
         run: echo "LDFLAGS_VERSION=$(echo ${GITHUB_REF:11})-development" >> $GITHUB_ENV
 
       - name: Build and push container images/tags
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: ./runner
           push: true
@@ -184,10 +184,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v7
         with:
           path: ${{ github.workspace }}/build-artifacts
 

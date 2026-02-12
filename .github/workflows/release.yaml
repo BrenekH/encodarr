@@ -19,7 +19,7 @@ jobs:
 
       - name: Create Release with Assets
         id: release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Version ${{ env.TAG_USED }}
           draft: false
